@@ -87,7 +87,7 @@ export function NoirAmbience() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      className="ln-ambient pointer-events-none fixed inset-0 z-0 overflow-hidden"
     >
       {/* drifting halos */}
       {HALOS.map((h, i) => (

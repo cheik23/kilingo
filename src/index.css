@@ -1736,3 +1736,16 @@ fieldset:disabled {
     box-shadow: none !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Décor non interactif — les calques d'ambiance ne doivent JAMAIS
+   capter un clic. `pointer-events: none` n'est pas hérité quand un
+   enfant (canvas react-three-fiber, div R3F) force `pointer-events:
+   auto` : sans cette règle, le fond de particules plein écran
+   avalait tous les clics de l'application (boutons inertes).
+   Mesuré : elementFromPoint(366,347) -> CANVAS pointer-events:auto.
+   ═══════════════════════════════════════════════════════════════════ */
+.ln-ambient,
+.ln-ambient * {
+  pointer-events: none !important;
+}

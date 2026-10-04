@@ -82,7 +82,7 @@ export function NetworkBackdrop({ className = "" }: { className?: string }) {
     return (
       <div
         aria-hidden="true"
-        className={`pointer-events-none fixed inset-0 z-0 ${className}`}
+        className={`ln-ambient pointer-events-none fixed inset-0 z-0 ${className}`}
       >
         <div className="ln-network-fallback absolute inset-0" />
       </div>
@@ -93,11 +93,11 @@ export function NetworkBackdrop({ className = "" }: { className?: string }) {
     <div
       ref={hostRef}
       aria-hidden="true"
-      className={`pointer-events-none fixed inset-0 z-0 opacity-40 ${className}`}
+      className={`ln-ambient pointer-events-none fixed inset-0 z-0 opacity-40 ${className}`}
     >
       {ready && (
         <Suspense fallback={null}>
-          <ParticleNetwork className="size-full" visible={visible} animate={!reduced} />
+          <ParticleNetwork className="size-full pointer-events-none" visible={visible} animate={!reduced} />
         </Suspense>
       )}
     </div>

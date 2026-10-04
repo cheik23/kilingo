@@ -174,27 +174,76 @@ Textes présents dans **12 langues**, ajoutés via `applyDictionaryOverlays`.
 
 ## 7. Démarrage
 
+### ✅ État actuel : backend local Convex, opérationnel
+
+Le backend tourne **en local dans Docker** — aucun compte Convex Cloud nécessaire.
+
 ```bash
+# 1. Backend Convex (Docker Desktop doit être lancé)
+cd C:\Users\leanc\Downloads\convex-local
+docker compose up -d
+docker compose exec backend ./generate_admin_key.sh   # → clé admin
+
+# 2. Brancher le projet
 cd C:\Users\leanc\Downloads\lingua-noir
-npm install                 # ou: bun install
+# (clé admin dans .env.local : CONVEX_SELF_HOSTED_ADMIN_KEY)
+npx convex dev --once          # pousse le schéma + génère _generated
+npx convex run slang:seed      # 2 417 expressions (idempotent)
+npx convex run crossSeed:seedCrossConcepts
 
-# Le backend Convex : soit le cloud (compte + variables),
-# soit en local (Docker est installé sur cette machine).
-npx convex dev
-
-# Puis l'app (port 5173)
-npm run dev
+# 3. L'app
+npm run dev                    # http://localhost:5173
 ```
 
-Variables d'environnement (`.env.example`) :
+| Service | URL |
+|---|---|
+| Backend Convex | `http://127.0.0.1:33210` |
+| Site proxy / auth (OIDC + JWKS) | `http://host.docker.internal:33211` |
+| Application | `http://localhost:5173` |
+
+### Variables d'environnement
+
+`.env.local` (gitignoré) :
 
 ```
-VITE_CONVEX_URL=      # rempli par `npx convex dev`
+CONVEX_SELF_HOSTED_URL=http://127.0.0.1:33210
+CONVEX_SELF_HOSTED_ADMIN_KEY=lingua-noir-local|<clé>
+VITE_CONVEX_URL=http://127.0.0.1:33210
+VITE_CONVEX_SITE_URL=http://host.docker.internal:33211
 CONVEX_SITE_URL=http://localhost:5173
-CONVEX_DEPLOYMENT=    # rempli par `npx convex dev`
 ```
 
-Côté serveur Convex, l'auth a besoin de `JWKS`, `JWT_PRIVATE_KEY`, `SITE_URL`.
+Variables côté **serveur Convex** (`npx convex env set`) :
+
+| Variable | Valeur | Pourquoi |
+|---|---|---|
+| `VLY_CONVEX_AUTH_ISSUER` | `https://freebuff.com` | providers d'auth federated |
+| `JWKS` | `convex-local/jwks.json` | signature des JWT |
+| `JWT_PRIVATE_KEY` | `convex-local/jwt_private.pem` | idem (côté serveur) |
+| `SITE_URL` | `http://host.docker.internal:33211` | issuer OIDC |
+
+### ⚠️ Pièges du self-hosted (coûteux à retrouver)
+
+- `npx convex dev --local` **échoue sur Windows** : `Failed to generate admin key: spawn UNKNOWN`.
+- L'image Docker est sur **`ghcr.io`**, plus sur Docker Hub ni quay.io.
+- `CONVEX_SITE_URL` est une variable **built-in** : elle suit `CONVEX_SITE_ORIGIN` du
+  conteneur et ne peut pas être définie par `convex env set`.
+- `CONVEX_SITE_ORIGIN` doit être joignable **depuis le conteneur ET depuis le
+  navigateur** → `host.docker.internal`, pas `127.0.0.1` (inaccessible de l'intérieur).
+- `CONVEX_SITE_ORIGIN` sans `INSTANCE_NAME`/`INSTANCE_SECRET` ⇒ pas de routage HTTP ⇒
+  `/.well-known/openid-configuration` non résolu.
+- La clé admin générée porte le préfixe `lingua-noir-local|` dès qu'`INSTANCE_NAME`
+  est défini (et non `convex-self-hosted|`). Elle change à chaque recréation du conteneur.
+- Convex Auth n'est **pas** supporté par le CLI en self-hosted : il faut pousser
+  `JWKS` / `JWT_PRIVATE_KEY` / `SITE_URL` à la main.
+
+### Option Convex Cloud (si tu veux retrouver l'app d'origine)
+
+```bash
+npx convex login
+npx convex dev --once --configure new --project lingua-noir --dev-deployment cloud
+```
+
 Une **clé d'intégration VLY** (`sk_*`) est requise pour l'IA, l'email et les paiements.
 
 ### Remise en route de la base de données
@@ -209,14 +258,37 @@ connexion Convex, création du déploiement, seeds et lancement de l'app.
 
 ---
 
-## 8. Bugs connus à l'arrêt de la dernière session
+## 8. Bugs connus
 
-À corriger en priorité — ils étaient **prouvés par diagnostic**, pas supposés :
+### ✅ CORRIGÉ le 4 octobre 2026 — un calque décoratif avalait TOUS les clics
+
+**Cause racine mesurée** : `NetworkBackdrop` / `NoirAmbience` posent
+`pointer-events: none` sur leur div racine, mais ce n'est **pas hérité** quand un enfant
+(le `<canvas>` react-three-fiber et ses div internes) force `pointer-events: auto`.
+Résultat : une toile 3D plein écran, censée être purement décorative, interceptait
+tous les clics de l'application — d'où les « boutons qui ne font rien ».
+
+Preuve (mesurée dans Chromium, pas supposée) :
+
+```
+elementFromPoint(366, 347)
+  AVANT -> CANVAS / pointer-events: auto        ← la toile décorative
+  APRÈS -> P / pointer-events: auto             ← le vrai contenu cliquable
+```
+
+**Correctif** : classe `.ln-ambient` sur les calques d'ambiance (`src/index.css`) avec
+`.ln-ambient, .ln-ambient * { pointer-events: none !important; }`, plus
+`pointer-events-none` sur le `<ParticleNetwork>`.
+
+Effet mesuré : la sélection de langue dans l'onboarding fonctionne (carte passe en
+`border-gold/50`) et le bouton « Continuer » passe de `disabled: true` à
+`disabled: false`. Toute la famille de bugs « boutons bloqués » vient probablement de là.
+
+### ⏳ À corriger ensuite
 
 1. **Porte d'onboarding bloquante** — un compte sans langue de focus se voit remplacer
-   toute l'application par l'assistant (`AppShell.tsx` ~l.362/375). `/app/signs` et
-   `/app/conversation` doivent rester atteignables par URL. Correctif prévu : bouton
-   « Explorer d'abord ».
+   toute l'application par l'assistant (`AppShell.tsx` ~l.323/333). `/app/conversation`
+   doit rester atteignable par URL. Correctif prévu : bouton « Explorer d'abord ».
 2. **Bouton « Commencer » mort** (conversation) — `disabled` avec l'explication
    uniquement en `title`, donc invisible au doigt. Correctif : étapes visibles
    « 1. Personnage ✓/✗ · 2. Scénario ✓/✗ ».
@@ -228,6 +300,9 @@ connexion Convex, création du déploiement, seeds et lancement de l'app.
    `getUserStats` est encore en vol. Correctif : skeleton neutre pendant le chargement.
 5. **Quota YouTube** — les sous-titres YouTube échouent parfois. Porte de secours déjà
    en place : import SRT/VTT universel (`src/lib/subtitleParse.ts`).
+6. **Écart de comptage** — l'Atlas affiche « 2 362 expressions » alors que la base en
+   contient **2 417**. Le compteur est soit figé, soit il exclut une catégorie
+   (`fr` ?). À recaler sur `slang:stats`.
 
 ## 9. Règles du projet (ne pas les casser)
 
