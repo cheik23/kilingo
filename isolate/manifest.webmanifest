@@ -1,0 +1,17 @@
+{
+  "name": "MOOVY",
+  "short_name": "MOOVY",
+  "description": "Plateforme d'immersion culturelle : apprends les langues à travers films, musiques, séries, podcasts et culture réelle.",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+.env.local
+node_modules
+dist
+src/convex/_generated
+workers/.venv
+workers/__pycache__

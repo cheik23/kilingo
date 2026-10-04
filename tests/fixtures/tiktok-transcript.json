@@ -1,0 +1,8 @@
+{
+  "platform": "tiktok",
+  "mediaId": "test",
+  "segments": [
+    { "start": 0, "end": 1.8, "text": "Hello everyone" },
+    { "start": 1.8, "end": 3.4, "text": "Welcome back" }
+  ]
+}

@@ -1,0 +1,171 @@
+<!doctype html>
+<!-- Page hors ligne STATIQUE : aucun React, aucun module, aucune requête
+     externe. Elle doit s'afficher même quand le réseau tombe ET que le
+     bundle JS est absent du cache. -->
+<html lang="fr" class="dark" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hors ligne — LinguaNoir</title>
+  <style>
+    /* Tokens Terre Sacrée, recopiés depuis index.css : cette page ne
+       charge PAS la feuille de style de l'app (elle doit fonctionner même
+       si le CSS est absent du cache). */
+    :root {
+      --bg: #1a1f3a;
+      --card-bg: #232946;
+      --gold: #f5c542;
+      --gold-deep: #d4af37;
+      --text: #f5f1e8;
+      --ink-3: #d4c5b0;
+      --terracotta: #e2725b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+      background:
+        radial-gradient(120% 90% at 50% 0%, #232946 0%, #1a1f3a 60%, #12162b 100%);
+      color: var(--text);
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      text-align: center;
+    }
+
+    .card {
+      width: min(30rem, 100%);
+      padding: 2.75rem 2rem;
+      border: 1px solid color-mix(in oklab, var(--gold) 22%, transparent);
+      border-radius: 1.75rem;
+      background: color-mix(in oklab, var(--card-bg) 88%, transparent);
+      box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .lion {
+      width: 7rem;
+      height: 7rem;
+      margin: 0 auto 1.5rem;
+      display: block;
+      /* Respiration lente : le seul mouvement de la page. */
+      animation: breathe 4s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-6px) scale(1.03); }
+    }
+
+    .kicker {
+      margin: 0 0 0.75rem;
+      font-family: ui-monospace, "SFMono-Regular", monospace;
+      font-size: 0.6875rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    h1 {
+      margin: 0 0 0.75rem;
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: clamp(1.6rem, 6vw, 2.1rem);
+      line-height: 1.15;
+    }
+
+    p {
+      margin: 0 auto 1.75rem;
+      max-width: 24rem;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--ink-3);
+    }
+
+    button {
+      appearance: none;
+      cursor: pointer;
+      padding: 0.7rem 1.6rem;
+      border: 2px solid var(--gold);
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%);
+      color: #1a1f3a;
+      font: inherit;
+      font-weight: 600;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+
+    button:hover {
+      box-shadow: 0 0 12px color-mix(in oklab, var(--gold) 30%, transparent);
+    }
+
+    button:active { transform: translateY(1px); }
+
+    button:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    .hint {
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      opacity: 0.75;
+    }
+
+    /* Pas de rebond si l'utilisateur a coupé les animations. */
+    @media (prefers-reduced-motion: reduce) {
+      .lion { animation: none; }
+      button { transition: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <!-- Jabari en état « think » : deux petits traits à la place des yeux
+         ronds, et des points de suspension pour l'idée. -->
+    <svg class="lion" viewBox="0 0 64 64" role="img" aria-label="Jabari réfléchit">
+      <rect width="64" height="64" rx="14" fill="#232946" />
+      <circle cx="32" cy="34" r="21" fill="#D4AF37" />
+      <circle cx="16" cy="18" r="6" fill="#F5C542" />
+      <circle cx="48" cy="18" r="6" fill="#F5C542" />
+      <circle cx="32" cy="33" r="17" fill="#F5C542" />
+      <ellipse cx="32" cy="40" rx="9" ry="7" fill="#FFE9A8" />
+      <path d="M32 36.5 l-3 -3 h6 z" fill="#E91E63" />
+      <path d="M22.5 30 q2.5 -1.5 5 0" stroke="#12162b" stroke-width="2" fill="none" stroke-linecap="round" />
+      <path d="M36.5 30 q2.5 -1.5 5 0" stroke="#12162b" stroke-width="2" fill="none" stroke-linecap="round" />
+      <path d="M27 45 q5 2.5 10 0" stroke="#12162b" stroke-width="1.6" fill="none" stroke-linecap="round" />
+      <circle cx="45" cy="44" r="1.6" fill="#F5C542" />
+      <circle cx="49" cy="47" r="1.2" fill="#F5C542" />
+      <rect x="18" y="53" width="28" height="5" rx="2.5" fill="#232946" />
+      <rect x="22" y="53" width="6" height="5" rx="2.5" fill="#F5C542" />
+      <rect x="32" y="53" width="5" height="5" rx="2.5" fill="#E91E63" />
+    </svg>
+
+    <p class="kicker">Hors ligne</p>
+    <h1>Je garde tout au chaud pour ton retour&nbsp;🌙</h1>
+    <p>
+      Tes cartes, tes expressions et tes stats restent sur ton appareil.
+      Les quiz et les conversations, eux, ont besoin du réseau.
+    </p>
+
+    <button type="button" onclick="window.location.reload()">Réessayer</button>
+
+    <p class="hint">Reconnecte-toi, puis appuie sur « Réessayer ».</p>
+  </main>
+
+  <script>
+    // Réessayer tant qu'on est hors ligne n'aurait aucun sens : on
+    // recharge seulement quand le réseau est revenu.
+    const button = document.querySelector("button");
+    const sync = () => { button.disabled = !navigator.onLine; };
+    sync();
+    window.addEventListener("online", sync);
+    window.addEventListener("offline", sync);
+  </script>
+</body>
+
+</html>

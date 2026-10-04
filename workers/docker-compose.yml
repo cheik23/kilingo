@@ -1,0 +1,40 @@
+version: "3.8"
+
+# Déploiement Docker des workers MOOVY — méthode OPTIONNELLE.
+# ⚠️ Ces fichiers ne constituent PAS une preuve de runtime : un déploiement
+# n'est validé que par GET /health (HTTP 200 + JSON) puis une transcription
+# réelle avec word timestamps (voir workers/README.md).
+services:
+  asr:
+    image: fedirz/faster-whisper-server:latest-cpu
+    ports:
+      - "8000:8000"
+    environment:
+      # Modèle configurable via WHISPER_MODEL côté hôte (défaut raisonnable).
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - asr-models:/root/.cache/huggingface
+
+  translate:
+    image: libretranslate/libretranslate:latest
+    ports:
+      - "5000:5000"
+    environment:
+      - LT_LOAD_ONLY=${LT_LOAD_ONLY:-en,fr,es,pt,ar,zh,ru}
+      - LT_UPDATE_MODELS=${LT_UPDATE_MODELS:-false}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5000/languages || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - lt-models:/home/svc/.local/share/argos-translate
+
+volumes:
+  asr-models:
+  lt-models:

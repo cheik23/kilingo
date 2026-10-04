@@ -1,0 +1,19 @@
+# LinguaNoir — robots.txt
+#
+# La landing et la page d'auth sont publiques et doivent être explorées.
+# Tout `/app` exige une session Convex : ces pages renverraient l'écran de
+# connexion aux robots, ce qui gaspille du budget d'exploration et fait
+# chuter la perception du site. On les exclut explicitement — et on ne les
+# liste pas dans le sitemap non plus.
+
+User-agent: *
+Allow: /
+Allow: /auth
+Disallow: /app
+Disallow: /api/
+
+# Les paramètres de tri/filtre ne créent pas de contenu nouveau.
+Disallow: /*?ref=
+Disallow: /*&ref=
+
+Sitemap: https://app.linguanoir.com/sitemap.xml

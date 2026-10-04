@@ -1,0 +1,68 @@
+<!doctype html>
+<!-- Theme nuit posé avant tout paint : `.dark` porte les tokens or/noir et
+     `data-theme="dark"` pilote le Thème du Toaster (next-themes enableSystem).
+     Aucun script bloquant ici — le premier paint ne doit rien attendre. -->
+<html lang="fr" class="dark" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>LinguaNoir — Maîtrise l'argot africain en 7 jours</title>
+  <meta
+    name="description"
+    content="Apprends l'argot, les expressions et la culture africains par l'immersion. 11 langues, 2 363 expressions documentées, avatar 3D et révision espacée. Gratuit, sans carte bancaire."
+  />
+  <link rel="icon" type="image/svg+xml" href="/mascot.svg" />
+  <!-- Les polices arrivent par `@import` CSS, ce qui coûte une requête
+       DNS + TLS AVANT même de découvrir la feuille de style. Le preconnect
+       ouvre le canal pendant le chargement du HTML. `display=swap` est déjà
+       dans l'URL : le texte s'affiche immédiatement en police système. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1A1F3A" />
+
+  <!-- Canonique + hreflang : une seule URL par langue d'interface. -->
+  <link rel="canonical" href="https://app.linguanoir.com/" />
+  <link rel="alternate" hreflang="fr" href="https://app.linguanoir.com/" />
+  <link rel="alternate" hreflang="x-default" href="https://app.linguanoir.com/" />
+
+  <!-- Open Graph — c'est ce que prévisualisent WhatsApp, iMessage, Slack. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="LinguaNoir" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:url" content="https://app.linguanoir.com/" />
+  <meta property="og:title" content="LinguaNoir — Maîtrise l'argot africain en 7 jours" />
+  <meta
+    property="og:description"
+    content="11 langues · 2 363 expressions · avatar 3D. L'argot africain par l'immersion, pas par le manuel."
+  />
+  <meta property="og:image" content="https://app.linguanoir.com/icons/icon-512.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta property="og:image:alt" content="Jabari, le lion de LinguaNoir" />
+
+  <!-- Twitter Card "summary_large_image" : grande vignette dans le fil. -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="LinguaNoir — Maîtrise l'argot africain en 7 jours" />
+  <meta
+    name="twitter:description"
+    content="11 langues · 2 363 expressions · avatar 3D. L'argot africain par l'immersion."
+  />
+  <meta name="twitter:image" content="https://app.linguanoir.com/icons/icon-512.png" />
+  <meta name="twitter:image:alt" content="Jabari, le lion de LinguaNoir" />
+
+  <meta name="apple-mobile-web-app-title" content="LinguaNoir" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+</head>
+
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

@@ -1,0 +1,1738 @@
+/* DO NOT CHANGE */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Inter:wght@300..800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant dark (&:is(.dark *));
+
+/* DO NOT CHANGE */
+@theme inline {
+  /* Grille d'harmonie : rayons unifiés (bouton → chip → carte → panneau → hero). */
+  --radius-sm: var(--ln-radius-sm);
+  --radius-md: var(--ln-radius-md);
+  --radius-lg: var(--ln-radius-lg);
+  --radius-xl: var(--ln-radius-xl);
+  --radius-4xl: var(--ln-radius-xl);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  /* Or : `--color-gold` et `--color-gold-soft` pointent sur la version
+     accessible (texte). `--color-gold-primary` est le ton de marque brut,
+     réservé au décoratif (canvas, SVG, fonds). */
+  --color-gold: var(--gold-text);
+  --color-gold-strong: var(--gold-strong);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-primary: var(--gold-primary);
+  --color-gold-deep: var(--gold-deep);
+  --color-silver: var(--silver);
+  /* Accent terracotta : réservé aux états d'urgence / erreur. `-ink` est la
+     variante lisible sur le fond courant (texte, bordures, icônes).
+     `text-terracotta` (8 usages) pointe vers la variante TEXTE, plus
+     claire : l'aplat brut ne tient pas 4.5:1 sur les modales. */
+  --color-terracotta: var(--terracotta-text);
+  --color-terracotta-fill: var(--terracotta);
+  --color-terracotta-ink: var(--terracotta-ink);
+  /* Magenta « Nuit de Lagos » : actions secondaires, jamais le texte courant. */
+  --color-magenta: var(--accent-magenta);
+  --color-magenta-deep: var(--accent-magenta-deep);
+  --color-magenta-ink: var(--accent-magenta-ink, var(--accent-magenta-deep));
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-noir: var(--noir);
+  --color-noir-2: var(--noir-2);
+  --color-noir-3: var(--noir-3);
+  --font-display: var(--ln-font-display);
+  --font-sans: var(--ln-font-body);
+  --font-mono: var(--ln-font-mono);
+  --shadow-sm: var(--ln-shadow-sm);
+  --shadow-md: var(--ln-shadow-md);
+  --shadow-lg: var(--ln-shadow-lg);
+  --shadow-xl: var(--ln-shadow-xl);
+
+  /* Module 0 — échelle typographique modulaire fluide (ratio ≈ 1.25).
+     Déclarée ici pour que `text-xs` … `text-5xl` soient fluides et
+     qu'aucun saut de taille n'existe entre deux breakpoints. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: clamp(1.25rem, 1.18rem + 0.36vw, 1.375rem);
+  --text-2xl: clamp(1.5rem, 1.35rem + 0.75vw, 1.875rem);
+  --text-3xl: clamp(1.875rem, 1.6rem + 1.375vw, 2.5rem);
+  --text-4xl: clamp(2.25rem, 1.8rem + 2.25vw, 3.25rem);
+  --text-5xl: clamp(2.75rem, 2rem + 3.75vw, 4rem);
+}
+
+/* CHANGE VALUES FOR THEME */
+:root {
+  --radius: 0.625rem;
+  /* DÉFAUT = « NUIT DE LAGOS ». `:root` porte la nuit pour que la marque
+     s'affiche correctement avant tout JS (index.html pose déjà
+     `data-theme="dark"`). La variante claire est un override explicite
+     plus bas (`html[data-theme="light"]`). */
+  --bg: #1a1f3a; /* --bg-primary : bleu nuit profond */
+  --text: #f5f1e8; /* --text-primary : blanc chaud */
+  --card-bg: #232946; /* --bg-surface */
+  --noir: #1a1f3a;
+  --noir-2: #232946;
+  --noir-3: #2b3154; /* --bg-elevated : bleu nuit élevé (modales) */
+
+  /* ── Design tokens : or, typo, ombres ─────────────────────────── */
+  --gold-primary: #f5c542; /* or vif (décoratif) */
+  --gold-deep: #d4af37; /* or profond */
+  --gold-light: #f7de9b;
+  --gold-dark: #d4af37;
+  --gold-text: #f5c542; /* or lisible sur noir (10.6:1) */
+  --gold: var(--gold-primary);
+  --gold-strong: var(--gold-deep);
+  --gold-soft: #f7de9b;
+  /* « Nuit de Lagos » : le rose magenta est la couleur d'action
+     secondaire. Les noms de variables restent `magenta` — c'est bien
+     la teinte, la compat des classes `bg-magenta` est préservée.
+
+     ATTENTION — #E91E63 ne fait que 3.7:1 sur le bleu nuit : c'est un
+     APLAT (fond de bouton, badge), jamais une couleur de texte. Pour un
+     libellé magenta sur fond sombre, utiliser `--accent-magenta-text`
+     (#EC6E9B, 5.6:1). */
+  --accent-magenta: #e91e63;
+  --accent-magenta-deep: #c2185b;
+  --accent-magenta-ink: #b01247; /* lisible sur fond clair */
+  --accent-magenta-text: #ec6e9b; /* magenta en TEXTE sur fond nuit */
+  --accent-secondary: #e91e63;
+  --accent-secondary-deep: #c2185b;
+
+  /* Terracotta #E2725B — urgence/erreur uniquement (5.2:1 sur bleu nuit).
+     Sur les surfaces élevées (modales, `bg-noir-3/60` → #282E4E) il
+     descend à 4.3:1 : c'est pourquoi `text-terracotta` pointe vers
+     `--terracotta-text` (#F08A76, 5.6:1). Le token `terracotta` reste
+     l'aplat des bannières et badges. */
+  --terracotta: #e2725b;
+  --terracotta-ink: #e2725b;
+  --terracotta-text: #f08a76; /* terracotta en TEXTE sur fond nuit */
+
+  --ln-font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --ln-font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ln-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Ombres douces (3 niveaux) — jamais de noir dur. */
+  /* Ombres teintées bleu nuit : un noir pur sur #1A1F3A ne « descend » pas
+     assez, les cartes semblent flotter sans poids. */
+  --ln-shadow-sm: 0 1px 2px rgba(8, 10, 24, 0.55), 0 1px 3px rgba(8, 10, 24, 0.45);
+  --ln-shadow-md: 0 4px 6px -1px rgba(8, 10, 24, 0.6), 0 2px 4px -1px rgba(8, 10, 24, 0.45);
+  --ln-shadow-lg: 0 12px 24px -6px rgba(8, 10, 24, 0.7), 0 6px 10px -6px rgba(8, 10, 24, 0.5);
+  --ln-shadow-xl: 0 24px 48px -12px rgba(8, 10, 24, 0.8), 0 12px 20px -8px rgba(8, 10, 24, 0.55);
+
+  /* ── Couleurs de la couche 3D (Jabari, coffre, globe, particules) ─
+     Lues par `useThemeColors` : une paire de valeurs par thème, donc
+     aucune lecture de variable CSS au milieu d'une frame. */
+  --fx-3d-gold: #f5c542;
+  --fx-3d-gold-deep: #d4af37;
+  --fx-3d-accent: #e91e63;
+  --fx-3d-suit: #232946;
+  --fx-3d-env: #1a1f3a;
+
+  /* ── Gradients signature « Nuit de Lagos » ─────────────────────── */
+  --gradient-hero: linear-gradient(135deg, #1a1f3a 0%, #232946 50%, #2b3154 100%);
+  --gradient-gold: linear-gradient(135deg, #f5c542 0%, #d4af37 100%);
+  --gradient-magenta: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+  /* Alias historique : l'app utilisait ce nom quand l'accent était olive.
+     Il repart sur le magenta pour éviter un token mort. */
+  --gradient-olive: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+
+  /* Module D — rythme de mouvement : 3 durées + 2 courbes. */
+  --ln-dur-fast: 150ms;
+  --ln-dur: 250ms;
+  --ln-dur-slow: 400ms;
+  --ln-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ln-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ═══════════════════════════════════════════════════════════
+     MODULE 0 — GRILLE D'HARMONIE
+     Toutes les valeurs de layout descendent de ces tokens.
+     ═══════════════════════════════════════════════════════════ */
+
+  /* Espacement 4pt/8pt */
+  --ln-space-1: 0.25rem;
+  --ln-space-2: 0.5rem;
+  --ln-space-3: 0.75rem;
+  --ln-space-4: 1rem;
+  --ln-space-6: 1.5rem;
+  --ln-space-8: 2rem;
+  --ln-space-12: 3rem;
+  --ln-space-16: 4rem;
+  --ln-space-24: 6rem;
+
+  /* Rythme vertical : mobile d'abord, élargi en desktop. */
+  --ln-section-y: var(--ln-space-8);
+  --ln-block-gap: var(--ln-space-8);
+  --ln-gutter: var(--ln-space-4);
+
+  /* Rayons : 4 tokens + pastille */
+  --ln-radius-sm: 0.5rem;
+  --ln-radius-md: 0.75rem;
+  --ln-radius-lg: 1rem;
+  --ln-radius-xl: 1.5rem;
+  --ln-radius-full: 9999px;
+
+  /* Interlignes liés à la taille */
+  --ln-lh-display: 1.1;
+  --ln-lh-title: 1.25;
+  --ln-lh-body: 1.6;
+  --ln-lh-small: 1.5;
+  --silver: #aebfd4;
+  --ink: #f5f1e8; /* texte primaire */
+  --ink-2: #b8c5d6; /* texte secondaire (12:1) */
+  --ink-3: #9aa8ba; /* texte tertiaire (6.7:1 fond · 5.2:1 modale) */
+  --noir: #1a1f3a;
+  --noir-2: #232946;
+  --noir-3: #2b3154;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+  /* Mêmes tokens de marque que `:root` (la nuit). `.dark` reste supporté
+     pour les composants shadcn et doit donc porter exactement les mêmes
+     valeurs — sinon la classe gagnerait sur `:root` et réintroduirait
+     l'ancienne palette. */
+  --gold-primary: #f5c542;
+  --gold-light: #f7de9b;
+  --gold-dark: #d4af37;
+  --gold-text: #f5c542;
+  --gold: var(--gold-primary);
+  --gold-strong: var(--gold-dark);
+  --gold-soft: var(--gold-light);
+  --ln-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --ln-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.35);
+  --ln-shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.6), 0 6px 10px -6px rgba(0, 0, 0, 0.4);
+}
+
+/* === MOOVY THEME === */
+/* Le défaut est la nuit (Nuit de Lagos) : la variante claire est un
+   override explicite, jamais l'inverse. */
+html {
+  color-scheme: dark;
+}
+
+/* Module C — aucun débordement horizontal, même à 375px. `clip`Unlike`hidden`,
+   il préserve `position: sticky` (header, sidebars). */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Pas de rebond blanc (pull-to-refresh) sur les surfaces scrollables. */
+html {
+  overscroll-behavior-y: none;
+}
+
+body,
+.ln-scroll-area {
+  overscroll-behavior: contain;
+}
+
+/* Cadre unifié : un seul or, une seule épaisseur, une seule teinte. */
+:root {
+  --border-subtle: 1px solid color-mix(in oklab, var(--gold-primary) 15%, transparent);
+  --border-subtle-strong: 1px solid color-mix(in oklab, var(--gold-primary) 40%, transparent);
+}
+
+/* Sections respirantes : mobile d'abord. */
+.ln-section {
+  padding-block: var(--ln-section-y);
+}
+
+.ln-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ln-block-gap);
+}
+
+/* Grille adaptative : 1 col 375px · 2 col 768px · 3-4 col 1440px. */
+.ln-grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17.5rem), 1fr));
+  gap: var(--ln-block-gap);
+}
+
+.ln-grid-tight {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: var(--ln-space-4);
+}
+
+/* Carrousel tactile : swipe natif + points d'accroche. */
+.ln-snap-x {
+  display: flex;
+  gap: var(--ln-space-3);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--ln-gutter);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  padding-inline: var(--ln-gutter);
+  scrollbar-width: none;
+}
+.ln-snap-x::-webkit-scrollbar {
+  display: none;
+}
+.ln-snap-item {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  flex: 0 0 auto;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --ln-section-y: var(--ln-space-16);
+    --ln-block-gap: var(--ln-space-12);
+    --ln-gutter: var(--ln-space-8);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ln-snap-x {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ── Thème NUIT : ALIAS (aucune palette) ─────────────────────────
+   La nuit « Nuit de Lagos » vit dans `:root`, qui EST déjà le défaut.
+   Ce sélecteur ne porte donc aucune couleur : il garantit seulement
+   `color-scheme` quand l'attribut ou la classe est posé (index.html
+   pose `class="dark" data-theme="dark"` avant tout paint). Aucun
+   doublon de palette, donc aucun risque de divergence. */
+html[data-theme="dark"],
+html.theme-dark,
+html.dark {
+  color-scheme: dark;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   VARIANTE CLAIRE « TERRE SACRÉE JOUR »
+
+   Activée par `data-theme="light"` OU la classe `theme-light` (le hook
+   useThemeMode pose les deux). Le défaut reste la nuit.
+
+   L'or de marque devient un or FONCÉ (5.2:1 sur crème) : le ton clair
+   #D4A574 ne tient pas le contraste sur fond crème. Les CTA gardent un
+   dégradé sombre pour que leur libellé crème (`text-noir`) reste lisible.
+
+   `--color-white` est réécrit en encre sombre : les centaines de voiles
+   `border-white/10` / `bg-white/5` de l'app deviennent donc des voiles
+   SOMBRES sur fond clair, au lieu d'être invisibles.
+   ═══════════════════════════════════════════════════════════════════ */
+html[data-theme="light"],
+html.theme-light {
+  color-scheme: light;
+
+  --bg: #faf0e6; /* fond crème */
+  --text: #2c1810; /* texte principal (16:1) */
+  --card-bg: #f3e7d3; /* surface */
+  --noir: #faf0e6;
+  --noir-2: #f3e7d3;
+  --noir-3: #e8d9c0; /* elevated */
+
+  --gold-primary: #8a5a33; /* or foncé lisible */
+  --gold-deep: #6e4626;
+  --gold-light: #a3724a;
+  --gold-dark: #6e4626;
+  --gold-text: #8a5a33;
+  --gold: var(--gold-primary);
+  --gold-strong: #6e4626;
+  --gold-soft: #6e4626; /* CTA : assez sombre pour un libellé crème */
+
+  --accent-magenta: #556b1f; /* olive */
+  --accent-magenta-deep: #44561a;
+  --accent-magenta-ink: #36450f;
+  --accent-secondary: #556b1f;
+  --accent-secondary-deep: #44561a;
+  --accent-magenta-text: #556b1f; /* même logique : olive profond en texte */
+
+  --terracotta: #e2725b;
+  --terracotta-ink: #a8462f; /* le ton brut ne tient pas 4.5:1 sur crème */
+  /* Sur crème, c'est l'aplat qui est trop clair — on inverse donc le rôle
+     du token texte : ici c'est le ton profond qui sert de libellé. */
+  --terracotta-text: #a8462f;
+
+  --silver: #8a7d6b;
+  --ink: #2c1810;
+  --ink-2: #6b5744; /* texte secondaire (6.1:1) */
+  --ink-3: #6e5a47; /* tertiaire (5.8:1 crème · 4.7:1 elevated) */
+  --border: rgba(138, 90, 51, 0.2);
+
+  --gradient-hero: linear-gradient(135deg, #faf0e6 0%, #f3e7d3 50%, #e8d9c0 100%);
+  --gradient-gold: linear-gradient(135deg, #8a5a33 0%, #6e4626 100%);
+  --gradient-magenta: linear-gradient(135deg, #556b1f 0%, #44561a 100%);
+  --gradient-olive: linear-gradient(135deg, #556b1f 0%, #44561a 100%);
+
+  --ln-shadow-sm: 0 1px 2px rgba(44, 24, 16, 0.08), 0 1px 3px rgba(44, 24, 16, 0.06);
+  --ln-shadow-md: 0 4px 6px -1px rgba(44, 24, 16, 0.12), 0 2px 4px -1px rgba(44, 24, 16, 0.08);
+  --ln-shadow-lg: 0 12px 24px -6px rgba(44, 24, 16, 0.16), 0 6px 10px -6px rgba(44, 24, 16, 0.1);
+  --ln-shadow-xl: 0 24px 48px -12px rgba(44, 24, 16, 0.22), 0 12px 20px -8px rgba(44, 24, 16, 0.12);
+
+  /* Couche 3D : or et olive foncés, lisibles sur crème. */
+  --fx-3d-gold: #8a5a33;
+  --fx-3d-gold-deep: #6e4626;
+  --fx-3d-accent: #556b1f;
+  --fx-3d-suit: #6b5744;
+  --fx-3d-env: #e8d9c0;
+
+  /* Inversion sémantique : les voiles `white/N` deviennent sombres. */
+  --color-white: #2c1810;
+}
+
+/* Changement de thème (Paramètres) : transition de couleur douce.
+   Uniquement des propriétés de peinture — jamais de layout. Le choix
+   reste instantané (200 ms), et reduced-motion la neutralise via la
+   règle globale déjà en place plus bas. */
+html,
+body {
+  transition:
+    background-color var(--ln-dur) var(--ln-ease),
+    color var(--ln-dur) var(--ln-ease);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--ln-font-body);
+  font-size: 1rem;
+  line-height: var(--ln-lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Titres : famille display, interligne serré. Le corps garde 1.5 minimum. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--ln-font-display);
+  line-height: var(--ln-lh-title);
+  text-wrap: balance;
+  /* Titres zh / ar / ru : autorise la coupure plutôt que l'overflow
+     quand le glyphe est large. */
+  overflow-wrap: break-word;
+  line-break: auto;
+}
+
+/* Display : réservé aux blocs héro (1.1). */
+.font-display {
+  overflow-wrap: break-word;
+  line-break: auto;
+}
+
+h1,
+.ln-display {
+  line-height: var(--ln-lh-display);
+}
+
+.text-xs,
+.text-sm {
+  line-height: var(--ln-lh-small);
+}
+
+p,
+li,
+dd,
+label {
+  line-height: var(--ln-lh-body);
+}
+
+p,
+li,
+dd,
+label {
+  line-height: 1.5;
+}
+
+@keyframes ln-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ln-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes ln-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes ln-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--ln-rot, 0deg));
+  }
+  50% {
+    transform: translateY(-14px) rotate(var(--ln-rot, 0deg));
+  }
+}
+
+@keyframes ln-kenburns {
+  0% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.08);
+    opacity: 0;
+  }
+}
+
+@keyframes ln-wave {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes ln-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-fade-up {
+  animation: ln-fade-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.animate-float {
+  animation: ln-float 7s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(212, 165, 116, 0) 0%,
+    rgba(212, 165, 116, 0.25) 50%,
+    rgba(212, 165, 116, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: ln-shimmer 2.4s linear infinite;
+}
+
+.animate-marquee {
+  animation: ln-marquee 36s linear infinite;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-light) 55%, var(--gold-primary) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ln-card {
+  background: var(--card-bg);
+  border: var(--border-subtle);
+  border-radius: var(--ln-radius-lg);
+  box-shadow: var(--ln-shadow-sm);
+  transition:
+    background-color var(--ln-dur) var(--ln-ease),
+    transform var(--ln-dur) var(--ln-ease),
+    box-shadow var(--ln-dur) var(--ln-ease),
+    border-color var(--ln-dur) var(--ln-ease);
+}
+
+.ln-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    var(--ln-shadow-xl),
+    0 0 0 1px color-mix(in srgb, var(--gold-primary) 40%, transparent);
+}
+
+/* Épaulements doux réutilisables par les cartes et panneaux. */
+.ln-shadow-sm {
+  box-shadow: var(--ln-shadow-sm);
+}
+.ln-shadow-md {
+  box-shadow: var(--ln-shadow-md);
+}
+.ln-shadow-lg {
+  box-shadow: var(--ln-shadow-lg);
+}
+
+/* Poussière du hero statique (repli CSS du globe 3D). */
+@keyframes ln-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.25;
+  }
+  to {
+    transform: translate3d(0.75rem, -1.25rem, 0);
+    opacity: 0.7;
+  }
+}
+
+.ln-dust {
+  contain: strict;
+}
+
+/* Module 0 — cadre normalisé, aucune carte ne dérive. */
+.ln-frame {
+  border: var(--border-subtle);
+  border-radius: var(--ln-radius-lg);
+  box-shadow: var(--ln-shadow-md);
+}
+.ln-frame-lg {
+  border: var(--border-subtle);
+  border-radius: var(--ln-radius-xl);
+  box-shadow: var(--ln-shadow-md);
+}
+
+/* Module D — pas de hover « collant » sur tactile. */
+@media (hover: none) {
+  .ln-card:hover {
+    transform: none;
+    box-shadow: var(--ln-shadow-sm);
+  }
+}
+
+.ln-glow {
+  box-shadow: var(--ln-shadow-md), 0 0 24px color-mix(in srgb, var(--gold-primary) 20%, transparent);
+}
+
+.ln-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CINEMATIC NOIR & OR — ambient FX, 3D text, karaoké, micro-rewards
+   Animates ONLY transform / opacity / background-position / box-shadow.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Ambiant background ─────────────────────────────────────────── */
+@keyframes ln-halo-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(-120px, 60px, 0) scale(1.12);
+  }
+  66% {
+    transform: translate3d(60px, -40px, 0) scale(0.94);
+  }
+}
+
+@keyframes ln-halo-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  40% {
+    transform: translate3d(100px, -70px, 0) scale(1.15);
+  }
+  70% {
+    transform: translate3d(-50px, 40px, 0) scale(0.9);
+  }
+}
+
+@keyframes ln-halo-drift-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-80px, -90px, 0) scale(1.1);
+  }
+}
+
+.ln-halo-a {
+  animation: ln-halo-drift-a 28s ease-in-out infinite;
+}
+
+.ln-halo-b {
+  animation: ln-halo-drift-b 34s ease-in-out infinite;
+}
+
+.ln-halo-c {
+  animation: ln-halo-drift-c 25s ease-in-out infinite;
+}
+
+@keyframes ln-ember-rise {
+  0% {
+    transform: translate3d(0, 100vh, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--ln-ember-opacity, 0.6);
+  }
+  85% {
+    opacity: var(--ln-ember-opacity, 0.6);
+  }
+  100% {
+    transform: translate3d(var(--ln-drift, 0px), -10vh, 0);
+    opacity: 0;
+  }
+}
+
+.ln-ember {
+  position: absolute;
+  bottom: -4vh;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    #e8cfae 0%,
+    #d4a574 45%,
+    rgba(212, 165, 116, 0) 100%
+  );
+  box-shadow: 0 0 6px rgba(212, 165, 116, 0.55);
+  animation-name: ln-ember-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+/* ── 2. Typography FX ──────────────────────────────────────────────── */
+.ln-shimmer-text {
+  background: linear-gradient(
+    110deg,
+    #b8956a 25%,
+    #f3e4cf 45%,
+    #b8956a 65%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: ln-shimmer 3.5s linear infinite;
+}
+
+.ln-reveal-title {
+  display: inline-block;
+  perspective: 600px;
+}
+
+@keyframes ln-letter-flip {
+  from {
+    display: inline-block;
+    opacity: 0;
+    transform: rotateX(90deg);
+  }
+  to {
+    display: inline-block;
+    opacity: 1;
+    transform: rotateX(0deg);
+  }
+}
+
+.ln-letter {
+  display: inline-block;
+  transform-origin: bottom;
+  backface-visibility: hidden;
+  animation: ln-letter-flip 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--ln-i, 0) * var(--ln-stagger, 40ms));
+}
+
+/* ── Révélation « encre dorée » des H1 (MODULE 3) ────────────────────
+   Le titre se pose comme une plume : le trait s'ouvre de gauche à droite
+   (clip-path) pendant que le flou se résorbe (400 ms). Le sens de
+   l'ouverture suit la direction du texte (RTL : de droite à gauche).
+   La variable évite deux keyframes pour une seule intention. */
+.ln-ink-title {
+  --ln-ink-from: inset(0 100% 0 0);
+  animation: ln-ink-reveal var(--ln-dur-slow, 400ms) var(--ln-ease-out) both;
+}
+
+[dir="rtl"] .ln-ink-title {
+  --ln-ink-from: inset(0 0 0 100%);
+}
+
+@keyframes ln-ink-reveal {
+  from {
+    clip-path: var(--ln-ink-from);
+    filter: blur(8px);
+    opacity: 0.15;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+/* ── 3. Cards: tilt + gold hover + shine sweep ────────────────────── */
+.ln-tilt {
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transition: box-shadow var(--ln-dur) var(--ln-ease), border-color var(--ln-dur) var(--ln-ease);
+  border: var(--border-subtle);
+  border-radius: var(--ln-radius-lg);
+}
+
+.ln-tilt-hover {
+  border-color: color-mix(in srgb, var(--gold-primary) 45%, transparent);
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--gold-primary) 12%, transparent),
+    var(--ln-shadow-md);
+}
+
+.ln-shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    rgba(243, 228, 207, 0) 30%,
+    rgba(243, 228, 207, 0.14) 48%,
+    rgba(184, 149, 106, 0.12) 52%,
+    rgba(184, 149, 106, 0) 70%
+  );
+  transform: translateX(-110%);
+  opacity: 0;
+}
+
+.ln-tilt:hover .ln-shine,
+.ln-magnetic:hover .ln-shine {
+  animation: ln-shine-sweep 700ms ease-out;
+  opacity: 1;
+}
+
+@keyframes ln-shine-sweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(110%);
+  }
+}
+
+/* ── 4. Magnetic buttons ──────────────────────────────────────────── */
+.ln-magnetic {
+  transition:
+    transform var(--ln-dur-fast) var(--ln-ease-out),
+    box-shadow var(--ln-dur) var(--ln-ease);
+}
+
+.ln-magnetic:active {
+  transform: scale(0.97);
+}
+
+.ln-magnetic:focus-visible {
+  outline: 2px solid var(--gold-text);
+  outline-offset: 2px;
+}
+
+/* ── 5. Karaoké subtitles ─────────────────────────────────────────── */
+@keyframes ln-slang-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(212, 165, 116, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(212, 165, 116, 0.5);
+  }
+}
+
+.ln-slang-badge {
+  animation: ln-slang-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ln-segment-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.ln-segment-in {
+  animation: ln-segment-in 0.28s ease-out both;
+}
+
+.ln-word-past {
+  color: #d4a574;
+  transition: color 120ms linear;
+}
+
+.ln-word-current {
+  color: #fdf3e3;
+  text-shadow: 0 0 14px rgba(212, 165, 116, 0.65);
+  transform: scale(1.06);
+  display: inline-block;
+  transition:
+    color 120ms linear,
+    transform 120ms ease-out;
+}
+
+.ln-word-future {
+  color: #ffffff;
+  transition: color 120ms linear;
+}
+
+@keyframes ln-accrds {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 200px;
+    opacity: 1;
+  }
+}
+
+.ln-accordion {
+  overflow: hidden;
+  animation: ln-accrds 250ms ease both;
+}
+
+/* ── 6. Micro-rewards ─────────────────────────────────────────────── */
+@keyframes ln-burst {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--ln-px, 20px), var(--ln-py, -30px), 0)
+      scale(0.2);
+  }
+}
+
+.ln-burst-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 9999px;
+  background: radial-gradient(circle, #f6e7d0 0%, #d4a574 60%);
+  box-shadow: 0 0 8px rgba(212, 165, 116, 0.7);
+  animation: ln-burst 700ms ease-out forwards;
+  pointer-events: none;
+}
+
+/* LOT H — confettis or/noir : chute + dérive + rotation, GPU uniquement
+   (transform/opacity), rien à recalculer à chaque frame. */
+@keyframes ln-confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -14px, 0) rotate(0deg);
+  }
+  8% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--ln-confetti-x, 0px), 420px, 0)
+      rotate(var(--ln-confetti-spin, 360deg));
+  }
+}
+
+.ln-confetti-piece {
+  position: absolute;
+  top: 0;
+  border-radius: 1px;
+  will-change: transform, opacity;
+  animation-name: ln-confetti-fall;
+  animation-timing-function: cubic-bezier(0.25, 0.6, 0.4, 1);
+  animation-fill-mode: both;
+  pointer-events: none;
+}
+
+/* LOT H — le compteur visé par la traînée de pièces respire une fois :
+   l'œil est conduit du point de gain jusqu'au solde. */
+@keyframes ln-coin-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.16);
+  }
+}
+
+.ln-coin-pulse {
+  animation: ln-coin-pulse 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 2;
+}
+
+/* LOT H — ripple doré au clic sur les CTA : un disque qui s'ouvre et
+   disparaît, posé sur le curseur (position passée en inline style). */
+@keyframes ln-ripple {
+  from {
+    opacity: 0.55;
+    transform: scale(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+.ln-ripple-ink {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--gold-primary) 60%, transparent) 0%,
+    transparent 72%
+  );
+  animation: ln-ripple 620ms ease-out forwards;
+}
+
+/* LOT H — micro-bounce de succès : un seul rebond, jamais de boucle. */
+@keyframes ln-bounce-once {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.07);
+  }
+  70% {
+    transform: scale(0.985);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.ln-bounce-once {
+  animation: ln-bounce-once 430ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── 7. Transitions de vue / onglets / listes (GPU-only) ─────────── */
+@keyframes ln-fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ln-fade-soft {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ln-panel-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes ln-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ln-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Vue principale : changement de menu (300 ms). */
+.ln-view-in {
+  animation: ln-fade-slide-in 300ms ease-out both;
+  will-change: transform, opacity;
+}
+
+/* Onglets : Media Hub, Profile, MediaRoom (250 ms). */
+.ln-tab-in {
+  animation: ln-fade-slide-in 250ms ease-out both;
+}
+
+/* Changement de langue UI (200 ms, opacité seule). */
+.ln-lang-fade {
+  animation: ln-fade-soft 200ms ease-out both;
+}
+
+/* Items de liste/grille : stagger via --ln-i (delay = i × 40 ms). */
+.ln-stagger-item {
+  animation: ln-fade-slide-in 300ms ease-out both;
+  animation-delay: calc(var(--ln-i, 0) * 40ms);
+}
+
+/* Entrée d'une carte Découverte après swipe.
+   Pas de fill-mode : l'animation rend la main au transform inline (drag). */
+.ln-card-in {
+  animation: ln-card-enter 300ms ease-out;
+}
+
+/* Panneaux ancrés (résultats de recherche) : scaleY depuis le haut. */
+.ln-panel-in {
+  transform-origin: top;
+  animation: ln-panel-in 200ms ease-out both;
+}
+
+/* Feedback SRS : slide-in depuis la droite (250 ms). */
+.ln-feedback-in {
+  animation: ln-slide-in-right 250ms ease-out both;
+}
+
+/* ── Reduced motion: kill every decorative animation ──────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .ln-halo-a,
+  .ln-halo-b,
+  .ln-halo-c,
+  .ln-ember,
+  .ln-shimmer-text,
+  .ln-letter,
+  .ln-shine,
+  .ln-slang-badge,
+  .ln-segment-in,
+  .ln-accordion,
+  .ln-burst-particle,
+  .ln-coin-pulse,
+  .ln-ripple-ink,
+  .ln-bounce-once,
+  .ln-ink-title,
+  .ln-view-in,
+  .ln-tab-in,
+  .ln-lang-fade,
+  .ln-stagger-item,
+  .ln-card-in,
+  .ln-panel-in,
+  .ln-feedback-in {
+    animation: none !important;
+  }
+
+  .ln-tilt,
+  .ln-magnetic {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .ln-shimmer-text {
+    color: var(--gold);
+    background: none;
+    -webkit-text-fill-color: var(--gold);
+  }
+
+  .ln-letter {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+::selection {
+  background: color-mix(in srgb, var(--gold-primary) 35%, transparent);
+  color: var(--text);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text) 18%, transparent);
+  border-radius: 9999px;
+  border: 2px solid var(--bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--gold-primary) 45%, transparent);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODULE C — RESILIENT TEXT & REFLOW
+   Utilitaires légers pour que le texte (y compris zh / ar / ru) tienne
+   dans 375px sans coupe ni débordement horizontal.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Token insécable (URL, email, identifiant) : coupe possible. */
+.ln-wrap-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Rangée de chips / filtres : passe à la ligne au lieu de déborder. */
+.ln-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.ln-clamp-1,
+.ln-clamp-2,
+.ln-clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ln-clamp-1 {
+  -webkit-line-clamp: 1;
+}
+.ln-clamp-2 {
+  -webkit-line-clamp: 2;
+}
+.ln-clamp-3 {
+  -webkit-line-clamp: 3;
+}
+
+/* Enfant flexible : autorise le rétrécissement (indispensable avec truncate). */
+.ln-min0 {
+  min-width: 0;
+}
+
+/* Surface de modale : jamais de scroll horizontal, même en 375px.
+   `max-width` reste aux utilitaires `max-w-*` des composants (sinon la règle
+   non layerisée écraserait `max-w-md` sur desktop). */
+.ln-modal-safe {
+  width: 100%;
+  max-height: 90dvh;
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Grille fluide : les gouttières se resserrent sur petit écran. */
+.ln-gap-fluid {
+  gap: clamp(0.75rem, 2.5vw, 1.25rem);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ACCESSIBILITÉ — focus visible, curseurs, mouvement réduit
+   Règles non layerisées : elles l'emportent sur les utilitaires
+   `focus:outline-none` de Tailwind sans les réécrire un par un.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:where(
+    a[href],
+    button,
+    summary,
+    select,
+    input,
+    textarea,
+    [contenteditable="true"],
+    [role="button"],
+    [role="tab"],
+    [role="menuitem"],
+    [role="option"],
+    [role="switch"],
+    [role="checkbox"],
+    [role="radio"],
+    [tabindex]:not([tabindex="-1"])
+  ):focus-visible {
+  outline: 2px solid var(--gold-text);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+/* Le focus ne doit jamais disparaître au clavier. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a[href],
+summary,
+select,
+label[for],
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"],
+fieldset:disabled {
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .ln-tilt,
+  .ln-magnetic,
+  .ln-card {
+    transform: none !important;
+  }
+
+  .ln-dust span {
+    animation: none !important;
+    opacity: 0.4;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PALETTE « NUIT DE LAGOS » — GRADIENTS, BOUTONS 3D, ICONES
+   ═══════════════════════════════════════════════════════════════════ */
+
+.ln-grad-hero {
+  background-image: var(--gradient-hero);
+}
+
+.ln-grad-gold {
+  background-image: var(--gradient-gold);
+}
+
+.ln-grad-magenta {
+  background-image: var(--gradient-magenta);
+}
+
+/* Alias sémantique « Nuit de Lagos » : le magenta est l'accent secondaire. */
+.ln-grad-olive {
+  background-image: var(--gradient-olive);
+}
+
+/* Modales : surface élevée + ombre profonde. */
+.ln-modal-elevated {
+  background: var(--noir-3);
+  box-shadow: var(--ln-shadow-xl);
+}
+
+/* ── Boutons 3D : une vraie tranche d'ombre, pas un simple dégradé ──
+   Hover : la carte remonte et l'ombre s'épaissit (plus basse = plus loin
+   de la surface). Active : elle s'enfonce dans le bouton. */
+.ln-btn-3d {
+  box-shadow: 0 4px 0 var(--gold-deep);
+  transform: translateY(0);
+  transition:
+    transform var(--ln-dur-fast) var(--ln-ease),
+    box-shadow var(--ln-dur-fast) var(--ln-ease);
+}
+
+.ln-btn-3d:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 var(--gold-deep),
+    0 0 12px color-mix(in srgb, var(--gold-primary) 30%, transparent);
+}
+
+.ln-btn-3d:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--gold-deep);
+}
+
+.ln-btn-3d-magenta {
+  box-shadow: 0 4px 0 var(--accent-magenta-deep);
+}
+
+.ln-btn-3d-magenta:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--accent-magenta-deep);
+}
+
+.ln-btn-3d-magenta:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--accent-magenta-deep);
+}
+
+/* ── Icônes de navigation : rotation 3D au survol ──
+   Le demi-tour se fait sur Y : l'icône pivote comme une carte. */
+.ln-nav-flip {
+  transform-style: preserve-3d;
+  perspective: 220px;
+  transition: transform 300ms var(--ln-ease-out);
+}
+
+.ln-nav-flip:hover,
+.group:hover .ln-nav-flip {
+  transform: rotateY(180deg) scale(1.1);
+}
+
+.ln-nav-flip:active {
+  transform: rotateY(180deg) scale(0.95);
+}
+
+/* ── Repli CSS du fond 3D (device low-end ou mode dégradé) ──
+   Mêmes teintes que la scène R3F : la substitution est invisible. */
+.ln-network-fallback {
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(212, 165, 116, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 78% 68%, rgba(107, 142, 35, 0.16) 0%, transparent 45%),
+    var(--gradient-hero);
+  animation: ln-network-drift 24s ease-in-out infinite alternate;
+}
+
+/* ── Cartes 3D : profondeur réelle (MODULE 2) ─────────────────────
+   Le conteneur porte la perspective via Framer Motion ; ici on gère
+   uniquement la surélévation des enfants. Les profondeurs sont un jeu
+   fermé (20 → 60 px) : `attr()` ne résout pas de longueurs, donc une
+   règle par palier est plus simple ET plus rapide qu'un calcul.
+   `ln-card3d-off` = repli : tout reste à plat. */
+.ln-card3d {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.ln-card3d-depth [data-card3d-depth] {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.ln-card3d-depth [data-card3d-depth="20"] {
+  transform: translateZ(20px);
+}
+.ln-card3d-depth [data-card3d-depth="25"] {
+  transform: translateZ(25px);
+}
+.ln-card3d-depth [data-card3d-depth="30"] {
+  transform: translateZ(30px);
+}
+.ln-card3d-depth [data-card3d-depth="40"] {
+  transform: translateZ(40px);
+}
+.ln-card3d-depth [data-card3d-depth="50"] {
+  transform: translateZ(50px);
+}
+.ln-card3d-depth [data-card3d-depth="60"] {
+  transform: translateZ(60px);
+}
+
+.ln-card3d-off [data-card3d-depth] {
+  transform: none !important;
+}
+
+/* Reflet qui suit le curseur (15 % d'opacité, purely décoratif). */
+.ln-card3d-shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--ln-dur) var(--ln-ease);
+  border-radius: inherit;
+}
+
+.ln-card3d-lit .ln-card3d-shine {
+  opacity: 1;
+}
+
+.ln-card3d-lit {
+  border-color: color-mix(in srgb, var(--gold-primary) 60%, transparent);
+  box-shadow: var(--ln-shadow-xl);
+}
+
+@keyframes ln-network-drift {
+  from {
+    background-position: 0% 0%, 100% 100%, 0 0;
+  }
+  to {
+    background-position: 30% 20%, 70% 80%, 0 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TERRE SACRÉE — FUTURISME ETHNIQUE
+   Bordures tech-ethniques, rivets traditionnels, CTA à glow, kicker
+   adinkra, et animations des motifs (kente circuit / adinkra réseau /
+   halftone LED). Tout est CSS : aucun JS à l'exécution.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Cadre tech-ethnique : or terre 15 % → 40 % + halo au survol. */
+.ln-tech-border {
+  position: relative;
+  border: 1px solid color-mix(in oklab, var(--gold-primary) 15%, transparent);
+  transition:
+    border-color var(--ln-dur) var(--ln-ease),
+    box-shadow var(--ln-dur) var(--ln-ease);
+}
+
+.ln-tech-border:hover {
+  border-color: color-mix(in oklab, var(--gold-primary) 40%, transparent);
+  box-shadow:
+    var(--ln-shadow-xl),
+    0 0 0 1px color-mix(in srgb, var(--gold-primary) 40%, transparent),
+    0 0 18px color-mix(in oklab, var(--gold-primary) 18%, transparent);
+}
+
+/* Rivets : quatre points d'or aux coins (référence traditionnelle).
+   Deux pseudo-éléments suffisent : chacun est une barre pleine largeur
+   portant un point à chaque extrémité (haut, puis bas). */
+.ln-rivets::before,
+.ln-rivets::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  height: 12px;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    radial-gradient(circle at 6px 6px, var(--gold-primary) 0 2.5px, transparent 3px),
+    radial-gradient(circle at calc(100% - 6px) 6px, var(--gold-primary) 0 2.5px, transparent 3px);
+  transition: opacity var(--ln-dur) var(--ln-ease);
+}
+.ln-rivets::before {
+  top: 3px;
+}
+.ln-rivets::after {
+  bottom: 3px;
+}
+.ln-rivets:hover::before,
+.ln-rivets:hover::after {
+  opacity: 0.95;
+}
+
+/* CTA traditionnel + glow or. */
+.ln-cta {
+  position: relative;
+  border: 2px solid var(--gold-primary);
+  border-radius: 8px;
+  transition:
+    transform var(--ln-dur-fast) var(--ln-ease),
+    box-shadow var(--ln-dur) var(--ln-ease);
+}
+.ln-cta:hover:not(:disabled) {
+  box-shadow: 0 0 12px color-mix(in srgb, var(--gold-primary) 30%, transparent);
+}
+.ln-cta:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Kicker éditorial : symbole adinkra avant le texte. */
+.ln-kicker::before {
+  content: "✦";
+  margin-inline-end: 0.5ch;
+}
+
+/* ── Animations de motifs (substituées au runtime si reduced-motion) ── */
+@keyframes ln-motif-node {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+@keyframes ln-motif-link {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.ln-motif-node {
+  animation: ln-motif-node 3.2s ease-in-out infinite;
+}
+
+.ln-motif-link {
+  animation: ln-motif-link 3.2s ease-in-out infinite;
+}
+
+/* Illumination en séquence : décalage par position (les liens sont des
+   frères directs dans le groupe SVG). */
+.ln-motif-link:nth-child(2n) {
+  animation-delay: 0.5s;
+}
+.ln-motif-link:nth-child(3n) {
+  animation-delay: 1s;
+}
+.ln-motif-link:nth-child(5n) {
+  animation-delay: 1.6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ln-motif-node,
+  .ln-motif-link {
+    animation: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ln-network-fallback {
+    animation: none !important;
+  }
+
+  .ln-card3d-shine,
+  .ln-card3d-lit .ln-card3d-shine {
+    display: none !important;
+  }
+
+  .ln-btn-3d,
+  .ln-btn-3d:hover,
+  .ln-btn-3d:active,
+  .ln-btn-3d-magenta,
+  .ln-btn-3d-magenta:hover,
+  .ln-btn-3d-magenta:active,
+  .ln-nav-flip,
+  .ln-nav-flip:hover,
+  .ln-nav-flip:active,
+  .ln-cta,
+  .ln-cta:hover,
+  .ln-cta:active {
+    transform: none !important;
+    box-shadow: none !important;
+    transition: none !important;
+  }
+
+  .ln-tech-border:hover,
+  .ln-rivets::before,
+  .ln-rivets::after {
+    transition: none !important;
+    box-shadow: none !important;
+  }
+}
