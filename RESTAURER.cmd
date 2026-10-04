@@ -1,49 +1,49 @@
 @echo off
 REM ===================================================================
-REM  LINGUA NOIR — RESTAURATION COMPLETE
-REM  Lance ce fichier en double-clic, ou dans un terminal.
-REM  Il fait tout : dependances -> Convex -> schema -> donnees -> app
+REM  LINGUA NOIR — DEMARRAGE COMPLET
+REM  Double-clique sur ce fichier (Docker Desktop doit etre lance).
+REM
+REM  Le backend Convex tourne EN LOCAL dans Docker : aucun compte
+REM  Convex Cloud n'est necessaire. npx convex dev --local echoue sur
+REM  Windows, c'est pour ca que le backend passe par Docker.
 REM ===================================================================
 setlocal
 cd /d "%~dp0"
+
 echo.
 echo ==========================================
-echo   LINGUA NOIR - restauration
+echo   LINGUA NOIR - demarrage
 echo ==========================================
-echo.
 
 REM --- 1. Dependances -------------------------------------------------
 if not exist "node_modules\" (
-  echo [1/5] Installation des dependances...
+  echo.
+  echo [1/4] Installation des dependances...
   call npm install --no-audit --no-fund
   if errorlevel 1 goto :fail
 ) else (
-  echo [1/5] Dependances deja installees. OK.
+  echo [1/4] Dependances deja installees. OK.
 )
 
-REM --- 2. Connexion Convex -------------------------------------------
+REM --- 2. Backend Convex local + schema + donnees ----------------------
 echo.
-echo [2/5] Connexion a Convex Cloud...
-call npx convex login
+echo [2/4] Preparation du backend Convex local (Docker)...
+node scripts\brancher-backend.mjs
 if errorlevel 1 goto :fail
 
-REM --- 3. Creation du projet + schema ---------------------------------
-echo.
-echo [3/5] Creation du deploiement et envoi du schema...
-echo       (nom de projet : lingua-noir ^| heberge : Cloud)
-call npx convex dev --once --configure new --project lingua-noir --dev-deployment cloud
+REM --- 3. Typecheck ---------------------------------------------------
+echo [3/4] Verification TypeScript...
+call npx tsc -b --pretty false
 if errorlevel 1 goto :fail
+echo       TypeScript OK.
 
-REM --- 4. Donnees : les expressions d'argot ----------------------------
+REM --- 4. Application -------------------------------------------------
 echo.
-echo [4/5] Rejeu des seeds d'argot...
-call npx convex run slang:seed
-call npx convex run crossSeed:seedCrossConcepts
-echo       slang:seed est idempotent : tu peux le relancer sans risque.
-
-REM --- 5. App ---------------------------------------------------------
+echo [4/4] Demarrage de l'application...
 echo.
-echo [5/5] Demarrage de l'application sur http://localhost:5173
+echo   App        : http://localhost:5173
+echo   Convex     : http://127.0.0.1:33210
+echo   Site/auth  : http://host.docker.internal:33211
 echo.
 call npm run dev
 
@@ -53,7 +53,9 @@ goto :end
 echo.
 echo ==========================================
 echo   ECHEC - voir le message ci-dessus.
-echo   Relis CONTESTE-APP.md section 7.
+echo   Section 7 de CONTESTE-APP.md :
+echo   liste les pieges du self-hosted et
+echo   comment les resoudre.
 echo ==========================================
 pause
 exit /b 1
