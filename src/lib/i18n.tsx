@@ -136,6 +136,22 @@ const fr = {
     zu: "Zoulou (isiZulu)",
     wo: "Wolof",
     fr: "Français",
+    de: "Allemand",
+    it: "Italien",
+  },
+  mediaHub: {
+    platforms: "Plateformes",
+    openverse: "OpenVerse",
+    tabs: {
+      music: "Musique",
+      screen: "Films / Séries",
+      books: "Livres",
+      talk: "Podcasts & radio",
+    },
+    legendPlatforms:
+      "Plateformes : charts, vidéos et fiches lus en direct sur Deezer, YouTube et TMDB — rien n’est enregistré.",
+    legendOpenverse:
+      "OpenVerse : un catalogue indexé de contenus libres (Internet Archive, Wikimedia…), rejouable et traduisible ici.",
   },
   daily: {
     title: "Défi du jour",
@@ -797,6 +813,22 @@ const en: Dict = {
     zu: "isiZulu (Zulu)",
     wo: "Wolof",
     fr: "French",
+    de: "German",
+    it: "Italian",
+  },
+  mediaHub: {
+    platforms: "Platforms",
+    openverse: "OpenVerse",
+    tabs: {
+      music: "Music",
+      screen: "Films / Series",
+      books: "Books",
+      talk: "Podcasts & radio",
+    },
+    legendPlatforms:
+      "Platforms: charts, videos and entries read live from Deezer, YouTube and TMDB — nothing is stored.",
+    legendOpenverse:
+      "OpenVerse: an indexed catalogue of open-licence works (Internet Archive, Wikimedia…), replayable and translatable here.",
   },
   daily: {
     title: "Daily challenge",
@@ -1326,6 +1358,22 @@ const es: Dict = {
     zu: "Zulú (isiZulu)",
     wo: "Wolof",
     fr: "Francés",
+    de: "Alemán",
+    it: "Italiano",
+  },
+  mediaHub: {
+    platforms: "Plataformas",
+    openverse: "OpenVerse",
+    tabs: {
+      music: "Música",
+      screen: "Películas / Series",
+      books: "Libros",
+      talk: "Podcasts y radio",
+    },
+    legendPlatforms:
+      "Plataformas: listas, vídeos y fichas leídos en directo de Deezer, YouTube y TMDB — no se guarda nada.",
+    legendOpenverse:
+      "OpenVerse: un catálogo indexado de obras libres (Internet Archive, Wikimedia…), reproducible y traducible aquí.",
   },
   daily: {
     title: "Desafío del día",
@@ -1840,6 +1888,20 @@ const zh: Dict = {
     zu: "祖鲁语",
     wo: "沃洛夫语",
     fr: "法语",
+    de: "德语",
+    it: "意大利语",
+  },
+  mediaHub: {
+    platforms: "平台",
+    openverse: "OpenVerse",
+    tabs: {
+      music: "音乐",
+      screen: "电影 / 剧集",
+      books: "图书",
+      talk: "播客与广播",
+    },
+    legendPlatforms: "平台：榜单、视频与条目实时读取自 Deezer、YouTube 和 TMDB，不留存任何内容。",
+    legendOpenverse: "OpenVerse：已编入索引的开放版权内容目录（Internet Archive、Wikimedia…），可在此重播并翻译。",
   },
   daily: {
     title: "Défi du jour",
@@ -2311,6 +2373,20 @@ const ar: Dict = {
   },
   achievementCategories: { all: "الكل", lang: "اللغات", streak: "السلاسل", quiz: "الاختبارات", conv: "المحادثات", explore: "الاستكشاف", collect: "المجموعة" },
   achievementReminders: { almost: "بقي {x} لفتح {title}" },
+  mediaHub: {
+    platforms: "المنصات",
+    openverse: "OpenVerse",
+    tabs: {
+      music: "موسيقى",
+      screen: "أفلام / مسلسلات",
+      books: "كتب",
+      talk: "بودكاست وراديو",
+    },
+    legendPlatforms:
+      "المنصات: قوائم ومقاطع وبطاقات تُقرأ مباشرة من Deezer وYouTube وTMDB — لا يُحفظ شيء.",
+    legendOpenverse:
+      "OpenVerse: فهرس مفهرس للمحتوى الحر (Internet Archive، Wikimedia…)، قابل للإعادة والترجمة هنا.",
+  },
   daily: {
     title: "Défi du jour",
     modalTitle: "Micro-défi quotidien",
@@ -2335,6 +2411,8 @@ const ar: Dict = {
     zh: "الصينية (الماندرين)",
     es: "الإسبانية",
     ar: "العربية",
+    de: "الألمانية",
+    it: "الإيطالية",
     ru: "الروسية",
     sw: "السواحيلية",
     ln: "اللينغالا",
@@ -2767,6 +2845,20 @@ const ru: Dict = {
   },
   achievementCategories: { all: "Все", lang: "Языки", streak: "Серии", quiz: "Викторины", conv: "Разговоры", explore: "Исследование", collect: "Коллекция" },
   achievementReminders: { almost: "До {title} осталось {x}" },
+  mediaHub: {
+    platforms: "Платформы",
+    openverse: "OpenVerse",
+    tabs: {
+      music: "Музыка",
+      screen: "Фильмы / Сериалы",
+      books: "Книги",
+      talk: "Подкасты и радио",
+    },
+    legendPlatforms:
+      "Платформы: чарты, видео и карточки читаются напрямую из Deezer, YouTube и TMDB — ничего не сохраняется.",
+    legendOpenverse:
+      "OpenVerse: проиндексированный каталог свободных материалов (Internet Archive, Wikimedia…), доступных для повтора и перевода.",
+  },
   daily: {
     title: "Défi du jour",
     modalTitle: "Micro-défi quotidien",
@@ -2799,6 +2891,8 @@ const ru: Dict = {
     zu: "Зулу",
     wo: "Волоф",
     fr: "Французский",
+    de: "Немецкий",
+    it: "Итальянский",
   },
   nav: {
     store: "Магазин",

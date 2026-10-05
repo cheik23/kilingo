@@ -360,6 +360,25 @@ Dans l'onglet Films / Séries, le décoratif « Catalogue réel 2000–2026 » e
 « **Base TMDB · 2000–2026** » : il ne nommait pas la source et faisait doublon avec
 le sélecteur ci-dessus.
 
+### 🌍 Traduction du Media Hub — ce qui est couvert, ce qui ne l'est pas
+
+La **coquille du Hub** passe désormais par `t()` dans les 12 langues de l'interface :
+titre (`nav.hub`), les quatre onglets (`mediaHub.tabs.*`), le sélecteur de langue
+(`languages.*`), les deux boutons de moteur et leurs légendes (`mediaHub.*`).
+
+Deux trous trouvés au passage :
+
+- **`languages.de` et `languages.it` n'existaient pas** alors que le sélecteur du Hub
+  proposait Allemand et Italien : `t()` renvoyait la clé brute à l'écran. Ajoutés aux
+  6 dictionnaires complets (les 6 autres héritent du français via `fill`).
+- L'onglet « Talk » empruntait `nav.audio` (« Audio »), qui ne dit rien de la radio
+  parlée : il a ses propres clés `mediaHub.tabs.talk` (« Podcasts & radio »).
+
+**Reste en français figé** : le contenu des rayons lui-même — sous-titres et
+suggestions de `RAYONS` (`MediaHubRoot`), onglets internes de `MediaHubScreen`,
+`MediaHubBooksTalk` et `MediaHubView`. C'est un chantier à part, plus gros que la
+coquille ; à faire quand tu voudras.
+
 ## 9. Règles du projet (ne pas les casser)
 
 - **Droits** : l'import LSF (Langue des signes) doit rester légal et attribué.

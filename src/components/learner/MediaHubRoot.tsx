@@ -7,6 +7,7 @@ import { MediaRoomView, type HubMedia } from "@/components/media/MediaRoomView";
 import { Rayon } from "@/components/openverse/Rayon";
 import type { Kind } from "@/openverse/model";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
 /* ═══════════════════════════════════════════════════════════════════
    Media Hub — racine : 4 rayons (Musique, Films/Séries, Livres, Talk).
@@ -76,6 +77,7 @@ export function MediaHubRoot({
   /** Onglet ouvert au montage — permet une route par module du Hub. */
   initialTab?: string;
 }) {
+  const { t } = useI18n();
   const [tab, setTab] = useState(initialTab);
   const [lang, setLang] = useState(language || "en");
   const [room, setRoom] = useState<HubMedia | null>(null);
@@ -101,7 +103,7 @@ export function MediaHubRoot({
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-4">
-        <span className="font-display text-lg font-bold text-ink">Media Hub</span>
+        <span className="font-display text-lg font-bold text-ink">{t("nav.hub")}</span>
         <span className="flex shrink-0 items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-ink-2">
           <Languages className="size-3.5 text-gold" />
           <select
@@ -110,14 +112,14 @@ export function MediaHubRoot({
             aria-label="Langue du média"
             className="bg-transparent text-xs text-ink focus:outline-none"
           >
-            <option value="en">Anglais</option>
-            <option value="fr">Français</option>
-            <option value="es">Espagnol</option>
-            <option value="de">Allemand</option>
-            <option value="it">Italien</option>
-            <option value="ru">Russe</option>
-            <option value="ar">Arabe</option>
-            <option value="zh">Mandarin</option>
+            <option value="en">{t("languages.en")}</option>
+            <option value="fr">{t("languages.fr")}</option>
+            <option value="es">{t("languages.es")}</option>
+            <option value="de">{t("languages.de")}</option>
+            <option value="it">{t("languages.it")}</option>
+            <option value="ru">{t("languages.ru")}</option>
+            <option value="ar">{t("languages.ar")}</option>
+            <option value="zh">{t("languages.zh")}</option>
           </select>
         </span>
       </div>
@@ -141,8 +143,8 @@ export function MediaHubRoot({
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
           {[
-            { key: false, label: "Plateformes" },
-            { key: true, label: "OpenVerse" },
+            { key: false, label: t("mediaHub.platforms") },
+            { key: true, label: t("mediaHub.openverse") },
           ].map(({ key, label }) => (
             <button
               key={String(key)}
@@ -161,8 +163,8 @@ export function MediaHubRoot({
           ))}
           <p className="text-[0.6875rem] leading-relaxed text-ink-3">
             {tools
-              ? "OpenVerse : un catalogue indexé de contenus libres (Internet Archive, Wikimedia…), rejouable et traduisible ici."
-              : "Plateformes : charts, vidéos et fiches lus en direct sur Deezer, YouTube et TMDB — rien n’est enregistré."}
+              ? t("mediaHub.legendOpenverse")
+              : t("mediaHub.legendPlatforms")}
           </p>
         </div>
       </div>

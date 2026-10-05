@@ -5,6 +5,7 @@ import { Flame, ListMusic, Loader2, Music, Play, Search, Sparkles } from "lucide
 import { toast } from "sonner";
 import { ScrambleHeading } from "@/components/fx/text";
 import { cn, friendlyError } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 import type { HubMedia } from "@/components/media/MediaRoomView";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -20,11 +21,14 @@ export function MediaTabs({
   tab: string;
   onTab: (t: string) => void;
 }) {
+  const { t } = useI18n();
+  // Les emojis restent en dur : ils sont identiques dans toutes les langues,
+  // seuls les libellés ont besoin d'être traduits.
   const TABS = [
-    { key: "music", label: "🎵 Musique" },
-    { key: "screen", label: "🎬 Films / Séries" },
-    { key: "books", label: "📚 Livres" },
-    { key: "talk", label: "🎙️ Talk" },
+    { key: "music", label: `🎵 ${t("mediaHub.tabs.music")}` },
+    { key: "screen", label: `🎬 ${t("mediaHub.tabs.screen")}` },
+    { key: "books", label: `📚 ${t("mediaHub.tabs.books")}` },
+    { key: "talk", label: `🎙️ ${t("mediaHub.tabs.talk")}` },
   ];
   return (
     <div className="flex gap-2 overflow-x-auto pb-1">
