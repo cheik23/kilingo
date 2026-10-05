@@ -340,20 +340,25 @@ scan par visiteur). Le compteur de la landing est formaté dans la locale de l'i
 2. **Clé d'intégration VLY `sk_*`** — Conversation IA, traduction Whisper et
    retranscription restent inactives tant qu'elle n'est pas fournie.
 
-### 🔎 Où se trouve le moteur de recherche média (piège de nommage)
+### 🔎 Où se trouve le moteur de recherche média
 
 Dans `/app/screen`, `/app/music`, `/app/books`, `/app/talk`, le sélecteur à deux boutons
-ne veut **pas** dire ce qu'il annonce :
+expose deux moteurs **différents**. Les libellés disaient le contraire de ce
+qu'ils affichaient (« Studio IA » n'a rien d'IA) : ils ont été renommés le
+5 octobre 2026, avec une légende qui explique ce que chaque mode fait.
 
 | Bouton | `tools` | Ce qui s'affiche |
 |---|---|---|
-| **Catalogue réel** | `false` | `MediaHubScreen` / `MusicTab` — les connecteurs historiques (Deezer, YouTube, TMDB…). **C'est le mode par défaut.** |
-| **Studio IA** | `true` | `Rayon` → `ovSearch.browseLive` / `searchUniversal` → **les `MediaCard`** |
+| **Plateformes** (défaut) | `false` | `MediaHubScreen` / `MusicTab` — les connecteurs historiques (Deezer, YouTube, TMDB…), lus en direct, rien n'est enregistré. |
+| **OpenVerse** | `true` | `Rayon` → `ovSearch.browseLive` / `searchUniversal` → **les `MediaCard`**. |
 
-Donc les cartes cliquables du moteur OpenVerse sont derrière « **Studio IA** ». `Rayon`
-interroge les connecteurs au premier montage et **ingère le résultat dans `ovContents`** :
-la table n'est pas vide à l'installation, elle se remplit à la première visite. Le
-conteneur Docker a bien Internet (Openverse répond depuis l'intérieur).
+`Rayon` interroge les connecteurs au premier montage et **ingère le résultat dans
+`ovContents`** : la table n'est pas vide à l'installation, elle se remplit à la première
+visite. Le conteneur Docker a bien Internet (Openverse répond depuis l'intérieur).
+
+Dans l'onglet Films / Séries, le décoratif « Catalogue réel 2000–2026 » est devenu
+« **Base TMDB · 2000–2026** » : il ne nommait pas la source et faisait doublon avec
+le sélecteur ci-dessus.
 
 ## 9. Règles du projet (ne pas les casser)
 

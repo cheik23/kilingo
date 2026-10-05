@@ -619,8 +619,11 @@ function TmdbMoviesPane({
             {k.label}
           </button>
         ))}
+        {/* Source et période, pas un second sélecteur : « Catalogue réel » y
+            faisait doublon avec le sélecteur Plateformes / OpenVerse du
+            Hub, et ne disait pas d'où viennent les fiches. */}
         <span className="ml-auto font-mono text-[0.625rem] text-ink-3">
-          Catalogue réel 2000–2026
+          Base TMDB · 2000–2026
         </span>
       </div>
 

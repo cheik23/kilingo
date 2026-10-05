@@ -130,29 +130,41 @@ export function MediaHubRoot({
         }}
       />
 
-      {/* HYGIÈNE : le contenu réel (charts/albums/films/podcasts des
-          connecteurs) est le mode PAR DÉFAUT. Le moteur OpenVerse
-          (ovContents — index de recherche, contenu seedé) est déplacé
-          derrière « Studio IA », accessible mais jamais présélectionné. */}
-      <div className="flex items-center gap-2">
-        {[
-          { key: false, label: "Catalogue réel" },
-          { key: true, label: "Studio IA" },
-        ].map(({ key, label }) => (
-          <button
-            key={String(key)}
-            type="button"
-            onClick={() => setTools(key)}
-            className={cn(
-              "rounded-full border px-3 py-1.5 font-mono text-[0.625rem] uppercase tracking-widest transition-colors",
-              tools === key
-                ? "border-gold/50 bg-gold/10 text-gold"
-                : "border-white/10 text-ink-3 hover:border-gold/30 hover:text-gold",
-            )}
-          >
-            {label}
-          </button>
-        ))}
+      {/* DEUX MOTEURS, DEUX NOMS HONNÊTES.
+
+          Les anciens libellés disaient le contraire de ce qu'ils
+          affichaient : « Catalogue réel » ouvrait les connecteurs
+          historiques (Deezer, YouTube, TMDB) — la recherche indexée
+          OpenVerse se cachait derrière « Studio IA », qui n'a rien
+          d'IA. Le mode par défaut reste inchangé (les connecteurs), mais
+          chacun s'appelle ce qu'il fait, et la légende le dit. */}
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {[
+            { key: false, label: "Plateformes" },
+            { key: true, label: "OpenVerse" },
+          ].map(({ key, label }) => (
+            <button
+              key={String(key)}
+              type="button"
+              aria-pressed={tools === key}
+              onClick={() => setTools(key)}
+              className={cn(
+                "rounded-full border px-3 py-1.5 font-mono text-[0.625rem] uppercase tracking-widest transition-colors",
+                tools === key
+                  ? "border-gold/50 bg-gold/10 text-gold"
+                  : "border-white/10 text-ink-3 hover:border-gold/30 hover:text-gold",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+          <p className="text-[0.6875rem] leading-relaxed text-ink-3">
+            {tools
+              ? "OpenVerse : un catalogue indexé de contenus libres (Internet Archive, Wikimedia…), rejouable et traduisible ici."
+              : "Plateformes : charts, vidéos et fiches lus en direct sur Deezer, YouTube et TMDB — rien n’est enregistré."}
+          </p>
+        </div>
       </div>
 
       <div key={`${tab}-${tools}`} className="ln-tab-in">
