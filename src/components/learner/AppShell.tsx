@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useQuery } from "convex/react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
@@ -35,6 +35,7 @@ import {
   UserPlus,
   Volume2,
   VolumeX,
+  X,
   Zap,
 } from "lucide-react";
 
@@ -256,6 +257,9 @@ function UiLangSelect() {
   );
 }
 
+/** Mémorise l'échappatoire à l'onboarding le temps de la session onglet. */
+const SKIP_ONBOARDING_KEY = "ln.onboarding.skipped";
+
 /** Jabari partage son humeur dans tout le shell : une seule source d'état. */
 export function AppShell() {
   return (
@@ -321,7 +325,28 @@ function AppShellInner() {
   }, [myStats]);
 
   // Premier passage : aucune langue de focus → l'onboarding prend la main.
+  // Il propose toujours de passer outre (« Explorer d'abord ») : sans cela, la
+  // porte remplace TOUTE l'app et aucune URL — pas même /app/conversation —
+  // n'atteint son écran. Le choix est mémorisé en sessionStorage : sans cela
+  // un simple rechargement (F5) rejetait l'utilisateur sur l'onboarding.
   const needsOnboarding = !!myLanguages && myLanguages.rows.length === 0;
+  const [skipOnboarding, setSkipOnboarding] = useState(() => {
+    try {
+      return sessionStorage.getItem(SKIP_ONBOARDING_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const setSkip = useCallback((next: boolean) => {
+    setSkipOnboarding(next);
+    try {
+      if (next) sessionStorage.setItem(SKIP_ONBOARDING_KEY, "1");
+      else sessionStorage.removeItem(SKIP_ONBOARDING_KEY);
+    } catch {
+      /* sans sessionStorage : l'échappatoire ne tient pas jusqu'au rechargement */
+    }
+  }, []);
 
   const activeFocus = myLanguages?.activeFocus ?? [];
   const focusLabel = activeFocus.length
@@ -330,12 +355,19 @@ function AppShellInner() {
         .join(" · ")
     : t("nav.noFocus");
 
-  if (needsOnboarding) {
+  if (needsOnboarding && !skipOnboarding) {
     return (
       <div className="relative min-h-screen bg-noir text-ink">
         <NoirAmbience />
         <NetworkBackdrop />
         <Onboarding />
+        <button
+          type="button"
+          onClick={() => setSkip(true)}
+          className="fixed inset-x-0 bottom-6 z-50 mx-auto w-fit rounded-full border border-white/15 bg-noir/80 px-5 py-2 text-xs text-ink-2 backdrop-blur transition-colors hover:border-gold/50 hover:text-gold focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:outline-none"
+        >
+          {t("onboarding.exploreFirst")}
+        </button>
       </div>
     );
   }
@@ -417,6 +449,35 @@ function AppShellInner() {
 
         {/* MOD 1 — A : bannière rouge streak (20-24 h), toutes pages /app. */}
         <StreakBanner />
+
+        {/* Rappel de l'onboarding écarté : l'app reste navigable, mais le
+            choix des langues de focus conditionne les quiz et les cartes. */}
+        {needsOnboarding && !nudgeDismissed && (
+          <div className="mx-4 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gold/30 bg-gold/5 px-4 py-3 lg:mx-8">
+            <p className="text-xs text-ink-2">{t("onboarding.noFocusHint")}</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setNudgeDismissed(false);
+                  setSkip(false);
+                  setFocusOpen(true);
+                }}
+                className="rounded-lg border border-gold/40 px-3 py-1.5 text-xs font-semibold text-gold transition-colors hover:bg-gold/10"
+              >
+                {t("onboarding.pickFocus")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setNudgeDismissed(true)}
+                aria-label={t("common.close")}
+                className="p-1 text-ink-3 transition-colors hover:text-ink"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+          </div>
+        )}
 
         <FocusDialog open={focusOpen} onOpenChange={setFocusOpen} />
         <LastChanceModal

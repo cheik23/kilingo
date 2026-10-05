@@ -5,7 +5,7 @@
 > Si un jour l'application ou les conversations sont perdues, **ce fichier suffit à tout
 > reconstruire**. Ne le supprime jamais. Mets-le à jour après chaque session de travail.
 
-Dernière mise à jour : **4 octobre 2026**
+Dernière mise à jour : **5 octobre 2026**
 
 ---
 
@@ -284,25 +284,64 @@ Effet mesuré : la sélection de langue dans l'onboarding fonctionne (carte pass
 `border-gold/50`) et le bouton « Continuer » passe de `disabled: true` à
 `disabled: false`. Toute la famille de bugs « boutons bloqués » vient probablement de là.
 
+### ✅ CORRIGÉ le 5 octobre 2026 — quatre bugs d'interface
+
+**1. La porte d'onboarding rendait l'app entière inatteignable.**
+`AppShell` remplaçait la totalité du shell par `<Onboarding />` dès qu'aucune langue
+de focus n'était choisie : aucune URL, pas même `/app/conversation`, n'atteignait son
+écran. Le bouton « Explorer d'abord, choisir plus tard » est ajouté sous l'assistant, et
+le choix est mémorisé en `sessionStorage` (`ln.onboarding.skipped`) — sans quoi un simple
+F5 rejouait l'écran. Un bandeau non bloquant rappelle l'étape tant que la liste est vide.
+*Vérifié : depuis un compte invité vierge, `/app/conversation` rend bien l'écran (nav
+présente), la bannière s'affiche, et le bandeau survit au rechargement.*
+
+**2. Le bouton « Commencer la conversation » était muet.**
+`disabled` avec la raison uniquement dans `title` — donc invisible au doigt, au mobile et
+au lecteur d'écran. La checklist est désormais visible juste au-dessus :
+`✗ PERSONNAGE | ✗ SCÉNARIO`, chaque étape passant en or quand elle est choisie, et le
+bouton la décrit via `aria-describedby`.
+*Règle permanente : jamais de bouton désactivé sans raison lisible sans survol.*
+*Vérifié : `✗ ✗ / disabled:true` → `✓ ✓ / disabled:false` après sélection.*
+
+**3. La boutique annonçait « il te manque 500 gems » pendant le chargement.**
+`stats?.gems ?? 0` faisait passer un solde inconnu pour un solde nul. Tant que
+`getUserStats` est en vol : skeleton doré pour le solde, libellé « Chargement… », et
+aucun tooltip « il te manque ».
+*Vérifié à l'écran (capture) en forçant l'état `stats === undefined`.*
+
+**4. `MediaCard` n'était ni tactile ni clavier.**
+`<article onClick>` sans `tabIndex` ni `role`, et le halo de lecture n'apparaissait qu'au
+survol (`group-hover:opacity-100`) : sur mobile la carte semblait morte. La carte est
+maintenant focusable et activable au clavier (Entrée / Espace), et le halo s'affiche
+quand l'appareil n'a pas de survol (`[@media(hover:none)]`) ou après un tap.
+*Non vérifié à l'écran : la table `ovContents` est vide en local (aucun média n'a jamais
+été importé), donc `MediaCard` ne s'affiche nulle part. La correction compile et son DOM
+est vérifiable dès qu'un contenu existe.*
+
+### ✅ CORRIGÉ le 5 octobre 2026 — la landing sous-annonçait 54 expressions
+
+`landingStats.getLandingNumbers` renvoyait la **constante** `expressions: 2363`, alors que
+le seed `SLANG_SEED_2025` (55 entrées, cf. §4) porte le catalogue à **2 417** — et que la
+constante ne se recalculait jamais. Le nombre est désormais une **mesure** : la mutation
+`slang:recomputeAggregates` dénormalise le total du catalogue dans `slangAggregates` sous
+la clé `total:catalog`, et la landing lit cette ligne (une seule lecture d'index, pas de
+scan par visiteur). Le compteur de la landing est formaté dans la locale de l'interface.
+*Vérifié : `landingStats:getLandingNumbers` → `{"expressions": 2417}` ; la carte affiche
+« 2 417 » en français.*
+
+> Après toute modification du seed, relancer `npx convex run slang:seed '{}'` : c'est lui
+> qui appelle `recomputeAggregates` et remet le compteur d'aplomb.
+
 ### ⏳ À corriger ensuite
 
-1. **Porte d'onboarding bloquante** — un compte sans langue de focus se voit remplacer
-   toute l'application par l'assistant (`AppShell.tsx` ~l.323/333). `/app/conversation`
-   doit rester atteignable par URL. Correctif prévu : bouton « Explorer d'abord ».
-2. **Bouton « Commencer » mort** (conversation) — `disabled` avec l'explication
-   uniquement en `title`, donc invisible au doigt. Correctif : étapes visibles
-   « 1. Personnage ✓/✗ · 2. Scénario ✓/✗ ».
-   **Règle permanente : jamais de bouton désactivé sans raison lisible sans survol.**
-3. **LSF non tactile** — `SignLanguageView` charge ses vidéos au `mouseenter` seulement,
-   donc rien ne se passe au tap. Correctif : la carte entière est un `<button>`,
-   `onPointerDown` + `onFocus` ouvrent la fiche et lancent la vidéo.
-4. **Boutique** — `StoreView.tsx` ~l.41 affiche « solde insuffisant » pendant que
-   `getUserStats` est encore en vol. Correctif : skeleton neutre pendant le chargement.
-5. **Quota YouTube** — les sous-titres YouTube échouent parfois. Porte de secours déjà
+1. **Quota YouTube** — les sous-titres YouTube échouent parfois. Porte de secours déjà
    en place : import SRT/VTT universel (`src/lib/subtitleParse.ts`).
-6. **Écart de comptage** — l'Atlas affiche « 2 362 expressions » alors que la base en
-   contient **2 417**. Le compteur est soit figé, soit il exclut une catégorie
-   (`fr` ?). À recaler sur `slang:stats`.
+2. **Catalogue média vide** — `ovContents` ne contient rien en local : le Media Hub et la
+   recherche de l'Atlas n'ont aucune carte à afficher. Les connecteurs sont bien
+   configurés (`ovSources`) et le conteneur a Internet ; il manque l'action d'import
+   (`ovSearch:browseLive`) à déclencheur pour amorcer le catalogue.
+3. **Clé d'intégration VLY `sk_*`** — Conversation IA, traduction Whisper et
+   retranscription restent inactives tant qu'elle n'est pas fournie.
 
 ## 9. Règles du projet (ne pas les casser)
 

@@ -32,6 +32,14 @@ const ALL_LANGS = [
 ] as const;
 type AnyLang = (typeof ALL_LANGS)[number];
 
+/**
+ * Clé dénormalisée du compteur global du catalogue, écrite par
+ * `recomputeAggregates` et lue par `landingStats.getLandingNumbers`.
+ * Préfixe « total: » — hors de la plage « register:…register; » que le
+ * calcul des registres balaie, donc jamais purgé par erreur.
+ */
+export const CATALOG_TOTAL_KEY = "total:catalog";
+
 async function rowsForLanguages(
   db: GenericDatabaseReader<DataModel>,
   langs: readonly AnyLang[],
@@ -330,11 +338,18 @@ export const recomputeAggregates = mutation({
   args: {},
   handler: async (ctx) => {
     const totals = new Map<string, number>();
-    for (const lang of LANGUAGE_CODES) {
+    // Grand total du catalogue, toutes langues confondues : c'est lui que
+    // la landing publique affiche (autrement elle mentait de 54 entrées, le
+    // seed SLANG_SEED_2025 n'ayant jamais été compté). On le dénormalise ici
+    // pour que la page la plus consultée ne fasse pas un scan par visiteur.
+    let grandTotal = 0;
+    for (const lang of ALL_LANGS) {
       const rows = await ctx.db
         .query("slangExpressions")
         .withIndex("by_language_popularity", (q) => q.eq("language", lang))
         .collect();
+      grandTotal += rows.length;
+      if (!(LANGUAGE_CODES as readonly string[]).includes(lang)) continue;
       for (const r of rows) {
         totals.set(r.register, (totals.get(r.register) ?? 0) + 1);
       }
@@ -357,9 +372,21 @@ export const recomputeAggregates = mutation({
     for (const row of existing) {
       if (!liveKeys.has(row.key)) await ctx.db.delete(row._id);
     }
+    const totalRow = await ctx.db
+      .query("slangAggregates")
+      .withIndex("by_key", (q) => q.eq("key", CATALOG_TOTAL_KEY))
+      .unique();
+    if (totalRow) {
+      if (totalRow.total !== grandTotal) {
+        await ctx.db.patch(totalRow._id, { total: grandTotal });
+      }
+    } else {
+      await ctx.db.insert("slangAggregates", { key: CATALOG_TOTAL_KEY, total: grandTotal });
+    }
     return {
       registers: totals.size,
       total: [...totals.values()].reduce((a, b) => a + b, 0),
+      catalogTotal: grandTotal,
     };
   },
 });

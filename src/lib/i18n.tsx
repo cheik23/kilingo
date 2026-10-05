@@ -24,6 +24,7 @@ import { getAvatarCopy } from "./i18n.avatar";
 import { getExportCopy } from "./i18n.export";
 import { getPwaCopy } from "./i18n.pwa";
 import { getLandingCopy } from "./i18n.landing";
+import { getFirstRunCopy } from "./i18n.firstrun";
 // Overlays are resolved after the base dictionaries so newly-added modules
 // remain localized without rewriting the large historical dictionary.
 
@@ -627,6 +628,7 @@ const fr = {
     title: "Conversation IA",
     subtitle: "Parle avec un personnage immergé dans la langue de la rue — il utilise l'argot, te corrige en temps réel et t'adapte des défis.",
     pickCharacter: "Choisis ton personnage",
+    
     pickScenario: "Choisis ton scénario",
     unlocked: "Débloqué",
     preparing: "Préparation du personnage…",
@@ -711,6 +713,9 @@ function applyDictionaryOverlays(): void {
     mergeInto(dict, getPwaCopy(lang));
     // La landing publique — module entier, absent partout ailleurs.
     mergeInto(dict, getLandingCopy(lang));
+    // Le premier lancement (échappatoire d'onboarding + prérequis visibles
+    // du bouton « Commencer ») — posé par le correctif d'UX.
+    mergeInto(dict, getFirstRunCopy(lang));
     for (const key of PRUNED_NAV_KEYS) {
       const nav = dict.nav;
       if (nav && typeof nav === "object") {
@@ -734,6 +739,9 @@ type Dict = Omit<typeof fr, "leaderboard" | "league" | "nav" | "achievements" | 
       };
     /** Voix de la mascotte Jabari — posée par l'overlay i18n.mascot. */
     mascot?: Record<string, string>;
+    /** Aides au premier lancement (échappatoire d'onboarding, rappel de
+     *  focus, prérequis de la conversation) — overlay i18n.firstrun. */
+    onboarding?: Record<string, string>;
   };
 export type { Dict };
 
@@ -1226,6 +1234,7 @@ const en: Dict = {
     title: "AI Chat",
     subtitle: "Talk with a character immersed in street language — they use slang, correct you in real time and adapt challenges.",
     pickCharacter: "Pick your character",
+    
     pickScenario: "Pick your scenario",
     unlocked: "Unlocked",
     preparing: "Preparing character…",
@@ -1753,6 +1762,7 @@ const es: Dict = {
     title: "Conversación IA",
     subtitle: "Habla con un personaje sumergido en la lengua de la calle — usa jerga, te corrige en tiempo real y adapta retos.",
     pickCharacter: "Elige tu personaje",
+    
     pickScenario: "Elige tu escenario",
     unlocked: "Desbloqueado",
     preparing: "Preparando personaje…",
@@ -2240,6 +2250,7 @@ const zh: Dict = {
     title: "AI 对话",
     subtitle: "与沉浸于街头语言的角色对话 — 它使用俚语、实时纠错并调整挑战。",
     pickCharacter: "选择你的角色",
+    
     pickScenario: "选择你的场景",
     unlocked: "已解锁",
     preparing: "角色准备中…",
@@ -2695,6 +2706,7 @@ const ar: Dict = {
     title: "محادثة AI",
     subtitle: "تحدث مع شخصية غارقة في لغة الشارع — تستخدم العامية وتصححك في الوقت الحقيقي وتكيف التحديات.",
     pickCharacter: "اختر شخصيتك",
+    
     pickScenario: "اختر سيناريوك",
     unlocked: "مفتوح",
     preparing: "جارٍ تحضير الشخصية…",
@@ -3150,6 +3162,7 @@ const ru: Dict = {
     title: "AI-чат",
     subtitle: "Говори с персонажем, погружённым в язык улицы — он использует сленг, исправляет в реальном времени и подстраивает задания.",
     pickCharacter: "Выбери персонажа",
+    
     pickScenario: "Выбери сценарий",
     unlocked: "Открыт",
     preparing: "Готовим персонажа…",

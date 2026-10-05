@@ -385,16 +385,25 @@ function ConversationHome({
       </section>
 
       {/* CTA « Commencer » — 1.4 : gardé tant que personnage + scénario
-          ne sont pas choisis (tooltip), erreur → toast (dans start()). */}
+          ne sont pas choisis. Le motif du blocage est affiché EN VISIBLE :
+          un attribut `title` seul est invisible au doigt comme au lecteur
+          d'écran, le bouton restait donc muet pour l'utilisateur. */}
+      <p
+        id="ln-conv-steps"
+        className="mb-3 mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-mono text-[0.625rem] tracking-wider uppercase"
+      >
+        <span className={charId ? "text-gold" : "text-ink-3"}>
+          {charId ? "✓" : "✗"} {t("conv.stepCharacter")}
+        </span>
+        <span className={scenId ? "text-gold" : "text-ink-3"}>
+          {scenId ? "✓" : "✗"} {t("conv.stepScenario")}
+        </span>
+      </p>
       <button
         type="button"
         onClick={() => void start()}
         disabled={!charId || !scenId || starting}
-        title={
-          !charId || !scenId
-            ? t("conv.pickCharacter") + " + " + t("conv.pickScenario")
-            : undefined
-        }
+        aria-describedby="ln-conv-steps"
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold-strong to-gold py-3 font-display font-semibold text-noir transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {starting ? (

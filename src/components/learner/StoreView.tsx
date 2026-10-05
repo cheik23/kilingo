@@ -40,6 +40,9 @@ export function StoreView() {
   const [openLootId, setOpenLootId] = useState<Id<"userLootBoxes"> | null>(null);
 
   const gems = stats?.gems ?? 0;
+  // Tant que getUserStats est en vol, `gems` vaut 0 : chaque carte s'affichait
+  // « il te manque 500 gems » alors que c'était le simple état de chargement.
+  const loadingStats = stats === undefined;
   const unopened = loot ?? [];
 
   const items = useMemo(
@@ -102,7 +105,14 @@ export function StoreView() {
           <div className="rounded-xl border border-gold/40 bg-gold/10 px-4 py-2 text-center">
             <p className="flex items-center justify-center gap-1.5 font-display text-xl font-bold text-gold">
               <Gem className="size-4" aria-hidden />
-              <CountUp value={gems} />
+              {loadingStats ? (
+                <span
+                  aria-hidden
+                  className="inline-block h-6 w-12 animate-pulse rounded bg-gold/20"
+                />
+              ) : (
+                <CountUp value={gems} />
+              )}
             </p>
             <p className="font-mono text-[0.625rem] uppercase tracking-widest text-ink-3">
               {t("store.balance")}
@@ -136,19 +146,29 @@ export function StoreView() {
                 >
                   💎 {item.price}
                 </span>
-                <span title={affordable ? undefined : t("store.missing", { x: missing })}>
+                <span
+                  title={
+                    loadingStats || affordable ? undefined : t("store.missing", { x: missing })
+                  }
+                >
                   <button
                     type="button"
-                    disabled={!affordable || busy === item.key}
+                    disabled={loadingStats || !affordable || busy === item.key}
                     onClick={() => buy(item.key)}
                     className={cn(
                       "rounded-lg px-4 py-2 text-sm font-semibold transition-all",
-                      affordable
-                        ? "ln-btn-3d bg-gradient-to-r from-gold-strong to-gold text-noir"
-                        : "cursor-not-allowed border border-white/10 text-ink-3 opacity-50",
+                      loadingStats
+                        ? "cursor-wait border border-white/10 text-ink-3"
+                        : affordable
+                          ? "ln-btn-3d bg-gradient-to-r from-gold-strong to-gold text-noir"
+                          : "cursor-not-allowed border border-white/10 text-ink-3 opacity-50",
                     )}
                   >
-                    {busy === item.key ? t("store.working") : t("store.buy")}
+                    {busy === item.key
+                      ? t("store.working")
+                      : loadingStats
+                        ? t("common.loading")
+                        : t("store.buy")}
                   </button>
                 </span>
               </div>

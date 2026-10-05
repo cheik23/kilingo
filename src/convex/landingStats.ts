@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
+import { CATALOG_TOTAL_KEY } from "./slang";
 
 /**
  * CHIFFRES PUBLICS DE LA LANDING
@@ -35,17 +36,30 @@ export const getLandingStats = query({
 });
 
 /**
- * Les trois chiffres de marque (langues, expressions, avatars) sont des
- * CONSTANTES, pas des mesures : le catalogue ne les change pas. Les lire
- * depuis la base serait une latence payée pour rien. `avatars` : 85 unités du
- * catalogue de personnalisation.
+ * Chiffres de marque de la landing (langues, expressions, avatars).
+ *
+ * `languages` et `avatars` restent des CONSTANTES : ce sont des tailles de
+ * catalogue que le produit ne fait pas varier au fil de l'eau.
+ *
+ * `expressions` est en revanche une MESURE. Elle était figée à 2363, mais le
+ * seed `SLANG_SEED_2025` (55 entrées) n'était jamais importé par la mutation
+ * `slang:seed` : la landing sous-annonçait de 54 expressions le contenu
+ * réellement servi. On lit donc le compteur dénormalisé qu'écrit
+ * `slang:recomputeAggregates` — une lecture d'index d'un seul document, au
+ * lieu d'un scan par visiteur.
  */
 export const getLandingNumbers = query({
   args: {},
-  handler: async () => {
+  handler: async (ctx) => {
+    const totalRow = await ctx.db
+      .query("slangAggregates")
+      .withIndex("by_key", (q) => q.eq("key", CATALOG_TOTAL_KEY))
+      .unique();
     return {
       languages: 11,
-      expressions: 2363,
+      // Base pas encore seedée : on retombe sur le plancher marketing, le
+      // temps que `slang:seed` ait tourné au moins une fois.
+      expressions: totalRow?.total ?? 2363,
       avatars: 85,
     };
   },

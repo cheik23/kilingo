@@ -180,13 +180,21 @@ export default function Landing() {
     [isAuthenticated],
   );
   const go = () => navigate(start);
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   // Compteur temps réel : preuve sociale vérifiable, pas une statistique
   // figée dans le texte. Les deux requêtes sont des lectures minuscules
   // (deux agrégats), elles ne bloquent donc pas le rendu.
   const stats = useQuery(api.landingStats.getLandingStats, {});
   const numbers = useQuery(api.landingStats.getLandingNumbers, {});
   const learners = stats?.verifiedLearners ?? 0;
+  // Le nombre d'expressions vient de la base (donc du seed réellement
+  // exécuté) et se formate dans la locale de l'interface ; la constante du
+  // dictionnaire ne sert plus que de repli avant l'arrivée de la requête.
+  const fmt = (n: number) => new Intl.NumberFormat(lang).format(n);
+  const expressionCount =
+    numbers === undefined
+      ? t("landing.features.expressionsValue")
+      : fmt(numbers.expressions);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-noir text-ink">
@@ -347,7 +355,7 @@ export default function Landing() {
                     label: t("landing.features.languagesLabel"),
                   },
                   {
-                    value: t("landing.features.expressionsValue"),
+                    value: expressionCount,
                     label: t("landing.features.expressionsLabel"),
                   },
                   {

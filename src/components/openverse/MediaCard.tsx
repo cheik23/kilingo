@@ -1,3 +1,5 @@
+import { useState } from "react";
+import type { KeyboardEvent } from "react";
 import { Heart, Play } from "lucide-react";
 import {
   KIND_META,
@@ -50,12 +52,27 @@ export function MediaCard({
   const wide = isWide(content);
   const date = dateOf(content);
   const age = ageLabel(date);
+  // Sur tactile il n'y a pas de survol : le halo « lecture » resterait
+  // invisible sur mobile et la carte donnerait l'impression d'être morte.
+  const [tapped, setTapped] = useState(false);
 
   return (
     <article
-      className="ln-card ln-stagger-item group relative cursor-pointer overflow-hidden"
+      className="ln-card ln-stagger-item group relative cursor-pointer overflow-hidden focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:outline-none"
       style={{ ["--ln-i" as string]: index }}
-      onClick={() => onOpen(content)}
+      role="button"
+      tabIndex={0}
+      aria-label={content.title}
+      onClick={() => {
+        setTapped(true);
+        onOpen(content);
+      }}
+      onKeyDown={(e: KeyboardEvent<HTMLElement>) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        setTapped(true);
+        onOpen(content);
+      }}
     >
       <div className={`relative ${wide ? "aspect-square" : "aspect-[2/3]"} overflow-hidden`}>
         {content.thumbnail ? (
@@ -116,7 +133,12 @@ export function MediaCard({
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-0 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-100 ${
+          tapped ? "opacity-100" : "opacity-0 [@media(hover:none)]:opacity-100"
+        }`}
+      >
         <span className="flex size-12 items-center justify-center rounded-full border border-gold/40 bg-black/70 text-gold backdrop-blur">
           <Play className="size-5" />
         </span>
