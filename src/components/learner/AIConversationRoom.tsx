@@ -287,13 +287,23 @@ function ConversationHome({
           motif="adinkra"
         description={t("conv.subtitle")}
         actions={
-          /* 1.4 — badge langue de conversation visible (drapeau + nom natif). */
-          selectedChar ? (
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs text-gold">
-              <span aria-hidden>{conversationLangMeta.flag}</span>
-              {conversationLangMeta.native}
-            </p>
-          ) : undefined
+          /* 1.4 — badge langue de conversation visible (drapeau + nom natif).
+             Il est TOUJOURS rendu, simplement invisible tant qu'aucun
+             personnage n'est choisi : l'apparition de ce badge dans l'en-tête
+             agrandissait la carte héros de 43 px et décalait d'autant toute
+             la page vers le bas — dont la ligne de prérequis et le bouton
+             « Commencer », précisément là où l'utilisateur vient de poser le
+             doigt. La hauteur du pilule ne dépend pas de son texte, la
+             réservation est donc exacte. */
+          <p
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs text-gold",
+              !selectedChar && "invisible",
+            )}
+          >
+            <span aria-hidden>{conversationLangMeta.flag}</span>
+            {conversationLangMeta.native}
+          </p>
         }
       />
 
@@ -356,7 +366,13 @@ function ConversationHome({
             {charId ? t("conv.noScenario") : t("conv.preparing")}
           </p>
         ) : (
-          <div className="grid gap-2 sm:grid-cols-2">
+          /* Hauteur FIXE : la liste se filtre quand on choisit un personnage,
+             et ce retrait faisait glisser toute la suite — ligne de prérequis
+             et bouton « Commencer » comprise — sous le doigt de l'utilisateur.
+             Mon propre clic de test a ainsi atterri sur « Atlas ». La boîte
+             garde donc toujours la même hauteur et défile elle-même : plus rien
+             ne bouge après un tap, sur tactile comme à la souris. */
+          <div className="grid h-[20rem] content-start gap-2 overflow-y-auto overscroll-contain pr-1 sm:grid-cols-2">
             {scenList.map((s) => (
               <button
                 key={s.id}
