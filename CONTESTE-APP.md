@@ -314,9 +314,10 @@ aucun tooltip « il te manque ».
 survol (`group-hover:opacity-100`) : sur mobile la carte semblait morte. La carte est
 maintenant focusable et activable au clavier (Entrée / Espace), et le halo s'affiche
 quand l'appareil n'a pas de survol (`[@media(hover:none)]`) ou après un tap.
-*Non vérifié à l'écran : la table `ovContents` est vide en local (aucun média n'a jamais
-été importé), donc `MediaCard` ne s'affiche nulle part. La correction compile et son DOM
-est vérifiable dès qu'un contenu existe.*
+*Vérifié sur le catalogue réel : 48 cartes, toutes `role="button"` + `tabindex="0"` +
+`aria-label` ; `Entrée` sur une carte ouvre bien `/app/content/<clé>` ; halo à `opacity: 0`
+sur un poste à survol, et la règle `@media (hover: none) { opacity: 1 }` est bien générée
+par Tailwind.*
 
 ### ✅ CORRIGÉ le 5 octobre 2026 — la landing sous-annonçait 54 expressions
 
@@ -336,12 +337,23 @@ scan par visiteur). Le compteur de la landing est formaté dans la locale de l'i
 
 1. **Quota YouTube** — les sous-titres YouTube échouent parfois. Porte de secours déjà
    en place : import SRT/VTT universel (`src/lib/subtitleParse.ts`).
-2. **Catalogue média vide** — `ovContents` ne contient rien en local : le Media Hub et la
-   recherche de l'Atlas n'ont aucune carte à afficher. Les connecteurs sont bien
-   configurés (`ovSources`) et le conteneur a Internet ; il manque l'action d'import
-   (`ovSearch:browseLive`) à déclencheur pour amorcer le catalogue.
-3. **Clé d'intégration VLY `sk_*`** — Conversation IA, traduction Whisper et
+2. **Clé d'intégration VLY `sk_*`** — Conversation IA, traduction Whisper et
    retranscription restent inactives tant qu'elle n'est pas fournie.
+
+### 🔎 Où se trouve le moteur de recherche média (piège de nommage)
+
+Dans `/app/screen`, `/app/music`, `/app/books`, `/app/talk`, le sélecteur à deux boutons
+ne veut **pas** dire ce qu'il annonce :
+
+| Bouton | `tools` | Ce qui s'affiche |
+|---|---|---|
+| **Catalogue réel** | `false` | `MediaHubScreen` / `MusicTab` — les connecteurs historiques (Deezer, YouTube, TMDB…). **C'est le mode par défaut.** |
+| **Studio IA** | `true` | `Rayon` → `ovSearch.browseLive` / `searchUniversal` → **les `MediaCard`** |
+
+Donc les cartes cliquables du moteur OpenVerse sont derrière « **Studio IA** ». `Rayon`
+interroge les connecteurs au premier montage et **ingère le résultat dans `ovContents`** :
+la table n'est pas vide à l'installation, elle se remplit à la première visite. Le
+conteneur Docker a bien Internet (Openverse répond depuis l'intérieur).
 
 ## 9. Règles du projet (ne pas les casser)
 
