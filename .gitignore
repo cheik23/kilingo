@@ -4,3 +4,7 @@ dist
 src/convex/_generated
 workers/.venv
 workers/__pycache__
+
+# Base Convex locale : elle vit normalement hors du projet, mais si quelqu'un
+# la recrée ici par erreur, elle contient la clé admin et les comptes.
+convex-local/
