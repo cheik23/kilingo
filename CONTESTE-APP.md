@@ -38,6 +38,23 @@ Il n'existe plus qu'une seule copie vivante du code : `Downloads\kilingo\`. Les 
 formes sont archivées dans `Downloads\_archive\` (`moovy.zip`, `lingua-noir-main.zip`,
 `recovery-transcript.zip`) ou font autorité ci-dessus.
 
+### ⚠️ `lingua-noir-main (1).zip` — l'archive à ne pas confondre avec les autres
+
+Deux archives portent presque le même nom et n'ont **rien** à voir :
+
+| Archive | Contenu | Verdict |
+|---|---|---|
+| `_archive\lingua-noir-main.zip` (7,2 Mo) | Copie du code déjà extrait **et** sous Git | Redondante, déplacée dans `_archive\` |
+| `Downloads\lingua-noir-main (1).zip` (18 Mo) | **~100 fichiers absents du dépôt** : `src/convex/lemonsqueezy.ts`, `premium.ts`, `subscriptions.ts`, `signs.ts`, `docs/verrous-premium.md`, `scripts/import-lsf-signs.mjs`, 16 avatars `.vrm`, `PremiumGate/CTA/Upsell` | **La seule copie. Ne jamais supprimer.** |
+
+> **Incident du 5 octobre 2026.** `_archive\` et `lingua-noir-main (1).zip` ont été
+> retrouvés **dans la Corbeille Windows**, vidés hors de toute commande du rebrand
+> (à 17:41, soit après leur création). Extraits des entrées `$R` de la corbeille puis
+> réécrits sur disque, et revérifiés : `unzip -t` OK sur les trois archives de
+> `_archive\`, répertoire central du zip de 18 Mo relu (545 fichiers). **Rien n'avait
+> été perdu** — mais la Corbeille pouvait être vidée à tout moment, ce qui aurait été
+> définitif. D'où cette section.
+
 | Élément | État |
 |---|---|
 | Frontend (`src/`) — 281 fichiers | ✅ Intact |
