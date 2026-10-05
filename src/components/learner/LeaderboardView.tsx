@@ -80,7 +80,7 @@ function PromotionModal({ league, onClose }: { league: League; onClose: () => vo
           <motion.div animate={{ y: [0, -7, 0], rotate: [0, 3, -3, 0] }} transition={{ repeat: Infinity, duration: 1.8 }} className="text-6xl">
             {meta.badge}
           </motion.div>
-          <p className="mt-5 font-mono text-[0.625rem] tracking-[0.28em] text-gold uppercase">MOOVY · {t("leaderboard.promotionEyebrow")}</p>
+          <p className="mt-5 font-mono text-[0.625rem] tracking-[0.28em] text-gold uppercase">KILINGO · {t("leaderboard.promotionEyebrow")}</p>
           <h2 className="mt-2 font-display text-3xl font-bold text-ink">
             🎉 {t("leaderboard.promotionTitle", { league: t(`league.${league}`) })}
           </h2>
@@ -102,7 +102,7 @@ export function LeaderboardView() {
   const pending = board?.my?.pendingPromotion;
   useEffect(() => {
     if (!pending) return;
-    const key = `moovy.promotion.${pending.weekKey}.${pending.to}`;
+    const key = `kilingo.promotion.${pending.weekKey}.${pending.to}`;
     try {
       if (localStorage.getItem(key) === "1") return;
       localStorage.setItem(key, "1");

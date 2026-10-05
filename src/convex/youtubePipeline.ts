@@ -1541,7 +1541,7 @@ export const processUnresolvedUrl = action({
     const withTranscript = ["vimeo", "soundcloud"];
     const reason = withTranscript.includes(platform)
       ? "cette plateforme n'expose pas de transcription accessible"
-      : "cette plateforme n'est pas lisible directement dans MOOVY";
+      : "cette plateforme n'est pas lisible directement dans KILINGO";
     await safePatch(ctx, args.mediaId, {
       status: "failed",
       errorKind: "unsupported_platform",

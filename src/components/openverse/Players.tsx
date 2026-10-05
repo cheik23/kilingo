@@ -720,7 +720,7 @@ export function PlayerHost({
     return (
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-black">
         <div className="flex items-center gap-2 border-b border-white/5 px-4 py-2 text-[0.6875rem] text-ink-2">
-          <span aria-hidden>▶</span> Lecture intégrée — tu restes dans MOOVY.
+          <span aria-hidden>▶</span> Lecture intégrée — tu restes dans KILINGO.
         </div>
         <iframe
           src={content.embedUrl}

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 export type ThemeMode = "auto" | "light" | "dark";
 export type EffectiveTheme = "light" | "dark";
 
-const STORAGE_KEY = "ln.theme";
+const STORAGE_KEY = "kilingo.theme";
 
 function readMode(): ThemeMode {
   try {

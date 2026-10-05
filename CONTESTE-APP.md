@@ -1,4 +1,4 @@
-# LINGUA NOIR — CONtexte de reprise (source de vérité)
+# KILINGO — CONtexte de reprise (source de vérité)
 
 > **Ce fichier est le plus important du projet.** Il contient l'intégralité de l'état de
 > l'application : ce qui existe, ce qui manque, où sont les données, comment tout démarre.
@@ -11,7 +11,7 @@ Dernière mise à jour : **5 octobre 2026**
 
 ## 1. Qu'est-ce que l'application ?
 
-**Lingua Noir** — plateforme d'apprentissage des langues et de l'argot (africain et
+**Kilingo** — plateforme d'apprentissage des langues et de l'argot (africain et
 international) **à travers les médias** : musique, films/séries, livres, podcasts, radio.
 
 Règle d'or du produit : **tout se fait dans l'application** — transcription, traduction,
@@ -29,9 +29,14 @@ pas par des manuels.
 Le code **n'est pas perdu**. Il est intégralement récupéré ici :
 
 ```
-C:\Users\leanc\Downloads\lingua-noir\          ← projet restauré (281 fichiers src)
-C:\Users\leanc\Downloads\lingua-noir-main.zip  ← archive d'origine (389 fichiers)
+C:\Users\leanc\Downloads\kilingo\        ← LE projet (281 fichiers src), dossier renommé
+C:\Users\leanc\Downloads\_archive\        ← zip d'origine + serveur de paiement sandbox
+C:\Users\leanc\Downloads\convex-local\    ← base Convex locale (Docker), ne jamais supprimer
 ```
+
+Il n'existe plus qu'une seule copie vivante du code : `Downloads\kilingo\`. Les autres
+formes sont archivées dans `Downloads\_archive\` (`moovy.zip`, `lingua-noir-main.zip`,
+`recovery-transcript.zip`) ou font autorité ci-dessus.
 
 | Élément | État |
 |---|---|
@@ -178,14 +183,18 @@ Textes présents dans **12 langues**, ajoutés via `applyDictionaryOverlays`.
 
 Le backend tourne **en local dans Docker** — aucun compte Convex Cloud nécessaire.
 
+Tout se fait maintenant d'un seul clic : double-cliquer sur `RESTAURER.cmd` à la racine
+du projet. Il enchaîne Docker, clé admin, `.env.local`, schéma, seeds et serveur de dev.
+
 ```bash
+# Équivalent manuelle, si un débogage est nécessaire
 # 1. Backend Convex (Docker Desktop doit être lancé)
 cd C:\Users\leanc\Downloads\convex-local
 docker compose up -d
 docker compose exec backend ./generate_admin_key.sh   # → clé admin
 
 # 2. Brancher le projet
-cd C:\Users\leanc\Downloads\lingua-noir
+cd C:\Users\leanc\Downloads\kilingo
 # (clé admin dans .env.local : CONVEX_SELF_HOSTED_ADMIN_KEY)
 npx convex dev --once          # pousse le schéma + génère _generated
 npx convex run slang:seed      # 2 417 expressions (idempotent)
@@ -194,6 +203,10 @@ npx convex run crossSeed:seedCrossConcepts
 # 3. L'app
 npm run dev                    # http://localhost:5173
 ```
+
+`scripts/brancher-backend.mjs` déduit le dossier `convex-local` de sa propre position
+(donc un dossier frère du projet) : plus aucun chemin absolu codé en dur. Pour le
+déplacer ailleurs, définir `KILINGO_CONVEX_DIR`.
 
 | Service | URL |
 |---|---|
@@ -207,7 +220,7 @@ npm run dev                    # http://localhost:5173
 
 ```
 CONVEX_SELF_HOSTED_URL=http://127.0.0.1:33210
-CONVEX_SELF_HOSTED_ADMIN_KEY=lingua-noir-local|<clé>
+CONVEX_SELF_HOSTED_ADMIN_KEY=kilingo-local|<clé>
 VITE_CONVEX_URL=http://127.0.0.1:33210
 VITE_CONVEX_SITE_URL=http://host.docker.internal:33211
 CONVEX_SITE_URL=http://localhost:5173
@@ -232,7 +245,7 @@ Variables côté **serveur Convex** (`npx convex env set`) :
   navigateur** → `host.docker.internal`, pas `127.0.0.1` (inaccessible de l'intérieur).
 - `CONVEX_SITE_ORIGIN` sans `INSTANCE_NAME`/`INSTANCE_SECRET` ⇒ pas de routage HTTP ⇒
   `/.well-known/openid-configuration` non résolu.
-- La clé admin générée porte le préfixe `lingua-noir-local|` dès qu'`INSTANCE_NAME`
+- La clé admin générée porte le préfixe `kilingo-local|` dès qu'`INSTANCE_NAME`
   est défini (et non `convex-self-hosted|`). Elle change à chaque recréation du conteneur.
 - Convex Auth n'est **pas** supporté par le CLI en self-hosted : il faut pousser
   `JWKS` / `JWT_PRIVATE_KEY` / `SITE_URL` à la main.
@@ -241,7 +254,7 @@ Variables côté **serveur Convex** (`npx convex env set`) :
 
 ```bash
 npx convex login
-npx convex dev --once --configure new --project lingua-noir --dev-deployment cloud
+npx convex dev --once --configure new --project kilingo --dev-deployment cloud
 ```
 
 Une **clé d'intégration VLY** (`sk_*`) est requise pour l'IA, l'email et les paiements.
@@ -401,5 +414,5 @@ aperçu Freebuff qui a expiré. **La règle pour la suite :**
 2. Chaque session se termine par : mise à jour de ce fichier + `git commit`.
 3. Le projet doit être **versionné dans Git** (il ne l'est pas encore — `git init` fait).
 4. Les données d'argot vivent **dans le code** (seeds), pas seulement dans le cloud.
-5. Sauvegarde : `lingua-noir-main.zip` dans Downloads **et** une copie hors du disque
+5. Sauvegarde : `kilingo-main.zip` dans Downloads **et** une copie hors du disque
    de travail (cloud / clé USB).

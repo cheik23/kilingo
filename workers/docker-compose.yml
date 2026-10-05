@@ -1,6 +1,6 @@
 version: "3.8"
 
-# Déploiement Docker des workers MOOVY — méthode OPTIONNELLE.
+# Déploiement Docker des workers KILINGO — méthode OPTIONNELLE.
 # ⚠️ Ces fichiers ne constituent PAS une preuve de runtime : un déploiement
 # n'est validé que par GET /health (HTTP 200 + JSON) puis une transcription
 # réelle avec word timestamps (voir workers/README.md).

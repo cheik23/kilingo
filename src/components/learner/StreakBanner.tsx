@@ -38,7 +38,7 @@ const WINDOW_END = 24 * 3_600_000; // 24 h
 /** Fermeture valable pour la JOURNÉE en cours (clé datée) : fermer la
     pilule ne la fait plus réapparaître à chaque changement de page, mais
     elle revient le lendemain — le rappel reste un service, pas un bruit. */
-const DISMISS_KEY = "ln.streak.pill.dismissed";
+const DISMISS_KEY = "kilingo.streak.pill.dismissed";
 
 function dayKey(): string {
   return new Date().toISOString().slice(0, 10);

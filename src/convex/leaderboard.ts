@@ -279,7 +279,7 @@ export const getCurrentLeaderboard = query({
       const previousRank = row.previousRank ?? previousRanks.get(row.userId) ?? null;
       return {
         userId: row.userId,
-        name: user?.name ?? user?.email ?? "MOOVY",
+        name: user?.name ?? user?.email ?? "KILINGO",
         image: user?.image ?? null,
         rank: row.rank,
         xp: row.xp,

@@ -4,7 +4,7 @@ import { contactHeaders, envReady, envValue, hasEnv } from "./ovEnv";
 import { specKeys } from "./connectors";
 
 /* ═══════════════════════════════════════════════════════════════════════
-   MOOVY — REGISTRE DES CONNECTEURS
+   KILINGO — REGISTRE DES CONNECTEURS
 
    Chaque source externe est décrite ici, et chaque connecteur réellement
    branché a son implémentation dans `connectors/`.
@@ -162,7 +162,7 @@ export const CONNECTORS: Connector[] = [
     requiresKey: false,
     implemented: true,
     notes:
-      "Catalogue mondial. Quand l'API annonce « ebook_access: public », le connecteur va chercher le texte réel auprès d'Internet Archive et vérifie sa licence : la lecture reste alors dans MOOVY. Sinon la fiche reste informative.",
+      "Catalogue mondial. Quand l'API annonce « ebook_access: public », le connecteur va chercher le texte réel auprès d'Internet Archive et vérifie sa licence : la lecture reste alors dans KILINGO. Sinon la fiche reste informative.",
   },
   {
     key: "itunes",
@@ -241,7 +241,7 @@ export const CONNECTORS: Connector[] = [
     transcriptionSource: true,
     requiresKey: false,
     implemented: true,
-    notes: "Catalogue musical libre : lecture intégrale en streaming dans MOOVY, transcription et traduction autorisées.",
+    notes: "Catalogue musical libre : lecture intégrale en streaming dans KILINGO, transcription et traduction autorisées.",
   },
   {
     key: "audius",
@@ -260,7 +260,7 @@ export const CONNECTORS: Connector[] = [
     transcriptionSource: true,
     requiresKey: false,
     implemented: true,
-    notes: "Réseau musical ouvert : flux intégral publié par les artistes, lu en streaming dans MOOVY sans copie ni hébergement.",
+    notes: "Réseau musical ouvert : flux intégral publié par les artistes, lu en streaming dans KILINGO sans copie ni hébergement.",
   },
   {
     key: "dailymotion",

@@ -3,8 +3,8 @@ import QRCode from "qrcode";
 export type ShareAvatar = { avatar: string; hat: string | null; glasses: string | null; background: string | null };
 export type ShareCardData = { userId: string; expressions: number; days: number; streak: number; league: string; achievements: number; avatar: ShareAvatar };
 
-const BRAND = "LINGUA NOIR";
-const INVITE_ORIGIN = "https://linguanoir.app";
+const BRAND = "KILINGO";
+const INVITE_ORIGIN = "https://kilingo.app";
 
 function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, radius: number) {
   ctx.beginPath(); ctx.roundRect(x, y, w, h, radius); ctx.closePath();
@@ -63,7 +63,7 @@ async function finishCard(canvas: HTMLCanvasElement, inviteUrl: string) {
 export async function shareStats(data: ShareCardData) {
   const canvas = document.createElement("canvas"); canvas.width = 1080; canvas.height = 1350; const ctx = canvas.getContext("2d")!; await drawBase(ctx, data.avatar); drawAvatar(ctx, data.avatar, 84, 172, 270);
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; ctx.fillStyle = "#FAFAF7"; ctx.font = "700 66px Playfair Display, serif";
-  wrapText(ctx, `J'ai appris ${data.expressions} expressions en ${data.days} jours sur LinguaNoir !`, 410, 235, 570, 78, 4);
+  wrapText(ctx, `J'ai appris ${data.expressions} expressions en ${data.days} jours sur Kilingo !`, 410, 235, 570, 78, 4);
   [[`${data.streak} 🔥`, "STREAK"], [data.league.toUpperCase(), "LIGUE"], [`${data.achievements}/150`, "SUCCÈS"]].forEach(([value, label], index) => {
     const x = 410 + index * 190; ctx.fillStyle = "rgba(255,255,255,.055)"; roundedRect(ctx, x, 570, 165, 145, 22); ctx.fill(); ctx.strokeStyle = "rgba(212,165,116,.28)"; roundedRect(ctx, x, 570, 165, 145, 22); ctx.stroke();
     ctx.fillStyle = "#D4A574"; ctx.font = "700 30px Inter, sans-serif"; ctx.fillText(value, x + 20, 625); ctx.fillStyle = "#9A9A9A"; ctx.font = "600 15px Inter, sans-serif"; ctx.fillText(label, x + 20, 680);
@@ -92,7 +92,7 @@ export function inviteFriend(userId: string) { return `${INVITE_ORIGIN}/invite?r
    premier visite, et on le relit à l'inscription.
    ═══════════════════════════════════════════════════════════════════ */
 
-const REF_STORAGE_KEY = "ln.ref";
+const REF_STORAGE_KEY = "kilingo.ref";
 
 /** Mémorise le code d'invitation. Ignore les valeurs vides ou abusees
  *  (on ne garde que des identifiants Convex raisonnablement courts). */

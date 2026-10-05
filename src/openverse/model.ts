@@ -155,7 +155,7 @@ export function decisionOf(content: Content): Decision {
 }
 
 /**
- * État affiché — vocabulaire 100 % interne à MOOVY (R4 : ni pastille
+ * État affiché — vocabulaire 100 % interne à KILINGO (R4 : ni pastille
  * colorée, ni mention de source externe, ni jargon) :
  * « lisible ici » (flux, extrait ou lecteur intégré) ou « indisponible
  * pour le moment ».
@@ -166,7 +166,7 @@ export function availability(decision: Decision): {
   label: string;
 } {
   if (decision.canStream || decision.canPreview || decision.canEmbed || decision.canHost) {
-    return { dot: "", tone: "ok", label: "Lisible dans MOOVY" };
+    return { dot: "", tone: "ok", label: "Lisible dans KILINGO" };
   }
   return { dot: "", tone: "danger", label: "Indisponible pour le moment." };
 }
@@ -188,7 +188,7 @@ export function whyExplanation(decision: Decision): string[] {
       ];
     case "embed":
       return [
-        "Le lecteur est intégré : tu restes dans MOOVY.",
+        "Le lecteur est intégré : tu restes dans KILINGO.",
       ];
     default:
       return [

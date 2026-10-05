@@ -5,7 +5,7 @@ type DeepPartial<T> = { [K in keyof T]?: NonNullable<T[K]> extends object ? Deep
 type PartialDict = DeepPartial<Dict>;
 
 /* ═══════════════════════════════════════════════════════════════════
-   i18n MOOVY — 6 langues d'interface africaines (sw, ln, ha, yo, zu, wo)
+   i18n KILINGO — 6 langues d'interface africaines (sw, ln, ha, yo, zu, wo)
    Export attendu : sw, ln, ha, yo, zu, wo (consommés par i18n.tsx).
 
    Sections les plus visibles traduites (noms des langues, navigation,

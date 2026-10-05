@@ -12,7 +12,7 @@ import {
 
 /* ═══════════════════════════════════════════════════════════════════════
    Carte média — une carte n'apparaît que si son contenu se lit dans
-   MOOVY. Statuts et disponibilités restent internes : ils ne sont
+   KILINGO. Statuts et disponibilités restent internes : ils ne sont
    montrés que dans l'espace d'administration.
    ═══════════════════════════════════════════════════════════════════════ */
 

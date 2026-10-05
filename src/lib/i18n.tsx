@@ -29,7 +29,7 @@ import { getFirstRunCopy } from "./i18n.firstrun";
 // remain localized without rewriting the large historical dictionary.
 
 /* ═══════════════════════════════════════════════════════════════════
-   i18n MOOVY — dictionnaires UI (fr, en, es, zh, ar, ru),
+   i18n KILINGO — dictionnaires UI (fr, en, es, zh, ar, ru),
    provider React + hook useI18n, RTL automatique pour l'arabe.
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -397,7 +397,7 @@ const fr = {
     stepFailed: "Échec",
   },
   review: {
-    brand: "BrainCore · répétition espacée",
+    brand: "Kilingo · répétition espacée",
     title: "Session de révision",
     nothing: "Rien à réviser",
     nothingHint: "Ton deck est à jour. Découvre de nouvelles expressions ou shadow un contenu.",
@@ -1019,7 +1019,7 @@ const en: Dict = {
     stepFailed: "Failed",
   },
   review: {
-    brand: "BrainCore · spaced repetition",
+    brand: "Kilingo · spaced repetition",
     title: "Review session",
     nothing: "Nothing to review",
     nothingHint: "Your deck is up to date. Discover new expressions or shadow some content.",
@@ -1564,7 +1564,7 @@ const es: Dict = {
     stepFailed: "Fallo",
   },
   review: {
-    brand: "BrainCore · repetición espaciada",
+    brand: "Kilingo · repetición espaciada",
     title: "Sesión de repaso",
     nothing: "Nada que repasar",
     nothingHint: "Tu mazo está al día. Descubre expresiones nuevas o haz shadow.",
@@ -2067,7 +2067,7 @@ const zh: Dict = {
     stepFailed: "失败",
   },
   review: {
-    brand: "BrainCore · 间隔重复",
+    brand: "Kilingo · 间隔重复",
     title: "复习会话",
     nothing: "没有要复习的内容",
     nothingHint: "你的卡组已是最新。去发现新表达，或做 shadow 练习。",
@@ -2539,7 +2539,7 @@ const ar: Dict = {
     stepFailed: "فشل",
   },
   review: {
-    brand: "BrainCore · التكرار المتباعد",
+    brand: "Kilingo · التكرار المتباعد",
     title: "جلسة مراجعة",
     nothing: "لا شيء للمراجعة",
     nothingHint: "مجموعتك محدثة. اكتشف تعبيرات جديدة أو مارس Shadow.",
@@ -3011,7 +3011,7 @@ const ru: Dict = {
     stepFailed: "Сбой",
   },
   review: {
-    brand: "BrainCore · интервальное повторение",
+    brand: "Kilingo · интервальное повторение",
     title: "Сессия повторения",
     nothing: "Повторять нечего",
     nothingHint: "Ваша колода актуальна. Откройте новые выражения или займитесь shadow.",

@@ -67,7 +67,7 @@ import { cn } from "@/lib/utils";
 import { soundEngine } from "@/lib/soundEngine";
 
 /* ═══════════════════════════════════════════════════════════════════
-   MOOVY — coquille authentifiée.
+   KILINGO — coquille authentifiée.
 
    Toutes les vues existantes (Dashboard, Découverte, Révision, Shadow,
    SleepShadow, Media Hub, Profil, Studio, moteur de contenus) sont
@@ -258,7 +258,7 @@ function UiLangSelect() {
 }
 
 /** Mémorise l'échappatoire à l'onboarding le temps de la session onglet. */
-const SKIP_ONBOARDING_KEY = "ln.onboarding.skipped";
+const SKIP_ONBOARDING_KEY = "kilingo.onboarding.skipped";
 
 /** Jabari partage son humeur dans tout le shell : une seule source d'état. */
 export function AppShell() {
@@ -306,7 +306,7 @@ function AppShellInner() {
   const myStats = useQuery(api.gamification.getUserStats);
   const [lastChanceOpen, setLastChanceOpen] = useState(false);
   useEffect(() => {
-    const seenKey = "ln.lastChance.seen";
+    const seenKey = "kilingo.lastChance.seen";
     let seen = false;
     try {
       seen = sessionStorage.getItem(seenKey) === "1";

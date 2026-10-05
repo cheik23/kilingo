@@ -10,7 +10,7 @@ import { useCallback, useEffect, useState } from "react";
  * Partager → Sur l'écran d'accueil, d'où le repli `isIos`).
  */
 
-const DISMISS_KEY = "ln.install.dismissed";
+const DISMISS_KEY = "kilingo.install.dismissed";
 
 /** Chrome expose ce champ ; sa présence est notre signal d'installabilité. */
 type BeforeInstallPromptEvent = Event & {

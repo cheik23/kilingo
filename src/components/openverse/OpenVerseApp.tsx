@@ -231,7 +231,7 @@ export function OpenVerseApp({ embedded = false }: { embedded?: boolean } = {}) 
 
           <div className="mt-6 rounded-xl border border-white/5 bg-noir p-4">
             <p className="flex items-center gap-1.5 font-mono text-[0.625rem] uppercase tracking-widest text-gold">
-              <Compass className="size-3" /> L'esprit MOOVY
+              <Compass className="size-3" /> L'esprit KILINGO
             </p>
             <p className="mt-2 text-[0.6875rem] leading-relaxed text-ink-2">
               Discover → Feel → Understand → Speak → Master. Tout ce qui se lit

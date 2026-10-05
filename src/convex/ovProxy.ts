@@ -1,7 +1,7 @@
 import { httpAction } from "./_generated/server";
 
 /* ═══════════════════════════════════════════════════════════════════════
-   MOOVY — PROXY DOCUMENTAIRE (liste blanche)
+   KILINGO — PROXY DOCUMENTAIRE (liste blanche)
 
    À quoi il sert : récupérer le TEXTE de documents dont le navigateur ne
    peut pas lire la réponse directement (fetch + CORS) — djvu.txt de

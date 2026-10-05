@@ -1,4 +1,4 @@
-# LinguaNoir — robots.txt
+# Kilingo — robots.txt
 #
 # La landing et la page d'auth sont publiques et doivent être explorées.
 # Tout `/app` exige une session Convex : ces pages renverraient l'écran de
@@ -16,4 +16,4 @@ Disallow: /api/
 Disallow: /*?ref=
 Disallow: /*&ref=
 
-Sitemap: https://app.linguanoir.com/sitemap.xml
+Sitemap: https://app.kilingo.com/sitemap.xml

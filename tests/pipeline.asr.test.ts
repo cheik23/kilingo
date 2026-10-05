@@ -47,7 +47,7 @@ function multipart(
   fields: Record<string, string>,
   fileField: { name: string; filename: string; type: string; data: Buffer },
 ): { body: Buffer; contentType: string } {
-  const boundary = "MoovyPipelineTest";
+  const boundary = "KilingoPipelineTest";
   const parts: Buffer[] = [];
   for (const [name, value] of Object.entries(fields)) {
     parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`));
@@ -106,7 +106,7 @@ describe("MISSION 8 — pipeline complet AUDIO → TEXT → WORDS → TRANSLATIO
         expect(healthJson.engine).toBe("faster_whisper_local");
 
         // (2) WAV de test réel et connu
-        const text = "Bonjour tout le monde, bienvenue dans MOOVY.";
+        const text = "Bonjour tout le monde, bienvenue dans KILINGO.";
         Bun.spawnSync(["/usr/bin/espeak-ng", "-v", "fr-fr", "-w", "/tmp/ln_pipeline.wav", text]);
         const wav = readFileSync("/tmp/ln_pipeline.wav");
         expect(wav.length).toBeGreaterThan(1000);
@@ -219,9 +219,9 @@ describe("MISSION 8 — pipeline complet AUDIO → TEXT → WORDS → TRANSLATIO
               { word: "tout", start: 0.48, end: 0.66, probability: 0.87 },
             ],
           },
-          { id: 1, start: 2.8, end: 4.1, text: "bienvenue dans MOOVY.", words: [] }, // moteur sans mots
+          { id: 1, start: 2.8, end: 4.1, text: "bienvenue dans KILINGO.", words: [] }, // moteur sans mots
         ],
-        translations: ["Hello everyone,", "welcome to MOOVY."],
+        translations: ["Hello everyone,", "welcome to KILINGO."],
         slangPhrases: [],
       });
       // segment avec mots moteur → portés tels quels

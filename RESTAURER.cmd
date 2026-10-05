@@ -1,6 +1,6 @@
 @echo off
 REM ===================================================================
-REM  LINGUA NOIR — DEMARRAGE COMPLET
+REM  KILINGO — DEMARRAGE COMPLET
 REM  Double-clique sur ce fichier (Docker Desktop doit etre lance).
 REM
 REM  Le backend Convex tourne EN LOCAL dans Docker : aucun compte
@@ -12,7 +12,7 @@ cd /d "%~dp0"
 
 echo.
 echo ==========================================
-echo   LINGUA NOIR - demarrage
+echo   KILINGO - demarrage
 echo ==========================================
 
 REM --- 1. Dependances -------------------------------------------------

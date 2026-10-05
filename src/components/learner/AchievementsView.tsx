@@ -148,7 +148,7 @@ export function AchievementsView() {
   useEffect(() => {
     const latest = notifications?.find((n) => n.kind === "achievement" && n.readAt == null);
     if (!latest) return;
-    const key = `moovy.achievement.modal.${latest._id}`;
+    const key = `kilingo.achievement.modal.${latest._id}`;
     try {
       if (localStorage.getItem(key) === "1") return;
       localStorage.setItem(key, "1");
@@ -212,7 +212,7 @@ export function AchievementsView() {
         {CATEGORIES.map(([key, label]) => <button key={key} type="button" onClick={() => setFilter(key)} className={cn("rounded-full border px-4 py-2 text-xs transition-colors", filter === key ? "border-gold/55 bg-gold/10 font-semibold text-gold" : "border-white/10 text-ink-2 hover:border-gold/30 hover:text-gold")}>{t(label)}</button>)}
       </div>
 
-      {shareItem && <ShareModal open onOpenChange={(open) => { if (!open) setShareItem(null); }} userId={user?._id ?? referrals?.inviteCode ?? ""} filename={`lingua-noir-${shareItem.achievementId}`} generate={() => shareAchievement({ userId: user?._id ?? referrals?.inviteCode ?? "lingua-noir", title: shareItem.title, icon: shareItem.icon, completedAt: shareItem.completedAt ?? Date.now(), avatar: { avatar: customization?.catalog.find((item) => item.itemId === customization.selectedAvatar)?.previewUrl ?? "🦁", hat: customization?.catalog.find((item) => item.itemId === customization.selectedHat)?.previewUrl ?? null, glasses: customization?.catalog.find((item) => item.itemId === customization.selectedGlasses)?.previewUrl ?? null, background: customization?.catalog.find((item) => item.itemId === customization.selectedBackground)?.previewUrl ?? null } })} />}
+      {shareItem && <ShareModal open onOpenChange={(open) => { if (!open) setShareItem(null); }} userId={user?._id ?? referrals?.inviteCode ?? ""} filename={`kilingo-${shareItem.achievementId}`} generate={() => shareAchievement({ userId: user?._id ?? referrals?.inviteCode ?? "kilingo", title: shareItem.title, icon: shareItem.icon, completedAt: shareItem.completedAt ?? Date.now(), avatar: { avatar: customization?.catalog.find((item) => item.itemId === customization.selectedAvatar)?.previewUrl ?? "🦁", hat: customization?.catalog.find((item) => item.itemId === customization.selectedHat)?.previewUrl ?? null, glasses: customization?.catalog.find((item) => item.itemId === customization.selectedGlasses)?.previewUrl ?? null, background: customization?.catalog.find((item) => item.itemId === customization.selectedBackground)?.previewUrl ?? null } })} />}
       {data === undefined ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 9 }, (_, i) => <div key={i} className="h-44 animate-shimmer rounded-2xl bg-white/5" />)}</div>
       ) : filter === "all" ? (

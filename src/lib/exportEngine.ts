@@ -50,14 +50,14 @@ function todayStamp(date = new Date()): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-/** `linguanoir-{lang}-{YYYY-MM-DD}` — le brief demande ce format exact. */
+/** `kilingo-{lang}-{YYYY-MM-DD}` — format de nommage de l'export. */
 export function exportFilename(
   language: string,
   extension: "csv" | "tsv",
   date = new Date(),
 ): string {
   const tag = !language || language === "all" ? "all" : language;
-  return `linguanoir-${tag}-${todayStamp(date)}.${extension}`;
+  return `kilingo-${tag}-${todayStamp(date)}.${extension}`;
 }
 
 /* ═══════════════════════════════════════════════════════════════════

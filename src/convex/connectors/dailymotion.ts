@@ -3,7 +3,7 @@ import { getJson, num, stripHtml, toEpoch, type ConnectorSpec, type RawHit, type
 /* ═══════════════════════════════════════════════════════════════════════
    DAILYMOTION — API publique, SANS CLÉ
 
-   Lecture dans MOOVY via le lecteur officiel (dailymotion.com/embed).
+   Lecture dans KILINGO via le lecteur officiel (dailymotion.com/embed).
    L'API expose un tri natif par date : le rayon Vidéos affiche de vraies
    nouveautés, pas un catalogue figé.
    ═══════════════════════════════════════════════════════════════════════ */

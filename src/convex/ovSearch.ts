@@ -27,7 +27,7 @@ import {
 } from "./connectors/types";
 
 /* ═══════════════════════════════════════════════════════════════════════
-   MOOVY — CONTENT AGGREGATION ENGINE
+   KILINGO — CONTENT AGGREGATION ENGINE
 
    Une requête (ou l'ouverture d'un rayon) → tous les connecteurs
    compatibles, en parallèle. Chaque résultat est normalisé puis traversé

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   MOOVY — SÉLECTION DES MOTEURS ASR / TRADUCTION (couche pure)
+   KILINGO — SÉLECTION DES MOTEURS ASR / TRADUCTION (couche pure)
 
    Objectif (dossier §2-§7) : le chemin principal de Shadow ne dépend
    d'AUCUN provider distant propriétaire :

@@ -10,7 +10,7 @@ import { getJson, type ConnectorSpec, type RawHit } from "./types";
    · Open Library : catalogue sensiblement plus large, dont la majeure
      partie n'est PAS lisible. Quand l'API annonce `ebook_access: public`
      (texte intégral ouvert, hébergé par Internet Archive), le connecteur
-     va chercher le fichier réel pour que la lecture reste dans MOOVY.
+     va chercher le fichier réel pour que la lecture reste dans KILINGO.
      Sinon la fiche reste informative : aucun fichier, aucun texte inventé.
    ═══════════════════════════════════════════════════════════════════════ */
 

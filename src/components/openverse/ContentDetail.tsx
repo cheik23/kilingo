@@ -37,7 +37,7 @@ const UNAVAILABLE = "Indisponible pour le moment.";
 /**
  * Correspondance lisible : quand une fiche ne se lit pas ici (série
  * métadonnées seules, film non diffusable…), on cherche automatiquement
- * dans le moteur un contenu équivalent et lisible dans MOOVY. Résultat
+ * dans le moteur un contenu équivalent et lisible dans KILINGO. Résultat
  * affiché en cartes internes — jamais un lien externe.
  */
 function ReadableMatch({ content }: { content: Content }) {
@@ -71,7 +71,7 @@ function ReadableMatch({ content }: { content: Content }) {
   if (!matches?.length) return null;
   return (
     <div className="ln-card p-4">
-      <h3 className="text-sm font-semibold text-ink">Lisible dans MOOVY</h3>
+      <h3 className="text-sm font-semibold text-ink">Lisible dans KILINGO</h3>
       <p className="mt-1 text-xs text-ink-3">Des contenus proches se regardent ou s'écoutent directement ici.</p>
       <div className="mt-3 grid gap-2 sm:grid-cols-3">
         {matches.map((item) => (

@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import { MascotSprite } from "@/components/three/MascotSprite";
 
 /* ═══════════════════════════════════════════════════════════════════════
-   MOOVY — SYSTÈME DE BRANDING (point d'entrée unique de l'identité)
+   KILINGO — SYSTÈME DE BRANDING (point d'entrée unique de l'identité)
 
    Toute l'interface affiche la marque via ce module : remplacer le logo
    définitif un jour = éditer CE FICHIER uniquement (§14 : le futur logo
@@ -12,12 +12,12 @@ import { MascotSprite } from "@/components/three/MascotSprite";
    En attendant le logo définitif :
    • symbole temporaire : play ▶ inscrit dans un carré or (mouvement +
      média + culture, aucun glyphe générique de librairie d'icônes) ;
-   • wordmark : « MOOVY » en majuscules, fonte display de la marque ;
+   • wordmark : « KILINGO » en majuscules, fonte display de la marque ;
    • les deux sont remplaçables indépendamment (LOGO_SLOT ci-dessous).
    ═══════════════════════════════════════════════════════════════════════ */
 
 /** Nom de marque — TOUJOURS en majuscules dans l'UI. */
-export const BRAND_NAME = "MOOVY";
+export const BRAND_NAME = "KILINGO";
 
 /** Baseline produit (footer, métadonnées, OTP e-mail). */
 export const BRAND_TAGLINE = "Don't study the culture. Live it.";
@@ -27,7 +27,7 @@ export const BRAND_DESCRIPTION =
   "Plateforme d'immersion culturelle : apprends les langues à travers films, musiques, séries, podcasts et culture réelle.";
 
 /**
- * EMPLACEMENT LOGO — futur logo MOOVY.
+ * EMPLACEMENT LOGO — futur logo KILINGO.
  * Rien d'autre dans l'app ne dessine la marque : remplacer ce composant
  * (ou brancher <img src="/logo.svg">) suffit à relooker toute l'interface.
  */

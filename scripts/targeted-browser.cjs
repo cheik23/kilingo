@@ -40,7 +40,7 @@ const criticalErrors = [];
   const fs = require("fs");
   if (!fs.existsSync(MP3)) {
     const { execSync } = require("child_process");
-    execSync('espeak-ng -v fr-fr -w /tmp/ln_browser.wav "Bonjour tout le monde, bienvenue dans MOOVY. Ceci est un test du lecteur Shadow."');
+    execSync('espeak-ng -v fr-fr -w /tmp/ln_browser.wav "Bonjour tout le monde, bienvenue dans KILINGO. Ceci est un test du lecteur Shadow."');
     execSync("ffmpeg -y -loglevel error -i /tmp/ln_browser.wav -codec:a libmp3lame -qscale:a 6 " + MP3);
     console.log("[setup] MP3 de test généré:", MP3);
   }

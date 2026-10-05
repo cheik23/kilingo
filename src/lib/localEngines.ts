@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   MOOVY — MOTEURS LOCAUX EXÉCUTÉS DANS LE DÉPLOIEMENT FREEBUFF
+   KILINGO — MOTEURS LOCAUX EXÉCUTÉS DANS LE DÉPLOIEMENT FREEBUFF
 
    Le déploiement Freebuff sert l'application (Vite) et exécute les
    fonctions Convex. Il n'héberge NI processus Python, NI serveur

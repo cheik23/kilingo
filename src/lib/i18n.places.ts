@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════
    L'UNIVERS — CHAQUE PAGE EST UN LIEU (i18n ×12)
 
-   Un seul endroit pour les neuf lieux du monde Lingua Noir : le nom du
+   Un seul endroit pour les neuf lieux du monde Kilingo : le nom du
    lieu (kicker), une phrase d'ambiance (sous-titre court, poétique) et
    une phrase de vide (empty state, simple et rassurante).
 

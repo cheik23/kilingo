@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MOOVY — démarrage worker ASR natif (sans Docker)
+# KILINGO — démarrage worker ASR natif (sans Docker)
 # Usage : WHISPER_MODEL=small ./workers/start.sh [port]
 set -euo pipefail
 cd "$(dirname "$0")"

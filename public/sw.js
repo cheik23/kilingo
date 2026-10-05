@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   LINGUA NOIR — SERVICE WORKER (vanilla, zéro dépendance)
+   KILINGO — SERVICE WORKER (vanilla, zéro dépendance)
 
    Installable + lisible hors ligne. Deux stratégies, une liste d'exclusion.
 
@@ -24,9 +24,16 @@
    l'ancien cache (cf. `activate`).
    ═══════════════════════════════════════════════════════════════════════ */
 
-const VERSION = "linguanoir-v1-2026-09-26";
+/** Préfixe de tous nos caches. VERSION en dérive : impossible de faire diverger
+ *  le nom du cache courant et le filtre de purge (cf. `activate`). */
+const CACHE_PREFIX = "kilingo-";
+const VERSION = `${CACHE_PREFIX}v1-2026-09-26`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const PAGE_CACHE = `${VERSION}-pages`;
+
+/** Caches creations avant le renommage de la marque : purges une seule fois,
+ *  a la premiere activation de cette version, puis plus jamais rencontres. */
+const LEGACY_CACHE_PREFIXES = ["linguanoir-"];
 
 /** Précharge la coquille applicative à l'installation : l'app démarre
  *  hors ligne même si le premier visit n'a rien pu mettre en cache. */
@@ -86,7 +93,13 @@ self.addEventListener("activate", (event) => {
       const names = await caches.keys();
       await Promise.all(
         names
-          .filter((name) => name.startsWith("linguanoir-") && name !== ASSET_CACHE && name !== PAGE_CACHE)
+          .filter(
+            (name) =>
+              (name.startsWith(CACHE_PREFIX) ||
+                LEGACY_CACHE_PREFIXES.some((p) => name.startsWith(p))) &&
+              name !== ASSET_CACHE &&
+              name !== PAGE_CACHE,
+          )
           .map((name) => caches.delete(name)),
       );
       await self.clients.claim();

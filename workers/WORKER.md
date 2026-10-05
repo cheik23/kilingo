@@ -1,4 +1,4 @@
-# MOOVY — worker ASR local (faster-whisper natif)
+# KILINGO — worker ASR local (faster-whisper natif)
 
 > ## ⚠️ Mode ALTERNATIF — plus le chemin principal
 >
@@ -36,7 +36,7 @@ Avec `timestamp_granularities[]=word`, faster-whisper tourne avec
 
 ```json
 {
-  "text": "Bonjour tout le monde, bienvenue dans MOOVY.",
+  "text": "Bonjour tout le monde, bienvenue dans KILINGO.",
   "language": "fr",
   "segments": [
     {
@@ -63,7 +63,7 @@ curl -fsS -X POST http://localhost:8000/v1/audio/transcriptions \
   -F timestamp_granularities[]=segment -F timestamp_granularities[]=word
 ```
 
-## Câblage MOOVY
+## Câblage KILINGO
 
 Dans Convex Settings (Keys/API keys) — aucune clé secrète, URL locale :
 

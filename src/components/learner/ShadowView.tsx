@@ -134,7 +134,7 @@ export function ShadowView() {
   >("file");
   const [textDraft, setTextDraft] = useState("");
   const [sendingText, setSendingText] = useState(false);
-  // Plateforme reconnue mais non lisible dans MOOVY : carte honnête
+  // Plateforme reconnue mais non lisible dans KILINGO : carte honnête
   // (raison + « Ouvrir la source » + orientation upload), jamais un lecteur vide.
   const [unresolved, setUnresolved] = useState<{
     label: string;
@@ -1067,7 +1067,7 @@ export function ShadowView() {
                 />
               </motion.div>
             ) : unresolved ? (
-              // Plateforme reconnue mais non lisible dans MOOVY :
+              // Plateforme reconnue mais non lisible dans KILINGO :
               // raison explicite + « Ouvrir la source » + orientation upload.
               <motion.div
                 key="unresolved"

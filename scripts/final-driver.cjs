@@ -219,7 +219,7 @@ async function switchTab(page, label) {
   /* PHASE 7 : texte */
   rep("7.nouveau-media-5", await newMedia(page));
   if (await switchTab(page, "Texte")) {
-    await page.locator("textarea").first().fill("Bonjour et bienvenue dans MOOVY. Ceci est un test du média texte. La segmentation fonctionne par phrases. Chaque segment devient une ligne karaoké synchronisée sur l'horloge virtuelle.");
+    await page.locator("textarea").first().fill("Bonjour et bienvenue dans KILINGO. Ceci est un test du média texte. La segmentation fonctionne par phrases. Chaque segment devient une ligne karaoké synchronisée sur l'horloge virtuelle.");
     await page.locator("button").filter({ hasText: /analyser le texte/i }).first().click().catch(() => {});
     let textDone = false;
     for (let i = 0; i < 40; i++) { if (/synchronisés/i.test(await body(page))) { textDone = true; break; } await page.waitForTimeout(2500); }

@@ -31,9 +31,9 @@ export function envValue(name: string): string | undefined {
 
 /** En-tête User-Agent commun (exigé par Wikimedia, MusicBrainz, Openverse). */
 export function contactHeaders(): Record<string, string> {
-  const contact = envValue("OPENVERSE_CONTACT") ?? "contact@moovy.app";
+  const contact = envValue("OPENVERSE_CONTACT") ?? "contact@kilingo.app";
   return {
-    "User-Agent": `MOOVY/1.0 (${contact})`,
+    "User-Agent": `KILINGO/1.0 (${contact})`,
     Accept: "application/json",
   };
 }

@@ -5,7 +5,7 @@ import { getJson, stripHtml, toEpoch, txt, type ConnectorSpec, type RawHit } fro
 
    TVmaze raconte les séries, il ne les diffuse pas. Ce connecteur est donc
    structurellement « métadonnées » : le Rights Engine le classe
-   EXTERNAL_ONLY, la fiche MOOVY reste interne (saisons, épisodes,
+   EXTERNAL_ONLY, la fiche KILINGO reste interne (saisons, épisodes,
    genres, diffusion du jour) et la lecture renvoie vers la plateforme
    légale — ou vers un fichier que l'utilisateur possède.
    ═══════════════════════════════════════════════════════════════════════ */

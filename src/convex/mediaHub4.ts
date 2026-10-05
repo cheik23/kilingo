@@ -433,7 +433,7 @@ export const radioSearch = action({
     try {
       const res = await fetch(
         `https://de1.api.radio-browser.info/json/stations/search?name=${encodeURIComponent(q)}&limit=10&order=clickcount&reverse=true`,
-        { signal: AbortSignal.timeout(8_000), headers: { "User-Agent": "MOOVY/1.0" } },
+        { signal: AbortSignal.timeout(8_000), headers: { "User-Agent": "KILINGO/1.0" } },
       );
       if (!res.ok) return [];
       const data = (await res.json()) as Array<{

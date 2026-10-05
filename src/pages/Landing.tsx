@@ -39,7 +39,7 @@ const GlobeHero = lazy(() =>
 );
 
 /* ═══════════════════════════════════════════════════════════════════
-   MOOVY — page publique.
+   KILINGO — page publique.
 
    « Don't study the culture. Live it. »
 
@@ -400,7 +400,7 @@ export default function Landing() {
             <SectionTitle
               eyebrow="La méthode"
               title="Arrête d'apprendre une langue qui n'existe pas"
-              lead="Les applications classiques t'apprennent à commander un café. MOOVY t'apprend à comprendre une punchline, une interview, un refrain — la langue telle qu'elle se parle."
+              lead="Les applications classiques t'apprennent à commander un café. KILINGO t'apprend à comprendre une punchline, une interview, un refrain — la langue telle qu'elle se parle."
             />
 
             <div className="mt-12 grid gap-4 md:grid-cols-3">

@@ -1,7 +1,7 @@
 import type { SlangSeed } from "./slangSeed";
 
 /**
- * Batch 2024-2025 — 150 expressions contemporaines ajoutées au seed MOOVY.
+ * Batch 2024-2025 — 150 expressions contemporaines ajoutées au seed KILINGO.
  *
  * Garanties :
  *  • aucune collision de slug `language:base` avec les 972 entrées existantes

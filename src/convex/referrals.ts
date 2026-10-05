@@ -30,7 +30,7 @@ async function rewardReferralInternal(ctx: MutationCtx, row: ReferralRow) {
     userId: row.referredId,
     kind: "achievement",
     title: `+${REFERRAL_REWARD} gems`,
-    body: "Bienvenue sur Lingua Noir — ta récompense de parrainage est arrivée.",
+    body: "Bienvenue sur Kilingo — ta récompense de parrainage est arrivée.",
   });
   await insertNotification(ctx, {
     userId: row.referrerId,
@@ -103,7 +103,7 @@ export const trackReferral = mutation({
         userId: referrer._id,
         kind: "achievement",
         title: "Nouveau filleul",
-        body: `${referredUser.name} a rejoint Lingua Noir grâce à ton lien.`,
+        body: `${referredUser.name} a rejoint Kilingo grâce à ton lien.`,
       });
     }
     return { ok: true, alreadyTracked: false };
@@ -156,7 +156,7 @@ export const getMyReferrals = query({
       const user = await ctx.db.get(row.referredId);
       return {
         id: row.referredId,
-        name: user?.name ?? "Lingua Noir",
+        name: user?.name ?? "Kilingo",
         email: user?.email ?? "",
         joinedAt: row.createdAt,
         rewarded: row.rewarded,

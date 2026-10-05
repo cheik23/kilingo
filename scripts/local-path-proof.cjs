@@ -84,7 +84,7 @@ const rep = (k, pass, detail) => {
   // Audio de test réel (TTS local) — jamais un faux fichier.
   if (!fs.existsSync(MP3)) {
     execSync(
-      'espeak-ng -v fr-fr -w /tmp/ln_local_proof.wav "Bonjour tout le monde, bienvenue dans MOOVY. Ceci est un test du lecteur Shadow."',
+      'espeak-ng -v fr-fr -w /tmp/ln_local_proof.wav "Bonjour tout le monde, bienvenue dans KILINGO. Ceci est un test du lecteur Shadow."',
     );
     execSync(`ffmpeg -y -loglevel error -i /tmp/ln_local_proof.wav -codec:a libmp3lame -qscale:a 6 ${MP3}`);
     console.log("[proof] MP3 de test généré :", MP3);

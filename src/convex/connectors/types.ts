@@ -101,7 +101,7 @@ export type ConnectorSpec = {
 
 /* ── Réseau ─────────────────────────────────────────────────────────── */
 
-const UA = "MOOVY/1.0";
+const UA = "KILINGO/1.0";
 
 /** GET JSON avec délai maximum et un essai supplémentaire. */
 export async function getJson<T>(

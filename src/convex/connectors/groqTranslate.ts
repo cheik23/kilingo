@@ -359,7 +359,7 @@ export async function translateWithMyMemory(
             const res = await fetch(
               `${MYMEMORY_ENDPOINT}?q=${encodeURIComponent(part)}&langpair=${from}|${to}`,
               {
-                headers: { "User-Agent": "MOOVY/1.0" },
+                headers: { "User-Agent": "KILINGO/1.0" },
                 signal: AbortSignal.timeout(20_000),
               },
             );

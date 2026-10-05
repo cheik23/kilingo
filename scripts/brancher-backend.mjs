@@ -19,7 +19,25 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const convexDir = "C:/Users/leanc/Downloads/convex-local";
+
+/**
+ * Où vit la base Convex locale. Par défaut, le dossier frère du projet :
+ * le chemin se déduit de l'emplacement du script, donc le projet reste
+ * déplaçable (et le dossier projet a pu être renommé sans casser le
+ * démarrage). KILINGO_CONVEX_DIR permet de pointer ailleurs.
+ */
+const convexDir = process.env.KILINGO_CONVEX_DIR
+  ? path.resolve(process.env.KILINGO_CONVEX_DIR)
+  : path.resolve(projectDir, "..", "convex-local");
+
+if (!existsSync(path.join(convexDir, "docker-compose.yml"))) {
+  console.error(
+    `\nBase Convex locale introuvable : ${convexDir}\n` +
+      `Attendu : un dossier « convex-local » contenant docker-compose.yml, ` +
+      `à côté du projet (ou pointé par KILINGO_CONVEX_DIR).\n`,
+  );
+  process.exit(1);
+}
 
 const CONVEX_URL = "http://127.0.0.1:33210";
 const SITE_URL = "http://host.docker.internal:33211";

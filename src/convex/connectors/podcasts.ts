@@ -7,7 +7,7 @@ import { getJson, getText, parseFeed, toEpoch, type ConnectorSpec, type RawHit, 
    Un podcast est *distribué* par son éditeur sous forme de flux RSS public :
    l'écouter dans un lecteur est précisément l'usage prévu. On lit donc
    l'enclosure officielle en streaming — jamais une copie, jamais un
-   hébergement, jamais un téléchargement côté MOOVY.
+   hébergement, jamais un téléchargement côté KILINGO.
 
    En revanche, produire une transcription reste une œuvre dérivée : le
    Rights Engine la refuse tant que l'éditeur ne l'a pas autorisée

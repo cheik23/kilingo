@@ -11,7 +11,7 @@ import { useCallback, useEffect, useRef } from "react";
      · `Escape` referme la fiche ;
      · swipe à droite depuis le bord gauche referme la fiche sur mobile.
 
-   Un compteur de profondeur (`moovyDepth`) est écrit dans l'état
+   Un compteur de profondeur (`kilingoDepth`) est écrit dans l'état
    d'historique : quand une fiche en ouvre une autre (épisode → fiche
    d'épisode), chaque instance ne réagit qu'à SA propre entrée — un seul
    `back` referme exactement une fiche.
@@ -22,7 +22,7 @@ function restoreScroll(y: number) {
 }
 
 function currentDepth(): number {
-  const value = (window.history.state as { moovyDepth?: number } | null)?.moovyDepth;
+  const value = (window.history.state as { kilingoDepth?: number } | null)?.kilingoDepth;
   return typeof value === "number" ? value : 0;
 }
 
@@ -50,13 +50,13 @@ export function useDetailBack(onClose: () => void, enabled = true, pushHistory =
     if (!enabled || !pushHistory) return;
     const depth = currentDepth() + 1;
     scrollRef.current = window.scrollY;
-    window.history.pushState({ moovyDetail: true, moovyDepth: depth }, "");
+    window.history.pushState({ kilingoDetail: true, kilingoDepth: depth }, "");
     pushedDepthRef.current = depth;
 
     const onPop = (event: PopStateEvent) => {
-      const state = event.state as { moovyDepth?: number } | null;
+      const state = event.state as { kilingoDepth?: number } | null;
       // Seule l'instance qui a poussé la dernière entrée réagit.
-      if ((state?.moovyDepth ?? 0) !== depth - 1) return;
+      if ((state?.kilingoDepth ?? 0) !== depth - 1) return;
       pushedDepthRef.current = null;
       restoreScroll(scrollRef.current);
       closeRef.current();

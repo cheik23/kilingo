@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MOOVY — worker ASR local (faster-whisper, sans Docker).
+"""KILINGO — worker ASR local (faster-whisper, sans Docker).
 
 Contrat OpenAI-compatible consommé par `asrEngine.ts` via WHISPER_LOCAL_URL :
 
@@ -16,7 +16,7 @@ Lancement :
     pip install -r requirements.txt
     WHISPER_MODEL=small uvicorn whisper_worker:app --host 0.0.0.0 --port 8000
 
-Puis dans MOOVY (Convex Settings / Keys) :
+Puis dans KILINGO (Convex Settings / Keys) :
     WHISPER_LOCAL_URL = http://localhost:8000
 """
 from __future__ import annotations
@@ -32,7 +32,7 @@ from fastapi.responses import JSONResponse
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024  # 100 Mo — garde-fou, pas de limite API cloud
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".m4a", ".ogg", ".oga", ".opus", ".flac", ".webm", ".mp4", ".mpeg", ".mpga", ".aac", ".wma"}
 
-app = FastAPI(title="MOOVY — faster-whisper worker", version="1.0.0")
+app = FastAPI(title="KILINGO — faster-whisper worker", version="1.0.0")
 
 _model = None
 _model_name: Optional[str] = None

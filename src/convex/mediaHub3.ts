@@ -10,7 +10,7 @@ async function safeFetch(url: string, label: string, init?: RequestInit): Promis
     const res = await fetch(url, {
       ...init,
       signal: AbortSignal.timeout(8_000),
-      headers: { "User-Agent": "MOOVY/1.0", ...(init?.headers ?? {}) },
+      headers: { "User-Agent": "KILINGO/1.0", ...(init?.headers ?? {}) },
     });
     if (!res.ok) {
       throw new Error(`${label} indisponible pour le moment (HTTP ${res.status}). Réessaie dans un instant.`);

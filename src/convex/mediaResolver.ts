@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   MOOVY — MEDIA URL RESOLVER (couche universelle)
+   KILINGO — MEDIA URL RESOLVER (couche universelle)
 
    Une seule logique pour TOUTES les plateformes — plus de hacks par
    plateforme dans Shadow :

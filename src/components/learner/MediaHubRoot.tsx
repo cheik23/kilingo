@@ -12,7 +12,7 @@ import { useI18n } from "@/lib/i18n";
 /* ═══════════════════════════════════════════════════════════════════
    Media Hub — racine : 4 rayons (Musique, Films/Séries, Livres, Talk).
 
-   Chaque rayon s'ouvre sur le moteur de contenus : fiches MOOVY
+   Chaque rayon s'ouvre sur le moteur de contenus : fiches KILINGO
    réelles, nouveautés et tendances, lecture intégrée quand la source
    l'autorise. Les panneaux d'outils historiques (import de fichiers,
    MediaRoom d'analyse) restent accessibles sous « Outils » : rien n'a été
@@ -34,7 +34,7 @@ const RAYONS: Record<string, RayonConfig> = {
     kinds: ["movie", "series", "video"],
     title: "Films, séries & vidéos",
     subtitle:
-      "Une fiche MOOVY pour chaque titre : genres, pays, année, durée. Tu le regardes ici quand c'est possible, et tu vois toujours où le trouver.",
+      "Une fiche KILINGO pour chaque titre : genres, pays, année, durée. Tu le regardes ici quand c'est possible, et tu vois toujours où le trouver.",
     suggestions: ["public domain film", "documentary", "Nosferatu", "animation"],
     searchPlaceholder: "Un film, une série, un documentaire…",
     legacyLabel: "Outils d'analyse",

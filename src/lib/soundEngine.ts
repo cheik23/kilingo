@@ -33,8 +33,8 @@ export type SoundName =
   | "unlock"
   | "achievement";
 
-const VOLUME_KEY = "ln.audio.volume";
-const MUTED_KEY = "ln.audio.muted";
+const VOLUME_KEY = "kilingo.audio.volume";
+const MUTED_KEY = "kilingo.audio.muted";
 const SAMPLE_RATE = 22_050;
 
 /** Une voix = un oscillateur (ou un bruit) avec son enveloppe. */

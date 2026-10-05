@@ -17,7 +17,7 @@ import {
 import type { Content } from "@/openverse/model";
 
 /* ═══════════════════════════════════════════════════════════════════
-   Éléments de route de la coquille MOOVY.
+   Éléments de route de la coquille KILINGO.
 
    Les vues historiques naviguaient par chaînes de caractères
    ("review", "shadow"…) : on traduit ces clés en routes réelles ici,
@@ -25,7 +25,7 @@ import type { Content } from "@/openverse/model";
 
    Le moteur de contenus OpenVerse est embarqué comme module interne :
    il apporte son moteur de recherche et son Rights Engine, la coquille
-   apporte la navigation et l'identité MOOVY.
+   apporte la navigation et l'identité KILINGO.
    ═══════════════════════════════════════════════════════════════════ */
 
 const VIEW_ROUTES: Record<string, string> = {

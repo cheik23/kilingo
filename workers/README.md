@@ -1,11 +1,11 @@
-# MOOVY — Workers open source (ASR + Traduction)
+# KILINGO — Workers open source (ASR + Traduction)
 
 Ce dossier contient le déploiement de production des deux workers consommés par
 le pipeline Shadow via `WHISPER_LOCAL_URL` et `TRANSLATE_LOCAL_URL`.
 
 ## Services
 
-| Service | Image | Endpoint consommé | Env MOOVY |
+| Service | Image | Endpoint consommé | Env KILINGO |
 |---|---|---|---|
 | ASR (faster-whisper) | `fedirz/faster-whisper-server:latest-cpu` (ou `latest-cuda`) | `POST /v1/audio/transcriptions` (OpenAI-compatible) | `WHISPER_LOCAL_URL=http://asr:8000` |
 | Traduction (LibreTranslate/Argos) | `libretranslate/libretranslate:latest` | `POST /translate`, `GET /languages` | `TRANSLATE_LOCAL_URL=http://translate:5000` |

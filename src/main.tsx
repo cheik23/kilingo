@@ -23,6 +23,7 @@ import { LanguageProvider } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
 import { useThemeMode } from "@/hooks/useThemeMode";
 import { rememberReferral } from "@/lib/shareEngine";
+import { migrerPreferences } from "@/lib/brandMigration";
 import { PwaRuntime } from "@/components/PwaRuntime";
 import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
@@ -131,6 +132,12 @@ class RootErrorBoundary extends React.Component<
   }
 }
 
+// Avant tout montage : les préférences vivent désormais sous le préfixe
+// « kilingo. » (elles étaient sous un ancien préfixe à deux lettres, voir
+// brandMigration.ts). Doit passer avant le premier rendu, sinon la première
+// composant lit une clé encore vide.
+migrerPreferences();
+
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
 
@@ -216,7 +223,7 @@ createRoot(rootEl).render(
                   element={<AuthPage redirectAfterAuth="/app" />}
                 />
 
-                {/* Coquille MOOVY : toutes les vues vivent ici. */}
+                {/* Coquille KILINGO : toutes les vues vivent ici. */}
                 <Route
                   path="/app"
                   element={

@@ -13,7 +13,7 @@ export function ShareModal({ open, onOpenChange, generate, filename, userId }: {
   const { t } = useI18n();
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const invite = inviteFriend(userId || "lingua-noir");
+  const invite = inviteFriend(userId || "kilingo");
 
   useEffect(() => {
     if (!open) return;

@@ -1,12 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   MOOVY — COUCHE TRANSCRIPT (cœur pur, indépendante du player)
+   KILINGO — COUCHE TRANSCRIPT (cœur pur, indépendante du player)
 
    Le transcript est DÉCOUPLÉ de la lecture : un média peut être
    lisible sans transcript (TikTok) ou transcriptable sans lecteur.
    Ce module ne connaît ni React, ni Convex, ni le réseau — il est
    testable par unit tests et réutilisable par tout provider.
 
-   Format de segment unique pour TOUT MOOVY (karaoké, traduction,
+   Format de segment unique pour TOUT KILINGO (karaoké, traduction,
    dictionnaire, clic-mot, sauvegarde, SRS, progression, shadowing) :
 
      { start, end, text, speaker?, confidence? }
@@ -33,7 +33,7 @@ export type TranscriptUnavailableReason =
   | "EXTRACTION_FAILED";
 
 export type TranscriptSegment = {
-  /** Identifiant optionnel (attribué par le backend dans MOOVY). */
+  /** Identifiant optionnel (attribué par le backend dans KILINGO). */
   id?: string;
   start: number;
   end: number;

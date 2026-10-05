@@ -15,7 +15,7 @@
 const LRCLIB_BASE = "https://lrclib.net/api";
 
 /** lrclib demande un User-Agent identifiable et bloque les UA vides. */
-const LRCLIB_UA = "LinguaNoir/1.0 (apprentissage linguistique)";
+const LRCLIB_UA = "Kilingo/1.0 (apprentissage linguistique)";
 
 export type LrclibHit = {
   id: number;

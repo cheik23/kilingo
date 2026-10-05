@@ -87,8 +87,8 @@ export function ProfileView() {
         </div>
       </section>
       <AvatarPicker open={customizationOpen} onOpenChange={setCustomizationOpen} />
-      <ShareModal open={shareOpen} onOpenChange={setShareOpen} userId={user?._id ?? referrals?.inviteCode ?? ""} filename="lingua-noir-stats" generate={() => shareStats({
-        userId: user?._id ?? referrals?.inviteCode ?? "lingua-noir",
+      <ShareModal open={shareOpen} onOpenChange={setShareOpen} userId={user?._id ?? referrals?.inviteCode ?? ""} filename="kilingo-stats" generate={() => shareStats({
+        userId: user?._id ?? referrals?.inviteCode ?? "kilingo",
         expressions: stats.totalCards,
         days: Math.max(1, new Date().getDate()),
         streak: stats.perLanguage.reduce((sum, item) => Math.max(sum, item.streak), 0),

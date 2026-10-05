@@ -129,7 +129,7 @@ function Studio({ layout, onClose }: { layout: "desktop" | "mobile"; onClose: ()
   const clearAvatar = useMutation(api.customization.setRpmAvatar);
   const seedCatalog = useMutation(api.customizationCatalog.seedCatalog);
   useEffect(() => {
-    const key = "moovy.customization.catalog.v1";
+    const key = "kilingo.customization.catalog.v1";
     if (localStorage.getItem(key)) return;
     localStorage.setItem(key, "1");
     void seedCatalog().catch(() => localStorage.removeItem(key));

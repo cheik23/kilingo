@@ -111,14 +111,14 @@ async function audiusCall(params: URLSearchParams, rows: number): Promise<RawHit
   const base = await audiusBase();
   if (!base) return [];
   const data = await getJson<{ data?: AudiusTrack[] }>(
-    `${base}/v1/tracks/search?${params.toString()}&app_name=MOOVY`,
+    `${base}/v1/tracks/search?${params.toString()}&app_name=KILINGO`,
     {},
     12_000,
   ).catch(() => null);
   const out: RawHit[] = [];
   for (const track of data?.data ?? []) {
     if (!track.id || !track.title) continue;
-    const stream = `${base}/v1/tracks/${encodeURIComponent(track.id)}/stream?app_name=MOOVY`;
+    const stream = `${base}/v1/tracks/${encodeURIComponent(track.id)}/stream?app_name=KILINGO`;
     out.push({
       source: "audius",
       externalId: track.id,

@@ -1,3 +1,15 @@
+# KILINGO
+
+Plateforme d'immersion culturelle : apprendre l'argot africain en écoutant du contenu réel.
+
+- **Dossier** : `C:\Users\leanc\Downloads\kilingo\`
+- **Backend** : Convex local dans Docker (`C:\Users\leanc\Downloads\convex-local\`)
+- **Démarrage** : double-cliquer sur `RESTAURER.cmd`
+- **URL** : http://localhost:5173
+
+La documentation de reprise (état du projet, pièges du self-hosted, journal des
+correctifs) vit dans `CONTESTE-APP.md`.
+
 ## Overview
 
 This project uses the following tech stack:

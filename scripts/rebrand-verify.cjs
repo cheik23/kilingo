@@ -1,12 +1,18 @@
-/* VÉRIFICATION BROWSER DU REBRANDING MOOVY.
+/* VÉRIFICATION BROWSER DU REBRANDING KILINGO.
    Parcourt les surfaces publiques et authentifiées et échoue si :
-     • une occurrence visible de « Lingua Noir » subsiste ;
-     • le wordmark MOOVY est absent des surfaces clés.
+     • une ancienne marque (MOOVY ou Lingua Noir) reste visible ;
+     • le wordmark KILINGO est absent des surfaces clés.
    Vues : landing, auth, app shell, Discover, Shadow, Memory, Space,
    responsive mobile, dark/light.
    Usage : node scripts/rebrand-verify.cjs
 */
 const { chromium } = require("playwright-core");
+
+/** Marques abandonnées. Le motif doit couvrir les trois écritures vues dans le
+ *  dépôt : « Moovy », « Lingua Noir », « lingua-noir » ET la forme concaténée
+ *  « linguanoir » (préfixe de cache du service worker, ancien domaine). Un motif
+ *  trop étroit laisse passer des occurrences à l'ceil nu. */
+const ANCIENNES = /moovy|lingua[\s-]*noir/i;
 
 const BASE = "http://127.0.0.1:5173";
 const CHROME = "/home/user/.cache/ms-playwright/chromium-1148/chrome-linux/chrome";
@@ -37,22 +43,22 @@ const rep = (k, pass, detail = "") => {
   const landing = await body();
   rep(
     "L.titre-document",
-    /^MOOVY/.test(await title()),
+    /^KILINGO/.test(await title()),
     JSON.stringify(await title()),
   );
-  rep("L.wordmark-moovy", landing.includes("MOOVY"), "présent dans la navbar/footer");
+  rep("L.wordmark-kilingo", landing.includes("KILINGO"), "présent dans la navbar/footer");
   rep(
-    "L.sans-lingua-noir",
-    !/lingua\s*noir/i.test(landing),
-    /lingua\s*noir/i.test(landing) ? "occurrence visible restante" : "0 occurrence",
+    "L.sans-kilingo",
+    !ANCIENNES.test(landing),
+    ANCIENNES.test(landing) ? "ancienne marque encore visible" : "0 occurrence",
   );
 
   /* ── Auth ───────────────────────────────────────────────────────── */
   await page.goto(BASE + "/auth", { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(1200);
   const auth = await body();
-  rep("A.wordmark-moovy", auth.includes("MOOVY"), "bloc marque visible");
-  rep("A.sans-lingua-noir", !/lingua\s*noir/i.test(auth), "0 occurrence");
+  rep("A.wordmark-kilingo", auth.includes("KILINGO"), "bloc marque visible");
+  rep("A.sans-kilingo", !ANCIENNES.test(auth), "0 occurrence");
 
   /* Session invitée si nécessaire, puis onboarding déterministe. */
   if (/Continuer en invité/i.test(auth)) {
@@ -84,15 +90,15 @@ const rep = (k, pass, detail = "") => {
     await page.waitForTimeout(1800);
     const txt = await body();
     lastText = txt;
-    const hasBrand = txt.includes("MOOVY");
-    const hasOld = /lingua\s*noir/i.test(txt);
+    const hasBrand = txt.includes("KILINGO");
+    const hasOld = ANCIENNES.test(txt);
     rep(
       s.name,
       !hasOld && (s.name === "S.shadow" || s.name === "S.memory" || hasBrand),
       hasOld
-        ? "« Lingua Noir » visible"
+        ? "ancienne marque encore visible"
         : hasBrand
-          ? "MOOVY visible"
+          ? "KILINGO visible"
           : "page rendue (marque non contextuelle)",
     );
   }
@@ -106,7 +112,7 @@ const rep = (k, pass, detail = "") => {
     () => document.documentElement.scrollWidth <= window.innerWidth + 2,
   );
   rep("M.mobile-375-rendu", mobile.length > 200 && noHScroll, `scrollWidth OK: ${noHScroll}, texte: ${mobile.length} car.`);
-  rep("M.mobile-sans-lingua", !/lingua\s*noir/i.test(mobile), "0 occurrence");
+  rep("M.mobile-sans-lingua", !ANCIENNES.test(mobile), "0 occurrence");
   await page.setViewportSize({ width: 1280, height: 900 });
 
   /* ── Dark / light ───────────────────────────────────────────────── */
@@ -115,7 +121,7 @@ const rep = (k, pass, detail = "") => {
   await page.waitForTimeout(1500);
   const lightTxt = await body();
   rep("L2.light-mode-rendu", lightTxt.length > 200, "page Shadow rendue en light");
-  rep("L2.light-sans-lingua", !/lingua\s*noir/i.test(lightTxt), "0 occurrence");
+  rep("L2.light-sans-lingua", !ANCIENNES.test(lightTxt), "0 occurrence");
   await page.emulateMedia({ colorScheme: "dark" });
 
   await browser.close();

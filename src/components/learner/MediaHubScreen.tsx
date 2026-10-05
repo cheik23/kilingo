@@ -415,7 +415,7 @@ function FreeFilmsPane({
         <EmptyState
           icon={<Clapperboard className="size-6 text-gold" />}
           title="Des films à regarder directement ici"
-          hint="Des milliers de films libres, lisibles dans MOOVY sans quitter l'application."
+          hint="Des milliers de films libres, lisibles dans KILINGO sans quitter l'application."
           suggestions={["Nosferatu", "Sherlock Jr", "Metropolis"]}
         />
       )}

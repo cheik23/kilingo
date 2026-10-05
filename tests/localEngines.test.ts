@@ -201,7 +201,7 @@ describe("traduction locale — OPUS-MT, timestamps conservés", () => {
     async () => {
       const segments = [
         { start: 0.4, end: 2.1, text: "Bonjour tout le monde." },
-        { start: 2.1, end: 4.8, text: "Bienvenue dans MOOVY." },
+        { start: 2.1, end: 4.8, text: "Bienvenue dans KILINGO." },
       ];
       const translated = await translateLocal(
         segments.map((s) => s.text),

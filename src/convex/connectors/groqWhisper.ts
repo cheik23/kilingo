@@ -100,7 +100,7 @@ export async function downloadAudio(
     const res = await fetch(url, {
       redirect: "follow",
       signal: AbortSignal.timeout(120_000),
-      headers: { "User-Agent": "MOOVY/1.0" },
+      headers: { "User-Agent": "KILINGO/1.0" },
     });
     if (!res.ok) {
       console.warn(`[groqWhisper] téléchargement HTTP ${res.status} — abandon`);

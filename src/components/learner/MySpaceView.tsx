@@ -170,9 +170,9 @@ function ProfileStrip({ onCustomize }: { onCustomize: () => void }) {
         open={shareOpen}
         onOpenChange={setShareOpen}
         userId={user?._id ?? referrals?.inviteCode ?? ""}
-        filename="lingua-noir-espace"
+        filename="kilingo-espace"
         generate={() => shareStats({
-          userId: user?._id ?? referrals?.inviteCode ?? "lingua-noir",
+          userId: user?._id ?? referrals?.inviteCode ?? "kilingo",
           expressions: learningStats?.totalCards ?? 0,
           days: Math.max(1, new Date().getDate()),
           streak: gamification?.currentStreak ?? overview?.streakCurrent ?? 0,

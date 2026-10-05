@@ -154,7 +154,7 @@ export function HomeView({
         <Row title="Recommandé pour toi" subtitle="D'après tes lectures, écoutes et favoris" items={recos as never} onOpen={onOpen} />
       ) : null}
 
-      <Row title="Films" subtitle="À regarder dans MOOVY" items={(movies ?? []) as never} onOpen={onOpen} />
+      <Row title="Films" subtitle="À regarder dans KILINGO" items={(movies ?? []) as never} onOpen={onOpen} />
       <Row title="Musiques & concerts" items={(music ?? []) as never} onOpen={onOpen} />
       <Row title="Livres" items={(books ?? []) as never} onOpen={onOpen} />
       <Row title="Audio & podcasts" items={(audio ?? []) as never} onOpen={onOpen} />
@@ -197,11 +197,11 @@ const CATEGORY_INTRO: Record<Kind, string> = {
   series:
     "Les séries et leur diffusion du jour : tu vois immédiatement ce qui est nouveau.",
   video:
-    "Des vidéos à regarder dans MOOVY, avec leur lecteur d'origine.",
+    "Des vidéos à regarder dans KILINGO, avec leur lecteur d'origine.",
   music:
     "Cherche par artiste, titre ou album : classements par pays et extraits à écouter, avec les paroles quand elles sont disponibles.",
   podcast:
-    "Des émissions et leurs épisodes : tu écoutes en streaming, sans quitter MOOVY.",
+    "Des émissions et leurs épisodes : tu écoutes en streaming, sans quitter KILINGO.",
   audio:
     "Livres audio et webradios du monde entier, filtrables par pays et par langue.",
   book:
@@ -216,7 +216,7 @@ const CATEGORY_INTRO: Record<Kind, string> = {
 
 /**
  * CATÉGORIE — délègue au rayon unifié : même moteur que les rayons du Hub
- * (recherche, tri par nouveauté, filtres pays/langue, fiche MOOVY).
+ * (recherche, tri par nouveauté, filtres pays/langue, fiche KILINGO).
  */
 export function CategoryView({ kind }: { kind: Kind }) {
   const meta = KIND_META[kind];
