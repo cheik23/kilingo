@@ -5,6 +5,10 @@ src/convex/_generated
 workers/.venv
 workers/__pycache__
 
+# Copie de déploiement du build, régénérée depuis dist/ : la versionnée coûtait
+# 25 Mo de bundles minifiés et doublait dist/ dans chaque clone.
+isolate/
+
 # Base Convex locale : elle vit normalement hors du projet, mais si quelqu'un
 # la recrée ici par erreur, elle contient la clé admin et les comptes.
 convex-local/
