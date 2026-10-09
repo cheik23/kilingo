@@ -25,7 +25,8 @@ export type PlaceKey =
   | "achievements"
   | "space"
   | "leaderboard"
-  | "history";
+  | "history"
+  | "signs";
 
 /** [kicker (nom du lieu), ambiance (phrase d'ambiance), empty (phrase de vide)] */
 type PlaceTriplet = [string, string, string];
@@ -78,6 +79,11 @@ const PLACES: Record<string, PlacesLang> = {
       "Tout ce que tu as traversé, page après page.",
       "Le journal est vierge. Ta première session y écrira la première ligne.",
     ],
+    signs: [
+      "Les Mains",
+      "Les mots se signent : regarde, rejoue, répète.",
+      "Aucun signe ici pour l'instant. Élargis le filtre.",
+    ],
   },
   en: {
     home: [
@@ -124,6 +130,11 @@ const PLACES: Record<string, PlacesLang> = {
       "The Journal",
       "Everything you have been through, page after page.",
       "The journal is blank. Your first session writes the first line.",
+    ],
+    signs: [
+      "The Hands",
+      "Words are signed: watch, replay, repeat.",
+      "No sign here yet. Widen the filter.",
     ],
   },
   es: {
@@ -172,6 +183,11 @@ const PLACES: Record<string, PlacesLang> = {
       "Todo lo que has recorrido, página tras página.",
       "El diario está en blanco. Tu primera sesión escribirá la primera línea.",
     ],
+    signs: [
+      "Las Manos",
+      "Las palabras se.signan: mira, repite, repite.",
+      "Aún no hay ninguna seña aquí. Amplía el filtro.",
+    ],
   },
   zh: {
     home: [
@@ -218,6 +234,11 @@ const PLACES: Record<string, PlacesLang> = {
       "日志",
       "你走过的一切，一页接一页。",
       "日志还是空白。第一次学习会写下第一行。",
+    ],
+    signs: [
+      "双手",
+      "词语是用手比出来的：看、跟着做、再来一次。",
+      "这里还没有手语。换一个筛选条件吧。",
     ],
   },
   ar: {
@@ -266,6 +287,11 @@ const PLACES: Record<string, PlacesLang> = {
       "كل ما مررت به، صفحة بعد صفحة.",
       "السجل أبيض. أول جلسة ستكتب أول سطر.",
     ],
+    signs: [
+      "اليدان",
+      "الكلمات تُشير: شاهد، أعد، كرّر.",
+      "لا توجد إشارة هنا بعد. وسّع التصفية.",
+    ],
   },
   ru: {
     home: [
@@ -312,6 +338,11 @@ const PLACES: Record<string, PlacesLang> = {
       "Журнал",
       "Всё, что ты прошёл, страница за страницей.",
       "Журнал чист. Первая сессия напишет первую строку.",
+    ],
+    signs: [
+      "Руки",
+      "Слова показываются руками: смотри, повтори, повтори.",
+      "Здесь пока нет знаков. Расширь фильтр.",
     ],
   },
   sw: {
@@ -360,6 +391,11 @@ const PLACES: Record<string, PlacesLang> = {
       "Kila ulichopitia, ukurasa kwa ukurasa.",
       "Jarida ni tupu. Kikao chako cha kwanza kitaandika mstari wa kwanza.",
     ],
+    signs: [
+      "Mikono",
+      "Maneno yanaonyeshwa kwa mikono: angalia, rudi, rudi.",
+      "Hakuna ishara hapa bado. Panua kichujio.",
+    ],
   },
   ln: {
     home: [
@@ -406,6 +442,11 @@ const PLACES: Record<string, PlacesLang> = {
       "Buku ya mikolo",
       "Nyonso oyo olekaki, lokasa na lokasa.",
       "Buku ya mikolo ezali mpamba. Session ya liboso ekokoma molongo ya liboso.",
+    ],
+    signs: [
+      "Mikono",
+      "MalobaBondoko kwa mikono: tala, bojongisa, bojongisa.",
+      "Koyembo te oyo ekobane na ndembo hapa. Engozza eloko oyo ezalali.",
     ],
   },
   ha: {
@@ -454,6 +495,11 @@ const PLACES: Record<string, PlacesLang> = {
       "Duk abin da ka wuce, shafi bayan shafi.",
       "Jarida fari ne. Zaman ka na farko zai rubuta layi na farko.",
     ],
+    signs: [
+      "Kafafaye",
+      "Kalma sun signa: duba, sake, sake.",
+      "Babba alama ba a nan nan. Kara filtɗa.",
+    ],
   },
   yo: {
     home: [
@@ -500,6 +546,11 @@ const PLACES: Record<string, PlacesLang> = {
       "Ìwé Ìṣẹ̀lẹ̀",
       "Ohun gbogbo tí o ti kọjá, ojú-ìwé dé ojú-ìwé.",
       "Ìwé ìṣẹ̀lẹ̀ fúnfun ni. Ìpàdé rẹ àkọ́kọ́ yóò kọ ìlà àkọ́kọ́.",
+    ],
+    signs: [
+      "Ọwọ́n ẹ́",
+      "Ọ̀rọ̀ wọ́n sí i: wo, tún, tún.",
+      "Kò sí àmì ìwà hàn níbi tíí. Fẹ̀ sílẹ̀ àwọn àmì.",
     ],
   },
   zu: {
@@ -548,6 +599,11 @@ const PLACES: Record<string, PlacesLang> = {
       "Konke okudlulile, ikhasi ngekhasi.",
       "Ijenali ayinalutho. Iseshini yakho yokuqala izobhala umugqa wokuqala.",
     ],
+    signs: [
+      "Izandla",
+      "Amagama asayenzwa ngezandla: bheka, phinda, phinda.",
+      "Akukho isigaba lapha okwamanje. Khulisa ukuhlunga.",
+    ],
   },
   wo: {
     home: [
@@ -594,6 +650,11 @@ const PLACES: Record<string, PlacesLang> = {
       "Kayitu",
       "Bépp lu la jaar, xët ci xët.",
       "Kayitu bi weex na. Sa première session daan na xaaj bi ci wàll.",
+    ],
+    signs: [
+      "Lii",
+      "Ligéey bi doy ci seen: xool, diopp, diopp.",
+      "Teyir tey ko nekkul. Losaan li kër.",
     ],
   },
 };

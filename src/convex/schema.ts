@@ -60,6 +60,18 @@ const schema = defineSchema(
 
       // Daily practice goal in minutes (Dashboard "Performance").
       dailyGoalMinutes: v.optional(v.number()),
+
+      /**
+       * Fuseau IANA du compte — sert au quota Shadow quotidien.
+       *
+       * Le reset se fait à minuit CHEZ L'UTILISATEUR, pas en UTC : un
+       * quota qui bascule à 2 h du matin pour l'Europe et à 18 h pour
+       * l'Afrique n'est pas un quota, c'est une injustice. Le client
+       * envoie `Intl.DateTimeFormat().resolvedOptions().timeZone`, le
+       * serveur le VALIDE avant de le stocker (une chaîne arbitraire
+       * ferait planter `Intl`) et retombe sur UTC s'il est inconnu.
+       */
+      timezone: v.optional(v.string()),
     }).index("email", ["email"]), // index for the email. do not remove or modify
 
     // add other tables here
@@ -1067,6 +1079,118 @@ const schema = defineSchema(
       .index("by_scope", ["scope"])
       .index("by_level", ["level"])
       .index("by_created", ["createdAt"]),
+
+    /* ═══════════════════════════════════════════════════════════════
+       ABONNEMENTS PREMIUM (Lemon Squeezy — lot « paiement »)
+
+       `isPremium` n'est JAMAIS stocké : il se déduit de `status` +
+       `currentPeriodEnd` dans `subscriptions.premiumStatusFor`, l'unique
+       source de vérité. L'écriture se fait par UPSERT sur
+       `lemonSqueezySubscriptionId` (Lemon Squeezy est la seule autorité
+       sur le statut), donc le rejeu d'un webhook écrase la même ligne.
+       ═══════════════════════════════════════════════════════════════ */
+    subscriptions: defineTable({
+      /** Compte Kilingo concerné. */
+      userId: v.id("users"),
+      /** Statut NORMALISÉ — les cinq seuls états que la table connaît. */
+      status: v.union(
+        v.literal("active"),
+        v.literal("cancelled"),
+        v.literal("past_due"),
+        v.literal("trialing"),
+        v.literal("expired"),
+      ),
+      /** Statut BRUT de l'API (`on_trial`, `unpaid`, `paused`…). */
+      lemonSqueezyStatus: v.string(),
+      /** Identifiant d'abonnement chez Lemon Squeezy — la clé d'upsert. */
+      lemonSqueezySubscriptionId: v.string(),
+      /** Client Lemon Squeezy (permet la réconciliation par e-mail). */
+      lemonSqueezyCustomerId: v.optional(v.string()),
+      /** Variante achetée — utile le jour où Premium a plusieurs offres. */
+      variantId: v.optional(v.string()),
+      /** Fin de la période en cours, en ms epoch (absent = indéterminé). */
+      currentPeriodEnd: v.optional(v.number()),
+      /** Fin de l'essai gratuit, en ms epoch. */
+      trialEndsAt: v.optional(v.number()),
+      /** E-mail de l'abonné — réconciliation si `custom.user_id` manque. */
+      email: v.optional(v.string()),
+      /** Abonnement créé en mode test : il ne vaut pas argent réel. */
+      testMode: v.optional(v.boolean()),
+      /** `updated_at` de l'API, en ms — garde l'idempotence ordonnée. */
+      lemonSqueezyUpdatedAt: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_user", ["userId"])
+      .index("by_lemon_subscription", ["lemonSqueezySubscriptionId"])
+      .index("by_lemon_customer", ["lemonSqueezyCustomerId"]),
+
+    /* Webhooks traités (idempotence) — empreinte SHA-256 du corps BRUT. */
+    lemonSqueezyWebhookEvents: defineTable({
+      key: v.string(),
+      eventName: v.string(),
+      resourceType: v.optional(v.string()),
+      resourceId: v.optional(v.string()),
+      resolved: v.boolean(),
+      duplicate: v.optional(v.boolean()),
+      receivedAt: v.number(),
+    }).index("by_key", ["key"]),
+
+    /* Provider résolu (table-singleton) — l'état de configuration transite
+       par ici car une query Convex ne peut pas lire `process.env`. */
+    lemonSqueezyProvider: defineTable({
+      key: v.string(),
+      storeId: v.optional(v.string()),
+      variantId: v.optional(v.string()),
+      productName: v.optional(v.string()),
+      priceCents: v.optional(v.number()),
+      hasApiKey: v.optional(v.boolean()),
+      hasWebhookSecret: v.optional(v.boolean()),
+      ready: v.optional(v.boolean()),
+      reason: v.optional(v.string()),
+      testMode: v.optional(v.boolean()),
+      resolvedAt: v.number(),
+    }).index("by_key", ["key"]),
+
+    /* Quota Shadow quotidien (Module B) — une ligne par compte et par JOUR
+       LOCAL du compte ; compteur et non booléen, pour afficher le reste
+       avant que le plafond ne tombe. */
+    shadowQuota: defineTable({
+      key: v.string(), // `${userId}:${yyyy-mm-dd}` dans le fuseau du compte
+      userId: v.id("users"),
+      day: v.string(),
+      timezone: v.string(),
+      used: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_key", ["key"])
+      .index("by_user", ["userId"]),
+
+    /* Langue des signes (LSF) — progression d'un compte, une ligne par
+       signe ; le catalogue vit dans `src/data/lsf-signs.json`. */
+    lsfSignProgress: defineTable({
+      key: v.string(), // `${userId}:${signId}`
+      userId: v.id("users"),
+      signKey: v.string(),
+      seen: v.boolean(),
+      right: v.number(),
+      wrong: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_key", ["key"])
+      .index("by_user", ["userId"]),
+
+    /* Langue des signes — signalements de la communauté (gloss à valider). */
+    lsfSignReports: defineTable({
+      signKey: v.string(),
+      gloss: v.string(),
+      userId: v.id("users"),
+      reason: v.string(),
+      note: v.optional(v.string()),
+      createdAt: v.number(),
+    })
+      .index("by_sign", ["signKey"])
+      .index("by_user", ["userId"]),
   },
   {
     schemaValidation: false,
