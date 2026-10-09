@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "typecheck": "tsc -b --noEmit",
+    "verify": "bun run typecheck && bun test",
     "lint": "eslint .",
     "format": "prettier --write .",
     "preview": "vite preview"

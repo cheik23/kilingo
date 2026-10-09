@@ -35,13 +35,13 @@ describe("extractYouTubeVideoId", () => {
     expect(extractYouTubeVideoId("https://youtu.be/jNQXAC9IVRw?t=10")).toBe("jNQXAC9IVRw");
   });
   test("shorts / embed / live", () => {
-    expect(extractYouTubeVideoId("https://www.youtube.com/shorts/abc123")).toBe("abc123");
-    expect(extractYouTubeVideoId("https://www.youtube.com/embed/abc123")).toBe("abc123");
-    expect(extractYouTubeVideoId("https://www.youtube.com/live/abc123")).toBe("abc123");
+    expect(extractYouTubeVideoId("https://www.youtube.com/shorts/jNQXAC9IVRw")).toBe("jNQXAC9IVRw");
+    expect(extractYouTubeVideoId("https://www.youtube.com/embed/jNQXAC9IVRw")).toBe("jNQXAC9IVRw");
+    expect(extractYouTubeVideoId("https://www.youtube.com/live/jNQXAC9IVRw")).toBe("jNQXAC9IVRw");
   });
   test("m.youtube.com et music.youtube.com", () => {
-    expect(extractYouTubeVideoId("https://m.youtube.com/watch?v=abc123")).toBe("abc123");
-    expect(extractYouTubeVideoId("https://music.youtube.com/watch?v=abc123")).toBe("abc123");
+    expect(extractYouTubeVideoId("https://m.youtube.com/watch?v=jNQXAC9IVRw")).toBe("jNQXAC9IVRw");
+    expect(extractYouTubeVideoId("https://music.youtube.com/watch?v=jNQXAC9IVRw")).toBe("jNQXAC9IVRw");
   });
   test("hors YouTube → null", () => {
     expect(extractYouTubeVideoId("https://vimeo.com/123456")).toBeNull();
@@ -111,7 +111,7 @@ describe("resolveMedia — verdicts purs (sans réseau : oEmbed absent pour ces 
   test("plateforme inconnue → UNAVAILABLE avec raison", async () => {
     const r = await resolveMedia("https://example.org/xyz");
     expect(r.mode).toBe("UNAVAILABLE");
-    expect(r.reason).toContain("non reconnue");
+    expect(r.reason).toContain("non reconnu");
   });
   test("direct MP3 → DIRECT_STREAM + playableUrl", async () => {
     const r = await resolveMedia("https://example.com/a/track.mp3");

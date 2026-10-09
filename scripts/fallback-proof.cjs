@@ -15,11 +15,17 @@
 
    Usage : node scripts/fallback-proof.cjs [mp3]
 */
+const path = require("path");
 const { chromium } = require("playwright-core");
 
-const BASE = "http://127.0.0.1:5173";
-const CHROME = "/home/user/.cache/ms-playwright/chromium-1148/chrome-linux/chrome";
-const PROFILE = "/tmp/ln-chrome-fallback";
+/* Port de test officiel Kilingo : 3201 (surchargeable). Le binaire navigateur et
+ *  le dossier de profils le sont aussi, pour tourner hors du sandbox Linux
+ *  d'origine (ex. Edge local sous Windows). */
+const BASE = process.env.KILINGO_BASE || "http://127.0.0.1:3201";
+const CHROME =
+  process.env.KILINGO_CHROME ||
+  "/home/user/.cache/ms-playwright/chromium-1148/chrome-linux/chrome";
+const PROFILE = path.join(process.env.KILINGO_PROFILE_DIR || "/tmp", "ln-chrome-fallback");
 const MP3 = process.argv[2] || "/tmp/ln_en_test.mp3";
 const BLOCKED = /(^|\.)huggingface\.co|cdn-lfs|jsdelivr\.net|hf-mirror/i;
 

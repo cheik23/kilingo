@@ -1,11 +1,17 @@
 /* PREUVE BROWSER — CHANTIERS MEDIA (Dailymotion in-app, Archive direct,
    filtres Découverte, favoris ≠ SRS). Réutilise le flux invité existant.
    Usage : node scripts/media-hub-proof.cjs */
+const path = require("path");
 const { chromium } = require("playwright-core");
 
-const BASE = "http://127.0.0.1:5173";
-const CHROME = "/home/user/.cache/ms-playwright/chromium-1148/chrome-linux/chrome";
-const PROFILE = "/tmp/ln-chrome-profile";
+/* Port de test officiel Kilingo : 3201 (surchargeable). Le binaire navigateur et
+ *  le dossier de profils le sont aussi, pour tourner hors du sandbox Linux
+ *  d'origine (ex. Edge local sous Windows). */
+const BASE = process.env.KILINGO_BASE || "http://127.0.0.1:3201";
+const CHROME =
+  process.env.KILINGO_CHROME ||
+  "/home/user/.cache/ms-playwright/chromium-1148/chrome-linux/chrome";
+const PROFILE = path.join(process.env.KILINGO_PROFILE_DIR || "/tmp", "ln-chrome-profile");
 
 const R = {};
 const rep = (k, pass, detail = "") => {
