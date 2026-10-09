@@ -1,0 +1,10 @@
+# KILINGO — exclu du déploiement Vercel.
+#
+# `workers/` contient le worker faster-whisper auto-hébergé (Python + Docker
+# Compose). Rien à voir avec l'app web : sa présence faisait basculer le projet
+# en mode « Services » au lieu du preset Vite sur la racine, d'où le 404
+# DEPLOYMENT_NOT_FOUND.
+workers/
+
+# Copie de déploiement du build (régénérée depuis dist/, jamais servie à part).
+isolate/
