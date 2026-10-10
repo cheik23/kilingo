@@ -342,7 +342,14 @@ function ConversationHome({
                 <button
                   type="button"
                   onClick={() => pickChar(c.id)}
-                  title={c.description}
+                  // Infobulle native (le même mécanisme que la description) :
+                  // sur un personnage ouvert elle garde la description seule,
+                  // sur un verrouillé elle dit aussi comment l'ouvrir.
+                  title={
+                    c.locked
+                      ? `${c.description} · ${t("premium.characters.tooltip")}`
+                      : c.description
+                  }
                   className={cn(
                     "ln-card flex h-full w-full flex-col items-start p-3 text-left transition-colors hover:border-gold/50",
                     // 1.4 — sélection nette : bordure or + fond or/10.
@@ -370,11 +377,13 @@ function ConversationHome({
                   )}
                   {/* MODULE C — pastille de verrou, sur la carte visible.
                       « Premium » dit ce que ça coûte ; sans elle, le
-                      personnage passerait pour un contenu cassé. */}
+                      personnage passerait pour un contenu cassé. Tons or
+                      discrets : un badge rouge crierait une sanction sur
+                      une page de jeu, alors que c'est une invitation. */}
                   {c.locked ? (
                     <span
                       data-card3d-depth="60"
-                      className="mt-1 flex items-center gap-1 rounded-full border border-white/15 bg-black/40 px-1.5 py-0.5 text-[0.5625rem] text-ink-2"
+                      className="mt-1 flex items-center gap-1 rounded-full border border-gold/20 bg-gold/[0.08] px-1.5 py-0.5 text-[0.5625rem] text-gold/80"
                     >
                       <Lock className="size-2.5" /> {t("premium.characters.locked")}
                     </span>

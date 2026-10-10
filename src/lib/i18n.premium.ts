@@ -34,8 +34,8 @@ type PremiumCopy = {
   };
   /** `{n}` analyses restantes aujourd'hui. */
   quota: { remaining: string; lastOne: string; unlimited: string; resets: string };
-  /** Pastille sur un personnage verrouillé. */
-  characters: { locked: string; preview: string };
+  /** Pastille d'un personnage verrouillé, et l'infobulle qui l'explique. */
+  characters: { locked: string; preview: string; tooltip: string };
   /** `{cap}` = plafond du compte. */
   languages: { capHint: string };
   /** Titre de l'invite, commun aux trois blocages. */
@@ -67,7 +67,11 @@ const PREMIUM: Record<string, PremiumCopy> = {
       unlimited: "Shadowing illimité",
       resets: "Compteur remis à zéro à {time}",
     },
-    characters: { locked: "Premium", preview: "Aperçu" },
+    characters: {
+      locked: "Premium",
+      preview: "Aperçu",
+      tooltip: "Débloquez ce personnage avec Kilingo Premium",
+    },
     languages: { capHint: "{cap} langue active en formule gratuite" },
     upsell: {
       title: "Premium",
@@ -99,7 +103,11 @@ const PREMIUM: Record<string, PremiumCopy> = {
       unlimited: "Unlimited shadowing",
       resets: "Counter resets at {time}",
     },
-    characters: { locked: "Premium", preview: "Preview" },
+    characters: {
+      locked: "Premium",
+      preview: "Preview",
+      tooltip: "Unlock this character with Kilingo Premium",
+    },
     languages: { capHint: "{cap} active language on the free plan" },
     upsell: {
       title: "Premium",
@@ -131,7 +139,11 @@ const PREMIUM: Record<string, PremiumCopy> = {
       unlimited: "Shadowing ilimitado",
       resets: "El contador se reinicia a las {time}",
     },
-    characters: { locked: "Premium", preview: "Vista previa" },
+    characters: {
+      locked: "Premium",
+      preview: "Vista previa",
+      tooltip: "Desbloquea este personaje con Kilingo Premium",
+    },
     languages: { capHint: "{cap} idioma activo en el plan gratuito" },
     upsell: {
       title: "Premium",
@@ -163,7 +175,11 @@ const PREMIUM: Record<string, PremiumCopy> = {
       unlimited: "无限跟读",
       resets: "计数将于 {time} 重置",
     },
-    characters: { locked: "Premium", preview: "预览" },
+    characters: {
+      locked: "Premium",
+      preview: "预览",
+      tooltip: "使用 Kilingo Premium 解锁此角色",
+    },
     languages: { capHint: "免费版可保持 {cap} 门活跃语言" },
     upsell: { title: "Premium", cta: "查看 Premium", finePrint: "7 天试用 · 到期前不扣款 · 一键取消" },
   },
@@ -191,7 +207,11 @@ const PREMIUM: Record<string, PremiumCopy> = {
       unlimited: "تكرار غير محدود",
       resets: "يُعاد العدّ عند {time}",
     },
-    characters: { locked: "Premium", preview: "معاينة" },
+    characters: {
+      locked: "Premium",
+      preview: "معاينة",
+      tooltip: "افتح هذه الشخصية مع Kilingo Premium",
+    },
     languages: { capHint: "{cap} لغة نشطة في الخطة المجانية" },
     upsell: { title: "Premium", cta: "اطّلع على Premium", finePrint: "7 أيام تجريبية · لا خصم قبل انتهائها · إلغاء بنقرة واحدة" },
   },
@@ -219,7 +239,11 @@ const PREMIUM: Record<string, PremiumCopy> = {
       unlimited: "Безлимитное повторение",
       resets: "Счётчик сбросится в {time}",
     },
-    characters: { locked: "Premium", preview: "Предпросмотр" },
+    characters: {
+      locked: "Premium",
+      preview: "Предпросмотр",
+      tooltip: "Откройте этого персонажа с Kilingo Premium",
+    },
     languages: { capHint: "{cap} активный язык в бесплатном плане" },
     upsell: { title: "Premium", cta: "Посмотреть Premium", finePrint: "7 дней пробно · без списаний до конца · отмена в один клик" },
   },
@@ -247,7 +271,11 @@ const PREMIUM: Record<string, PremiumCopy> = {
       unlimited: "Marudio bila kikomo",
       resets: "Kihisi hitaanza upya saa {time}",
     },
-    characters: { locked: "Premium", preview: "Onyesho" },
+    characters: {
+      locked: "Premium",
+      preview: "Onyesho",
+      tooltip: "Fungua mhusika huyu na Kilingo Premium",
+    },
     languages: { capHint: "Lugha {cap} inayotumika kwenye mpango wa bure" },
     upsell: { title: "Premium", cta: "Angalia Premium", finePrint: "Siku 7 za jaribio · hakuna kukatwa kabla ya kumaliza · ghairi kwa kubofya moja" },
   },
@@ -275,7 +303,11 @@ const PREMIUM: Record<string, PremiumCopy> = {
       unlimited: "Shadowing sans limite",
       resets: "Compteur ebanda lisusu na {time}",
     },
-    characters: { locked: "Premium", preview: "Mwons" },
+    characters: {
+      locked: "Premium",
+      preview: "Mwons",
+      tooltip: "Fungola mosani oyo na Kilingo Premium",
+    },
     languages: { capHint: "Lokoko {cap} oyo eketi moloko na formule ya mbote" },
     upsell: { title: "Premium", cta: "Tala Premium", finePrint: "Mikolo 7 ya trial · ekotanga te ntete ya prepayment · boboli na klik moko" },
   },
@@ -303,7 +335,11 @@ const PREMIUM: Record<string, PremiumCopy> = {
       unlimited: "Shadowing marar iyaka",
       resets: "Kaitawa zai sake farawa da {time}",
     },
-    characters: { locked: "Premium", preview: "Hotuna" },
+    characters: {
+      locked: "Premium",
+      preview: "Hotuna",
+      tooltip: "Buɗe wannan hali da Kilingo Premium",
+    },
     languages: { capHint: "Harshe guda {cap} a cikin shirin kyauta" },
     upsell: { title: "Premium", cta: "Duba Premium", finePrint: "Kwanaki 7 na gwaji · babu karɓi kafin ya ƙare · soke da click" },
   },
@@ -331,7 +367,11 @@ const PREMIUM: Record<string, PremiumCopy> = {
       unlimited: "Shadow alágbára",
       resets: "Ka náà máa tún bẹ̀rẹ̀ ní {time}",
     },
-    characters: { locked: "Premium", preview: "Ìwò" },
+    characters: {
+      locked: "Premium",
+      preview: "Ìwò",
+      tooltip: "Ṣí ẹni yìí pẹ̀lú Kilingo Premium",
+    },
     languages: { capHint: "Èdè gusa {cap} tí ń ṣiṣẹ́ lọ́wọ́lọ́wọ́ ní ọ̀nà ọfẹ́" },
     upsell: { title: "Premium", cta: "Wo Premium", finePrint: "Ọjọ́ 7 ìdánwò · kò sí owó tí ó bá gba tẹ́lẹ́ · fagilé pẹ̀lú ìtẹ́ kan" },
   },
@@ -359,7 +399,11 @@ const PREMIUM: Record<string, PremiumCopy> = {
       unlimited: "I-shadowing engaleli",
       resets: "Ibalwa liqala phakathi {time}",
     },
-    characters: { locked: "Premium", preview: "Ukubuka" },
+    characters: {
+      locked: "Premium",
+      preview: "Ukubuka",
+      tooltip: "Vula lo mlingisi nge-Kilingo Premium",
+    },
     languages: { capHint: "Ulimi olulodwa olufakile nendlela ymahhala" },
     upsell: { title: "Premium", cta: "Bona i-Premium", finePrint: "Izinsuku ezingaba-7 zokuhlola · akukho okutholakalwa ngaphambi kokuphela · khansela ngokuchofuka okukodwa" },
   },
@@ -387,7 +431,11 @@ const PREMIUM: Record<string, PremiumCopy> = {
       unlimited: "Shadowing unlimited",
       resets: "Kountar bi dibaan an Loop ci {time}",
     },
-    characters: { locked: "Premium", preview: "N glimps" },
+    characters: {
+      locked: "Premium",
+      preview: "N glimps",
+      tooltip: "Ubbi mbindaan bi ak Kilingo Premium",
+    },
     languages: { capHint: "Làkk bu benn ne formulation gratis" },
     upsell: { title: "Premium", cta: "Gis Premium", finePrint: "Biss 7 bu sant · kenn nu bëgg léeb bu dugg · kansile na clic moko" },
   },

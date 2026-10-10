@@ -17,6 +17,7 @@ import {
   Layers,
   Link2,
   Loader2,
+  Lock,
   Mic,
   Languages,
   ExternalLink,
@@ -30,11 +31,15 @@ import type { ParsedSubtitleSegment } from "@/lib/subtitleParse";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   UI_LANGS,
+  useI18n,
   uiLangMeta,
   loadStoredTargetLang,
   storeTargetLang,
   type UiLang,
 } from "@/lib/i18n";
+import { isQuotaShadowError } from "@/lib/premiumLimits";
+import { PremiumUpsell } from "./PremiumUpsell";
+import { ShadowQuotaBadge } from "./ShadowQuotaBadge";
 
 /** Message unique quand la cible choisie est la langue du média himself. */
 const TARGET_SAME_AS_SOURCE =
@@ -143,6 +148,29 @@ export function ShadowView() {
     thumbnailUrl?: string;
   } | null>(null);
   const [busyUrl, setBusyUrl] = useState(false);
+
+  // MODULE B — le quota est montré AVANT la première analyse, et un refus du
+  // serveur devient un panneau de gain : jamais une erreur rouge sur une
+  // limite qui était annoncée.
+  const { t } = useI18n();
+  const shadowQuota = useQuery(api.premium.getShadowQuota);
+  const quotaExhausted =
+    shadowQuota != null &&
+    !shadowQuota.unlimited &&
+    shadowQuota.remaining <= 0;
+  const [quotaHit, setQuotaHit] = useState(false);
+
+  /**
+   * Un refus n'est pas une panne. Le quota (`quota_shadow`) a son panneau ;
+   * tout le reste garde le toast d'erreur — aucune vraie panne n'est masquée.
+   */
+  const reportFailure = (err: unknown, fallback: string) => {
+    if (isQuotaShadowError(err)) {
+      setQuotaHit(true);
+      return;
+    }
+    toast.error(friendlyError(err, fallback));
+  };
   // Micro-reward: gold burst fires when the pipeline completes.
   const [burstTick, setBurstTick] = useState(0);
   const burstRef = useRef(0);
@@ -641,6 +669,12 @@ export function ShadowView() {
   };
 
   const handleFile = async (file: File) => {
+    // Porte douce : au-delà du quota, on ouvre le panneau de gain au lieu de
+    // laisser le serveur refuser une analyse de plus.
+    if (quotaExhausted) {
+      setQuotaHit(true);
+      return;
+    }
     // Garde-fou AVANT tout upload : un fichier non-média (PDF, .txt, image…)
     // envoyé au pipeline ne pouvait que finir en échec de transcription —
     // message utilisateur clair + aucune écriture en base.
@@ -690,7 +724,7 @@ export function ShadowView() {
       }
     } catch (err) {
       console.error("[ui] échec upload/création média:", err);
-      toast.error(friendlyError(err, "Upload impossible"));
+      reportFailure(err, "Upload impossible");
     } finally {
       setUploading(false);
     }
@@ -698,6 +732,11 @@ export function ShadowView() {
 
   /** Texte collé : segmentation + traduction + argot — sans transcription. */
   const handleTextImport = async () => {
+    // Même porte douce que l'upload : rien n'est envoyé au serveur.
+    if (quotaExhausted) {
+      setQuotaHit(true);
+      return;
+    }
     const text = textDraft.trim();
     if (text.length < 2) {
       toast.error("Colle d'abord un texte à analyser.");
@@ -716,7 +755,7 @@ export function ShadowView() {
       toast.success("Texte enregistré — l'analyse démarre");
     } catch (err) {
       console.error("[ui] échec création média texte:", err);
-      toast.error(friendlyError(err, "Import impossible"));
+      reportFailure(err, "Import impossible");
     } finally {
       setSendingText(false);
     }
@@ -740,6 +779,11 @@ export function ShadowView() {
       selon le verdict. Une plateforme non lisible affiche une carte honnête
       — jamais de média fantôme ni de faux succès. */
   const handleAnalyse = async (v: ParsedVideo) => {
+    // Même porte douce que l'upload : rien n'est envoyé au serveur.
+    if (quotaExhausted) {
+      setQuotaHit(true);
+      return;
+    }
     console.log(`[ShadowURL] input — ${v.url}`);
     setBusyUrl(true);
     try {
@@ -804,7 +848,7 @@ export function ShadowView() {
       });
     } catch (err) {
       console.error("[ShadowURL] échec analyse du lien:", err);
-      toast.error(friendlyError(err, "Analyse impossible"));
+      reportFailure(err, "Analyse impossible");
     } finally {
       setBusyUrl(false);
     }
@@ -821,6 +865,24 @@ export function ShadowView() {
           motif="halftone"
           description="Envoie un extrait de série ou un podcast dans ta langue focus, colle un lien YouTube — ou colle simplement un texte. Tout reste lisible et synchronisé ici : traduction automatique, argot repéré dans notre base, lecture au rythme du média — sans aucune clé payante."
         />
+
+        {/* MODULE B — le quota est affiché AVANT toute analyse, jamais au
+            moment du refus : un compteur qu'on découvre en se faisant
+            bloquer n'informe personne. */}
+        <ShadowQuotaBadge />
+
+        {quotaHit ? (
+          <PremiumUpsell
+            variant="card"
+            title={t("premium.lock.shadow.title")}
+            body={t("premium.lock.shadow.body")}
+            cta={t("premium.lock.shadow.cta")}
+            freeAction={{
+              label: t("common.close"),
+              onClick: () => setQuotaHit(false),
+            }}
+          />
+        ) : null}
 
         {/* Translation target — the language subtitles are rendered in. */}
         <div className="flex flex-wrap items-center gap-2">
@@ -918,16 +980,28 @@ export function ShadowView() {
           {inputMode !== "text" && inputMode !== "subs" && (
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
+              // Porte douce : au-delà du quota, le même bouton propose de
+              // débloquer au lieu d'envoyer une analyse de plus.
+              onClick={() =>
+                quotaExhausted
+                  ? setQuotaHit(true)
+                  : fileInputRef.current?.click()
+              }
               disabled={uploading || localStage !== null}
               className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-soft px-5 py-2.5 text-sm font-semibold text-noir transition-transform hover:-translate-y-0.5 disabled:opacity-50"
             >
               {uploading || localStage ? (
                 <Loader2 className="size-4 animate-spin" />
+              ) : quotaExhausted ? (
+                <Lock className="size-4" />
               ) : (
                 <Upload className="size-4" />
               )}
-              {localStage ? "Moteur local…" : "Upload fichier"}
+              {quotaExhausted
+                ? t("premium.lock.shadow.cta")
+                : localStage
+                  ? "Moteur local…"
+                  : "Upload fichier"}
             </button>
           )}
         </div>
@@ -1037,16 +1111,27 @@ export function ShadowView() {
                   </p>
                   <button
                     type="button"
-                    onClick={() => void handleTextImport()}
-                    disabled={sendingText || textDraft.trim().length < 2}
+                    onClick={() =>
+                      quotaExhausted
+                        ? setQuotaHit(true)
+                        : void handleTextImport()
+                    }
+                    disabled={
+                      sendingText ||
+                      (!quotaExhausted && textDraft.trim().length < 2)
+                    }
                     className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-soft px-5 py-2.5 text-sm font-semibold text-noir transition-transform hover:-translate-y-0.5 disabled:opacity-50"
                   >
                     {sendingText ? (
                       <Loader2 className="size-4 animate-spin" />
+                    ) : quotaExhausted ? (
+                      <Lock className="size-4" />
                     ) : (
                       <Languages className="size-4" />
                     )}
-                    Analyser le texte
+                    {quotaExhausted
+                      ? t("premium.lock.shadow.cta")
+                      : "Analyser le texte"}
                   </button>
                 </div>
               </motion.div>

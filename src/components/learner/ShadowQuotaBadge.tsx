@@ -89,20 +89,50 @@ export function ShadowQuotaBadge({ className = "" }: { className?: string }) {
     );
   }
 
+  // Un compteur à zéro est un FAIT, pas une punition : à 0 il reste
+  // « 0 analyse aujourd'hui », jamais « dernière analyse » — annoncer une
+  // dernière analyse quand il n'en reste aucune serait un mensonge, et
+  // c'est exactement l'état où l'utilisateur décide de passer à Premium.
   const label =
-    quota.remaining <= 1
+    quota.remaining === 1
       ? t("premium.quota.lastOne")
       : t("premium.quota.remaining", { n: quota.remaining });
 
+  // Part d'essais encore disponible. Ce n'est PAS un compte à rebours : la
+  // largeur suit le compteur du serveur, elle ne se décompte pas toute seule
+  // entre deux requêtes. Sur une formule illimitée il n'y a rien à mesurer,
+  // et le cas est déjà traité plus haut.
+  const share =
+    Number.isFinite(quota.limit) && quota.limit > 0
+      ? Math.max(0, Math.min(100, (quota.remaining / quota.limit) * 100))
+      : null;
+
   return (
-    <span
-      className={`inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs ${
-        quota.remaining <= 1 ? "text-gold" : "text-ink-3"
-      } ${className}`}
-    >
-      <span>{label}</span>
-      <span aria-hidden="true">·</span>
-      <span>{t("premium.quota.resets", { time: formatResetTime(quota.resetsAt, lang) })}</span>
+    <span className={`inline-flex flex-col gap-1.5 ${className}`}>
+      <span
+        className={`inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs ${
+          quota.remaining <= 1 ? "text-gold" : "text-ink-3"
+        }`}
+      >
+        <span>{label}</span>
+        <span aria-hidden="true">·</span>
+        <span>{t("premium.quota.resets", { time: formatResetTime(quota.resetsAt, lang) })}</span>
+      </span>
+      {share === null ? null : (
+        // Barre décorative : le texte au-dessus porte déjà l'information,
+        // elle est donc invisible aux lecteurs d'écran pour ne rien répéter.
+        <span
+          aria-hidden="true"
+          className="block h-[3px] w-full max-w-56 overflow-hidden rounded-full bg-white/10"
+        >
+          <span
+            className={`block h-full rounded-full transition-[width] duration-500 ${
+              quota.remaining <= 1 ? "bg-gold" : "bg-gold/60"
+            }`}
+            style={{ width: `${share}%` }}
+          />
+        </span>
+      )}
     </span>
   );
 }
