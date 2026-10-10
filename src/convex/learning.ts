@@ -1,4 +1,9 @@
-import { query, mutation } from "./_generated/server";
+import {
+  query,
+  mutation,
+  type MutationCtx,
+  type QueryCtx,
+} from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import {
@@ -11,6 +16,12 @@ import {
   type LanguageCode,
   type CardStatus,
 } from "./languages";
+import type { Id } from "./_generated/dataModel";
+import { premiumStatusFor } from "./subscriptions";
+import {
+  activeLanguageBlockReason,
+  activeLanguageCap,
+} from "../lib/premiumLimits";
 
 const languageValidator = v.union(
   v.literal("en"),
@@ -76,6 +87,49 @@ const srsCardValidator = v.object({
   firstSeenAt: v.optional(v.number()),
 });
 
+/* ═══════════════════════════════════════════════════════════════════════
+   MODULE A — PLAFOND DE LANGUES ACTIVES
+
+   La règle pure vit dans `src/lib/premiumLimits.ts` (`activeLanguageCap`,
+   `activeLanguageBlockReason`) : elle n'est pas recopiée ici, elle est
+   APPLIQUÉE. Ce module possède les mutations de langue, donc c'est lui qui
+   porte la garde — et lui seul.
+
+   Ce qui compte, c'est l'ORDRE : le refus est calculé AVANT la première
+   écriture. Un refus qui patcherait d'abord enlèverait une langue à un
+   utilisateur gratuit avant de lui dire « non » — le contraire exact de la
+   non-rétroactivité.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/** Vue minimale d'une ligne `userLanguages`, pour le calcul du plafond. */
+type LanguageRow = {
+  language: string;
+  active: boolean;
+  activatedAt?: number;
+};
+
+/**
+ * Refuse la modification si l'ensemble demandé dépasse le plafond du compte.
+ *
+ * Le code machine remonte seul (Convex ne transporte qu'un message) :
+ * `{ ok: false, reason: "language_cap", cap, wanted }`, comme
+ * `quota_shadow` et `character_locked`. Le client reconnaît ce code ; un
+ * blocage mal reconnu se dégrade en message générique, jamais en crash.
+ */
+async function guardLanguageCap(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<"users">,
+  rows: LanguageRow[],
+  wanted: string[],
+): Promise<void> {
+  const { isPremium } = await premiumStatusFor(ctx, userId);
+  if (activeLanguageBlockReason(isPremium, rows, wanted) === null) return;
+  const cap = activeLanguageCap(isPremium, rows);
+  throw new Error(
+    JSON.stringify({ ok: false, reason: "language_cap", cap, wanted }),
+  );
+}
+
 // ─── User languages & focus rotatif ────────────────────────────────
 
 export const myLanguages = query({
@@ -88,7 +142,17 @@ export const myLanguages = query({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
     const activeFocus = rows.filter((r) => r.active).map((r) => r.language);
-    return { rows, activeFocus, onboarded: rows.length > 0 };
+    /* Le plafond et l'état Premium viennent du SERVEUR : le client affiche,
+       il ne recalcule rien. Un `isPremium` recalculé côté client serait une
+       seconde vérité, celle qui dérive en silence. */
+    const { isPremium } = await premiumStatusFor(ctx, userId);
+    return {
+      rows,
+      activeFocus,
+      onboarded: rows.length > 0,
+      activeLanguageCap: activeLanguageCap(isPremium, rows),
+      isPremium,
+    };
   },
 });
 
@@ -108,10 +172,19 @@ export const setFocus = mutation({
     const existingByLang = new Map(existing.map((r) => [r.language, r]));
     const now = Date.now();
 
+    // Module A — refus AVANT toute écriture : rien n'est retiré au compte.
+    await guardLanguageCap(ctx, userId, existing, unique);
+
     for (const row of existing) {
       const shouldActive = unique.includes(row.language);
       if (row.active !== shouldActive) {
-        await ctx.db.patch(row._id, { active: shouldActive });
+        // Activer horodate (l'activation compte contre le plafond) ;
+        // désactiver EFFACE l'horodatage, donc réactiver plus tard est une
+        // nouvelle activation — pas un crédit reconduit.
+        await ctx.db.patch(row._id, {
+          active: shouldActive,
+          activatedAt: shouldActive ? now : undefined,
+        });
       }
     }
     for (const lang of unique) {
@@ -120,6 +193,7 @@ export const setFocus = mutation({
           userId,
           language: lang,
           active: true,
+          activatedAt: now,
           level: "A1",
           xp: 0,
           streak: 0,
@@ -144,10 +218,18 @@ export const switchFocus = mutation({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
     const existingByLang = new Map(rows.map((r) => [r.language, r]));
+    const now = Date.now();
+
+    // Module A — même garde que `setFocus` : refus AVANT toute écriture.
+    await guardLanguageCap(ctx, userId, rows, args.activate);
+
     for (const row of rows) {
       const shouldActive = args.activate.includes(row.language);
       if (row.active !== shouldActive) {
-        await ctx.db.patch(row._id, { active: shouldActive });
+        await ctx.db.patch(row._id, {
+          active: shouldActive,
+          activatedAt: shouldActive ? now : undefined,
+        });
       }
     }
     // create rows for languages not yet tracked
@@ -157,10 +239,11 @@ export const switchFocus = mutation({
           userId,
           language: lang,
           active: true,
+          activatedAt: now,
           level: "A1",
           xp: 0,
           streak: 0,
-          lastActivity: Date.now(),
+          lastActivity: now,
         });
       }
     }

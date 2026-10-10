@@ -16,6 +16,7 @@ import {
   resolveMedia,
   type MediaResolution,
 } from "./mediaResolver";
+import { guardShadowQuota } from "./premium";
 
 const languageValidator = v.union(
   v.literal("en"),
@@ -131,6 +132,13 @@ export const createMedia = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) throw new Error("Not signed in");
+    // ENTRÉE 1/3 — upload : la seule porte qui TRANSFORME un fichier neuf
+    // en analyse. La garde est posée APRÈS la validation des arguments et
+    // juste avant l'insertion : un appel refusé pour une raison technique
+    // ne doit pas consommer un créneau de la journée. Sans elle, le
+    // compteur affiché serait décoratif — il suffisait de forcer l'appel
+    // pour analyser sans limite.
+    await guardShadowQuota(ctx, userId);
     const mediaId = await ctx.db.insert("userMedia", {
       userId,
       language: args.language,
@@ -204,6 +212,9 @@ export const createLinkMedia = mutation({
     if (!/^https?:\/\//i.test(args.url)) {
       throw new Error("URL invalide");
     }
+    // ENTRÉE 2/3 — lien : même garde, après la validation d'URL (une URL
+    // refusée ne coûte rien) et avant l'insertion.
+    await guardShadowQuota(ctx, userId);
     const mediaId = await ctx.db.insert("userMedia", {
       userId,
       language: args.language,
@@ -404,6 +415,8 @@ export const createTextMedia = mutation({
     if (text.length > 100_000) {
       throw new Error("Texte trop long (100 000 caractères max)");
     }
+    // ENTRÉE 3/3 — texte collé : la garde vient après les bornes de longueur.
+    await guardShadowQuota(ctx, userId);
     const mediaId = await ctx.db.insert("userMedia", {
       userId,
       language: args.language,

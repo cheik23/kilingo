@@ -141,6 +141,16 @@ const schema = defineSchema(
         v.literal("wo"),
       ),
       active: v.boolean(),
+      /**
+       * Instantané d'activation, écrit par `learning.setFocus` /
+       * `switchFocus` (Module A des verrous Premium).
+       *
+       * ABSENT = ligne antérieure au lot, ou langue en grand-père : elle ne
+       * compte PAS contre le plafond gratuit (`activeLanguageCap`). Une
+       * langue désactivée perd son horodatage, donc sa réactivation est une
+       * nouvelle activation — jamais un crédit reconduit.
+       */
+      activatedAt: v.optional(v.number()),
       level: v.string(), // A1..C2
       xp: v.number(),
       streak: v.number(),

@@ -13,6 +13,27 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Flame, Moon } from "lucide-react";
 
+import { useI18n } from "@/lib/i18n";
+import { isLanguageCapError } from "@/lib/premiumLimits";
+import { PremiumUpsell } from "./PremiumUpsell";
+
+/* ═══════════════════════════════════════════════════════════════════
+   FOCUS DE LANGUES — MODULE A
+
+   Deux règles tenues ici, et une seule autorité (le serveur).
+
+   1. LE PLAFOND EST ANNONCÉ AVANT. Il vient de `learning.myLanguages`
+      (`activeLanguageCap`, calculé serveur) : le client l'AFFICHE, il ne
+      le recalcule pas. Au-delà du plafond on n'effectue pas de
+      remplacement silencieux — on explique ce que Premium ouvre.
+
+   2. UN REFUS N'EST PAS UNE ERREUR. Si le serveur refuse encore (client
+      plus ancien, état changé entre-temps), on reconnaît le code
+      `language_cap` et on montre la MÊME invite que les Modules B et C,
+      au lieu d'un « impossible » qui ne mène nulle part. Aucune langue
+      n'est retirée : le refus est rendu sans la moindre écriture.
+   ═══════════════════════════════════════════════════════════════════ */
+
 export function FocusDialog({
   open,
   onOpenChange,
@@ -20,10 +41,13 @@ export function FocusDialog({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
+  const { t } = useI18n();
   const myLanguages = useQuery(api.learning.myLanguages);
   const switchFocus = useMutation(api.learning.switchFocus);
   const setFocus = useMutation(api.learning.setFocus);
   const [selected, setSelected] = useState<LanguageCode[]>([]);
+  /** Plafond atteint : on montre l'invite, pas un toast d'erreur. */
+  const [capBlocked, setCapBlocked] = useState(false);
 
   useEffect(() => {
     if (open && myLanguages) {
@@ -32,17 +56,31 @@ export function FocusDialog({
           ? myLanguages.activeFocus
           : (["en", "zh"] as LanguageCode[]),
       );
+      setCapBlocked(false);
     }
   }, [open, myLanguages]);
 
   const toggle = (code: LanguageCode) => {
-    setSelected((prev) =>
-      prev.includes(code)
-        ? prev.filter((c) => c !== code)
-        : prev.length >= 2
-          ? [prev[1], code] // rotate: drop the oldest, keep max 2
-          : [...prev, code],
-    );
+    if (selected.includes(code)) {
+      setSelected(selected.filter((c) => c !== code));
+      setCapBlocked(false);
+      return;
+    }
+    // Plafond fourni par le SERVEUR. Absent (query en vol) = on n'anticipe
+    // rien : c'est le serveur qui tranchera, et il reste l'autorité.
+    const cap = myLanguages?.activeLanguageCap;
+    if (cap === undefined || selected.length < cap) {
+      setSelected([...selected, code]);
+      return;
+    }
+    // Plafond atteint. Jusqu'à deux langues on fait tourner la sélection
+    // (un abonné change de langue librement) ; à une seule langue on
+    // EXPLIQUE au lieu de remplacer en silence.
+    if (cap >= 2) {
+      setSelected([...selected.slice(1), code]);
+      return;
+    }
+    setCapBlocked(true);
   };
 
   const save = async () => {
@@ -60,8 +98,17 @@ export function FocusDialog({
         description: `${selected.length} langue${selected.length > 1 ? "s" : ""} en focus actif`,
       });
       onOpenChange(false);
-    } catch {
-      toast.error("Impossible de changer le focus");
+    } catch (err) {
+      // Le serveur est la seule autorité. Un refus de plafond se TRADUIT
+      // (même règle que les Modules B et C) ; toute autre erreur reste
+      // signalée telle quelle, jamais avalée.
+      if (isLanguageCapError(err)) {
+        setCapBlocked(true);
+      } else {
+        toast.error(
+          err instanceof Error ? err.message : "Impossible de changer le focus",
+        );
+      }
     }
   };
 
@@ -112,6 +159,24 @@ export function FocusDialog({
             );
           })}
         </div>
+
+        {capBlocked ? (
+          <PremiumUpsell
+            variant="card"
+            title={t("premium.lock.languages.title")}
+            body={t("premium.lock.languages.body")}
+            cta={t("premium.lock.languages.cta")}
+            // L'issue gratuite d'abord, comme partout : garder sa langue
+            // actuelle ne coûte rien, et rien n'a été retiré au compte.
+            freeAction={{
+              label: t("common.close"),
+              onClick: () => setCapBlocked(false),
+            }}
+            // Le CTA mène aux tarifs : on referme la boîte en partant,
+            // sinon elle resterait posée par-dessus la page.
+            onCtaClick={() => onOpenChange(false)}
+          />
+        ) : null}
 
         <div className="flex gap-3">
           <Button

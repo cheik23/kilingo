@@ -43,6 +43,12 @@ export type PremiumUpsellProps = {
    * utilisateur bloqué doit voir la porte de sortie avant l'offre.
    */
   freeAction?: { label: string; onClick: () => void };
+  /**
+   * Appelé quand le CTA est suivi. Sert aux surfaces qui doivent se
+   * refermer en partant (une boîte de dialogue resterait sinon posée
+   * par-dessus la page des tarifs).
+   */
+  onCtaClick?: () => void;
   /** `inline` dans une liste, `card` en pleine page. */
   variant?: "inline" | "card";
 };
@@ -52,6 +58,7 @@ export function PremiumUpsell({
   body,
   cta,
   freeAction,
+  onCtaClick,
   variant = "inline",
 }: PremiumUpsellProps) {
   const { t } = useI18n();
@@ -75,6 +82,7 @@ export function PremiumUpsell({
       <div className="flex flex-wrap items-center gap-3 pt-1">
         <Link
           to="/#pricing"
+          onClick={onCtaClick}
           className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-gold to-gold-soft px-3.5 py-1.5 text-xs font-semibold text-noir transition-transform hover:scale-[1.02]"
         >
           <Sparkles className="size-3.5" aria-hidden="true" />

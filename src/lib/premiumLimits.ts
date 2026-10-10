@@ -297,6 +297,7 @@ export function resolveLimits(isPremium: boolean | undefined): PremiumLimits {
 
 export const QUOTA_SHADOW_CODE = "quota_shadow";
 export const CHARACTER_LOCKED_CODE = "character_locked";
+export const LANGUAGE_CAP_CODE = "language_cap";
 
 function messageOf(err: unknown): string {
   if (err instanceof Error) return err.message;
@@ -314,4 +315,13 @@ export function isQuotaShadowError(err: unknown): boolean {
 
 export function isCharacterLockedError(err: unknown): boolean {
   return messageOf(err).includes(CHARACTER_LOCKED_CODE);
+}
+
+/**
+ * Refus de plafond de langues (Module A), levé par `learning.setFocus` /
+ * `switchFocus`. Le serveur y joint `{ cap, wanted }` : l'interface peut
+ * donc dire ce qui bloque, pas seulement qu'il y a un blocage.
+ */
+export function isLanguageCapError(err: unknown): boolean {
+  return messageOf(err).includes(LANGUAGE_CAP_CODE);
 }
