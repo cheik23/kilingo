@@ -1,5 +1,5 @@
-import { lazy, Suspense, useMemo } from "react";
-import { Link, useNavigate } from "react-router";
+import { lazy, Suspense, useEffect, useMemo } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useI18n } from "@/lib/i18n";
@@ -8,6 +8,7 @@ import {
   BookOpen,
   Brain,
   Captions,
+  Check,
   Clapperboard,
   Compass,
   Flame,
@@ -30,6 +31,14 @@ import { MagneticButton, TiltCard } from "@/components/fx/interact";
 import { RevealTitle, ScrambleHeading, ShimmerTitle } from "@/components/fx/text";
 import { useAuth } from "@/hooks/use-auth";
 import { REGISTERS } from "@/convex/languages";
+import { PremiumCta } from "@/components/learner/PremiumCta";
+import { SubscriptionCard } from "@/components/learner/SubscriptionCard";
+import {
+  PREMIUM,
+  formatEur,
+  premiumAnnualDiscountPct,
+  premiumPerDayEur,
+} from "@/lib/pricing";
 
 /* Le globe 3D pèse plus d'un mégaoctet de three.js. Il ne doit PAS entrer
    dans le bundle qui définit le LCP de la landing : on le charge à la
@@ -173,6 +182,35 @@ export default function Landing() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
+  /* ── L'ancre « /#pricing » doit vraiment sauter ────────────────────
+     Les trois invites Premium mènent à `/#pricing`. React Router change
+     bien l'URL, mais une navigation client ne fait sauter AUCUNE ancre :
+     le défilement natif n'a lieu que sur un chargement complet. Sans ce
+     qui suit, le CTA atterrirait en haut de la page — c'est-à-dire nulle
+     part, exactement le défaut que cette section existe pour corriger.
+
+     On vise l'élément après deux frames : Lenis remet la page en haut au
+     changement de route (son effet s'exécute après le nôtre), et la
+     section doit exister au moment du `scrollIntoView`. */
+  const { hash, key: navKey } = useLocation();
+  useEffect(() => {
+    if (!hash) return;
+    const id = decodeURIComponent(hash.slice(1));
+    if (!id) return;
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => {
+        document
+          .getElementById(id)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      if (inner) cancelAnimationFrame(inner);
+    };
+  }, [hash, navKey]);
+
   // Tous les CTA mènent au produit : /app pour les inscrits, l'auth sinon —
   // avec le chemin demandé conservé dans returnTo.
   const start = useMemo(
@@ -217,6 +255,9 @@ export default function Landing() {
             </a>
             <a href="#langues" className="transition-colors hover:text-gold">
               Langues
+            </a>
+            <a href="#pricing" className="transition-colors hover:text-gold">
+              Tarifs
             </a>
           </nav>
 
@@ -657,6 +698,124 @@ export default function Landing() {
                 ))}
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* ── Tarifs ────────────────────────────────────────────────
+            Destination des trois invites Premium (« /#pricing »).
+
+            AUCUN montant n'est écrit ici : les valeurs viennent de
+            `lib/pricing.ts`, la source unique que la landing partage avec
+            la caisse. Un prix qui bouge sans qu'on mette la page à jour
+            casse un contrôle au lieu de mentir en silence.
+
+            La carte gratuite est écrite en clair, et pas seulement la
+            payante : ce qui reste gratuit est une promesse, il doit donc
+            être lisible au même endroit que le prix. */}
+        <section
+          id="pricing"
+          className="scroll-mt-24 border-y border-white/5 bg-noir-2/40 py-20"
+        >
+          <div className="mx-auto max-w-6xl px-5">
+            <SectionTitle
+              eyebrow="Tarifs"
+              title="La boucle d'apprentissage reste gratuite"
+              lead="Argot, quiz, révisions espacées, XP, badges et export Anki / CSV : gratuits pour toujours, sans carte bancaire. Premium n'ouvre que ce qui coûte réellement des ressources — langues en parallèle, shadowing illimité, personnages IA."
+            />
+
+            <div className="mx-auto mt-12 grid max-w-4xl gap-4 md:grid-cols-2">
+              {/* Gratuit */}
+              <div className="ln-card flex flex-col p-6">
+                <p className="font-mono text-[0.625rem] tracking-[0.3em] text-ink-3 uppercase">
+                  Gratuit
+                </p>
+                <p className="mt-3 font-display text-3xl font-semibold">
+                  0 €
+                </p>
+                <p className="mt-1 text-xs text-ink-3">
+                  Pour toujours · aucune carte bancaire
+                </p>
+
+                <ul className="mt-5 flex-1 space-y-2.5 text-sm text-ink-2">
+                  {[
+                    "Une langue active (elle ne disparaît jamais, même en changeant de focus)",
+                    "5 analyses Shadow par jour, compteur visible et remise à zéro chez toi",
+                    "Baba Street et Mama Wisdom, avec tous leurs scénarios",
+                    "Argot, quiz, révisions, XP, badges et export Anki / CSV",
+                  ].map((item) => (
+                    <li key={item} className="flex gap-2.5 leading-relaxed">
+                      <Check className="mt-0.5 size-4 shrink-0 text-gold" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  to={start}
+                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-5 py-3 text-sm font-medium text-ink-2 transition-colors hover:border-gold/40 hover:text-gold"
+                >
+                  {isAuthenticated ? "Ouvrir mon espace" : "Commencer gratuitement"}
+                </Link>
+              </div>
+
+              {/* Premium — le seul CTA principal de cette section. */}
+              <div className="ln-card relative flex flex-col border-gold/30 p-6">
+                <span className="absolute -top-3 right-5 rounded-full border border-gold/40 bg-noir px-3 py-1 font-mono text-[0.625rem] tracking-widest text-gold uppercase">
+                  Deux langues en parallèle
+                </span>
+                <p className="font-mono text-[0.625rem] tracking-[0.3em] text-gold uppercase">
+                  Premium
+                </p>
+                <p className="mt-3 font-display text-3xl font-semibold text-gold">
+                  {formatEur(PREMIUM.monthlyEur)}
+                  <span className="ml-1 text-base font-normal text-ink-2">
+                    / mois
+                  </span>
+                </p>
+
+                <ul className="mt-5 space-y-2.5 text-sm text-ink-2">
+                  {[
+                    "Deux langues actives en parallèle, sans compteur ni plafond",
+                    "Shadowing illimité : plus aucune analyse décomptée",
+                    "Les 8 personnages IA, chacun avec sa voix et son registre",
+                  ].map((item) => (
+                    <li key={item} className="flex gap-2.5 leading-relaxed">
+                      <Sparkles className="mt-0.5 size-4 shrink-0 text-gold" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Le bouton de paiement n'est monté qu'ICI : c'est ce
+                    montage qui interroge l'état du prestataire et écrit sa
+                    réponse en base. La classe passée est celle des autres
+                    CTA de la page (le défaut du composant vise un style
+                    qui n'existe pas dans cette feuille). */}
+                <PremiumCta
+                  lang={lang}
+                  label={`Démarrer l'essai de ${PREMIUM.trialDays} jours`}
+                  fallbackHref={start}
+                  className="ln-glow mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-soft px-5 py-3 font-semibold text-noir transition-transform hover:-translate-y-0.5"
+                />
+
+                <p className="mt-3 text-[0.6875rem] leading-relaxed text-ink-3">
+                  {PREMIUM.trialDays} jours d'essai, sans prélèvement avant la
+                  fin. Annulation à tout moment, en un clic depuis les
+                  réglages. Ou {formatEur(PREMIUM.annualEur)} par an —{" "}
+                  {premiumAnnualDiscountPct()} % de moins, soit{" "}
+                  {premiumPerDayEur()} par jour.
+                </p>
+              </div>
+            </div>
+
+            {/* Ce qui est déjà ouvert sur CE compte : la carte ne s'affiche
+                qu'une fois connecté, parce que « gérer mon abonnement » ne
+                veut rien dire pour un visiteur. */}
+            {isAuthenticated ? (
+              <div className="mx-auto mt-6 max-w-4xl">
+                <SubscriptionCard lang={lang} />
+              </div>
+            ) : null}
           </div>
         </section>
 
