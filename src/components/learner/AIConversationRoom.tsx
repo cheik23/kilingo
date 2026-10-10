@@ -7,6 +7,7 @@ import {
   Flag,
   Flame,
   Loader2,
+  Lock,
   MessageCircle,
   Send,
   Sparkles,
@@ -16,6 +17,8 @@ import {
 import { toast } from "sonner";
 import type { Id } from "@/convex/_generated/dataModel";
 import { loadDefLang, uiLangMeta, useI18n, type UiLang } from "@/lib/i18n";
+import { isCharacterLockedError } from "@/lib/premiumLimits";
+import { PremiumUpsell } from "./PremiumUpsell";
 import { badgeIcon, badgeLabel } from "@/lib/badges";
 import { cn } from "@/lib/utils";
 import { LootBoxModal } from "./LootBoxModal";
@@ -43,6 +46,8 @@ type CharacterView = {
   avatar: string;
   register: string;
   language: string;
+  /** MODULE C — verrouillé pour ce compte (calculé par le serveur). */
+  locked: boolean;
 };
 
 type ScenarioView = {
@@ -201,6 +206,8 @@ function ConversationHome({
   const [charId, setCharId] = useState<string | null>(null);
   const [scenId, setScenId] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
+  // MODULE C — le refus du serveur sur un personnage verrouillé.
+  const [characterBlocked, setCharacterBlocked] = useState(false);
 
   // Seeds auto puis listes (réactives : les seeds apparaissent en direct).
   const ensureSeeds = useMutation(api.aiConversation.ensureSeeds);
@@ -237,6 +244,7 @@ function ConversationHome({
 
   const pickChar = (id: string) => {
     setCharId(id);
+    setCharacterBlocked(false);
     // Le scénario sélectionné peut appartenir à un autre personnage.
     const stillOk = scenId != null && scenList.some((s) => s.id === scenId);
     if (!stillOk) setScenId(null);
@@ -256,10 +264,17 @@ function ConversationHome({
       });
       onStart(r.conversationId, c, s);
     } catch (err) {
-      // 1.4 — erreur TOUJOURS signalée (toast), jamais silencieuse.
-      toast.error(
-        err instanceof Error ? err.message : "Démarrage impossible.",
-      );
+      // MODULE C — blocage de verrou : on affiche le panneau de gain, pas
+      // une erreur technique. Le serveur reste la seule autorité (c'est
+      // lui qui refuse) ; le client ne fait que traduire le refus.
+      if (isCharacterLockedError(err)) {
+        setCharacterBlocked(true);
+      } else {
+        // 1.4 — erreur TOUJOURS signalée (toast), jamais silencieuse.
+        toast.error(
+          err instanceof Error ? err.message : "Démarrage impossible.",
+        );
+      }
     } finally {
       setStarting(false);
     }
@@ -332,6 +347,12 @@ function ConversationHome({
                     "ln-card flex h-full w-full flex-col items-start p-3 text-left transition-colors hover:border-gold/50",
                     // 1.4 — sélection nette : bordure or + fond or/10.
                     charId === c.id && "border-gold bg-gold/10",
+                    // MODULE C — un personnage verrouillé reste VISIBLE et
+                    // SÉLECTIONNABLE : l'aperçu est ce qui donne envie. Une
+                    // carte grisée non cliquable serait un cul-de-sac sans
+                    // explication — le refus vient du serveur, au moment où
+                    // l'utilisateur appuie sur « Commencer ».
+                    c.locked && "opacity-80",
                   )}
                 >
                   <span data-card3d-depth="40" className="text-2xl">{c.avatar}</span>
@@ -347,11 +368,43 @@ function ConversationHome({
                       <BadgeCheck className="size-2.5" /> {t("conv.unlocked")}
                     </span>
                   )}
+                  {/* MODULE C — pastille de verrou, sur la carte visible.
+                      « Premium » dit ce que ça coûte ; sans elle, le
+                      personnage passerait pour un contenu cassé. */}
+                  {c.locked ? (
+                    <span
+                      data-card3d-depth="60"
+                      className="mt-1 flex items-center gap-1 rounded-full border border-white/15 bg-black/40 px-1.5 py-0.5 text-[0.5625rem] text-ink-2"
+                    >
+                      <Lock className="size-2.5" /> {t("premium.characters.locked")}
+                    </span>
+                  ) : null}
                 </button>
               </Card3D>
             ))}
           </div>
         )}
+
+        {/* MODULE C — le panneau de gain n'apparaît qu'au moment du refus,
+            c'est-à-dire après que l'utilisateur a choisi un personnage
+            verrouillé. Avant, la pastille suffit : un panneau ouvert en
+            permanence serait un mur de vente sur une page de jeu. */}
+        {characterBlocked ? (
+          <PremiumUpsell
+            title={t("premium.lock.characters.title")}
+            body={t("premium.lock.characters.body")}
+            cta={t("premium.lock.characters.cta")}
+            freeAction={{
+              label: t("premium.characters.preview"),
+              onClick: () => {
+                // Issue gratuite : le premier personnage OUVERT du compte.
+                const firstFree = (chars ?? []).find((x) => !x.locked);
+                if (firstFree) pickChar(firstFree.id);
+                setCharacterBlocked(false);
+              },
+            }}
+          />
+        ) : null}
       </section>
 
       {/* Scénarios (filtrés par personnage) */}

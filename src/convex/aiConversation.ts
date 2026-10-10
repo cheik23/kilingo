@@ -2,6 +2,8 @@ import { v } from "convex/values";
 import { action, mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { premiumStatusFor } from "./subscriptions";
+import { isCharacterLocked } from "../lib/premiumLimits";
 import type { Id } from "./_generated/dataModel";
 import {
   addGemsInternal,
@@ -102,6 +104,16 @@ export const ensureSeeds = mutation({
   returns: v.null(),
 });
 
+/* ── MODULE C — PERSONNAGES VERROUILLÉS ─────────────────────────────── */
+
+/**
+ * Erreur typée du Module C : l'interface la reconnaît
+ * (`isCharacterLockedError`) et affiche le bloc de GAIN, jamais une panne
+ * technique. Comme `quota_shadow`, le CODE seul remonte dans le message
+ * Convex — c'est la seule chose qui traverse la frontière serveur/client.
+ */
+export const CHARACTER_LOCKED_ERROR = "character_locked";
+
 const characterValidator = v.object({
   id: v.string(),
   name: v.string(),
@@ -109,6 +121,15 @@ const characterValidator = v.object({
   avatar: v.string(),
   register: v.string(),
   language: v.string(),
+  /**
+   * MODULE C — verrouillé pour ce compte ?
+   *
+   * Le personnage reste VISIBLE et DÉCRIT : c'est la visibilité qui crée
+   * l'envie. Une liste tronquée à deux entrées ferait croire que le
+   * catalogue ne contient que deux personnages, ce qui serait un mensonge
+   * sur le produit.
+   */
+  locked: v.boolean(),
 });
 
 export const listCharacters = query({
@@ -118,6 +139,12 @@ export const listCharacters = query({
       .query("aiCharacters")
       .withIndex("by_language", (q) => q.eq("language", args.language))
       .collect();
+    // MODULE C — le drapeau `locked` est calculé par la règle pure, à
+    // partir de l'unique source de vérité d'abonnement. Les six
+    // personnages verrouillés sont renvoyés QUAND MÊME : le client les
+    // affiche en aperçu.
+    const userId = await getAuthUserId(ctx);
+    const status = await premiumStatusFor(ctx, userId);
     return rows.map((c) => ({
       id: c.id,
       name: c.name,
@@ -125,6 +152,7 @@ export const listCharacters = query({
       avatar: c.avatar,
       register: c.register,
       language: c.language,
+      locked: isCharacterLocked(c.id, status.isPremium),
     }));
   },
   returns: v.array(characterValidator),
@@ -239,6 +267,20 @@ export const startConversation = mutation({
       throw new Error(
         "Personnage indisponible pour cette langue — réessaie dans un instant.",
       );
+    }
+
+    // MODULE C — verrou au DÉBUT d'une nouvelle conversation seulement.
+    //
+    // ⚠ `sendMessage` et `endConversation` ne sont PAS verrouillés, et c'est
+    // délibéré : une conversation déjà commencée avec un personnage
+    // aujourd'hui payant doit se poursuivre intégralement. Verrouiller
+    // `sendMessage` couperait une conversation EN COURS — c'est-à-dire
+    // retirer un contenu déjà acquis, exactement ce que ce lot interdit.
+    {
+      const { isPremium } = await premiumStatusFor(ctx, userId);
+      if (isCharacterLocked(character.id, isPremium)) {
+        throw new Error(CHARACTER_LOCKED_ERROR);
+      }
     }
     const scenario = (
       await ctx.db
