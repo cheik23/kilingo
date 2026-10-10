@@ -6,6 +6,7 @@ import { ArrowRight, Sparkles, X } from "lucide-react";
 
 import { api } from "@/convex/_generated/api";
 import { useI18n } from "@/lib/i18n";
+import { useOptionalQuery } from "@/lib/optionalQuery";
 import {
   UPGRADE_MOMENT_KEYS,
   type UpgradeMomentKey,
@@ -89,21 +90,27 @@ export function UpgradeMoment() {
   // Kilingo : l'avatar « créé ou changé » est l'avatar RPM enregistré par le
   // studio (`setRpmAvatar`) — c'est le seul artefact d'avatar persisté côté
   // compte, l'équivalent du `getMyAvatarConfig` de la source.
-  const avatarUrl = useQuery(api.customization.getMyRpmAvatarUrl);
+  const avatarUrl = useOptionalQuery(api.customization.getMyRpmAvatarUrl, {});
 
   // Tant qu'une des deux requêtes est en vol, on ne conclut rien : afficher
   // le moment « première leçon » à un utilisateur qui en a fait dix serait
   // faux, et se tromper de message ferait pire que ne rien afficher.
-  const loaded = stats !== undefined && avatarUrl !== undefined;
+  //
+  // Une fonction absente du déploiement (`unavailable`) ne vaut pas « en
+  // vol » : sinon le moment resterait bloqué sur un chargement éternel. On
+  // tranche alors sur ce qu'on SAIT — l'avatar est ignoré, faute de pouvoir
+  // le lire — et les autres seuils (leçon, série) gardent leur mot à dire.
+  const loaded =
+    stats !== undefined && (avatarUrl.data !== undefined || avatarUrl.unavailable);
 
   const moment = useMemo<UpgradeMomentKey | null>(() => {
     if (!loaded || !stats) return null;
     return pickMoment({
       firstLesson: stats.quizzesTaken >= 1,
-      avatar: avatarUrl != null,
+      avatar: avatarUrl.data != null,
       streak3: stats.currentStreak >= STREAK_THRESHOLD,
     });
-  }, [loaded, stats, avatarUrl]);
+  }, [loaded, stats, avatarUrl.data]);
 
   if (!moment) return null;
 

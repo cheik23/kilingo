@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import type { Id } from "@/convex/_generated/dataModel";
 import { loadDefLang, uiLangMeta, useI18n, type UiLang } from "@/lib/i18n";
 import { isCharacterLockedError } from "@/lib/premiumLimits";
+import { useOptionalQuery } from "@/lib/optionalQuery";
 import { PremiumUpsell } from "./PremiumUpsell";
 import { badgeIcon, badgeLabel } from "@/lib/badges";
 import { cn } from "@/lib/utils";
@@ -515,7 +516,15 @@ function ChatRoom({
   const { lang } = useI18n();
   const achievements = useQuery(api.achievements.getMyAchievements, { lang });
   // Portrait 3D du joueur (s'il en a créé un) : l'en-tête montre « qui parle ».
-  const myRpmAvatar = useQuery(api.customization.getMyRpmAvatarUrl, {});
+  // Lecture TOLÉRANTE : cet ornement ne doit jamais empêcher la conversation
+  // de s'ouvrir. En production, le déploiement Convex peut être en retard d'une
+  // fonction — `useQuery` relancerait l'erreur pendant le rendu et ferait
+  // tomber l'écran entier ; ici l'absence d'avatar se traduit par… aucun
+  // avatar, et le chat démarre quand même.
+  const { data: myRpmAvatar } = useOptionalQuery(
+    api.customization.getMyRpmAvatarUrl,
+    {},
+  );
   const send = useAction(api.aiConversation.sendMessage);
   const checkAchievements = useAction(api.achievements.checkAchievements);
   const endConv = useMutation(api.aiConversation.endConversation);
