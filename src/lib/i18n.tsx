@@ -295,6 +295,9 @@ const fr = {
     space: "Mon espace",
     settings: "Paramètres",
     analytics: "Stats",
+    /* Langue des signes (LSF) — module présent en fr et en ; les dix autres
+       dictionnaires retombent dessus via le repli de `t()`. */
+    signs: "Langue des signes (LSF)",
     quiz: "Défis",
     conversation: "Conversation",
     bridges: "Ponts",
@@ -759,8 +762,8 @@ queueMicrotask(applyDictionaryOverlays);
 
 type Dict = Omit<typeof fr, "leaderboard" | "league" | "nav" | "achievements" | "achievementCategories" | "achievementReminders" | "customization" | "space"> &
   Partial<Pick<typeof fr, "leaderboard" | "league" | "achievements" | "achievementCategories" | "achievementReminders" | "customization" | "space">> & {
-    nav: Omit<typeof fr.nav, "leaderboard" | "achievements"> &
-      Partial<Pick<typeof fr.nav, "leaderboard" | "achievements">> & {
+    nav: Omit<typeof fr.nav, "leaderboard" | "achievements" | "signs"> &
+      Partial<Pick<typeof fr.nav, "leaderboard" | "achievements" | "signs">> & {
         /** Clé du module « Détente nocturne » (retiré) encore présente dans
          *  les dictionnaires historiques : purgée au chargement. */
         sleepshadow?: string;
@@ -933,6 +936,8 @@ const en: Dict = {
     space: "My space",
     settings: "Settings",
     analytics: "Stats",
+    /* Sign language (LSF) — same module name as the French dictionary. */
+    signs: "Sign language (LSF)",
     quiz: "Challenges",
     conversation: "Chat",
     bridges: "Bridges",

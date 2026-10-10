@@ -1,6 +1,5 @@
-import { useState } from "react";
 import type { KeyboardEvent } from "react";
-import { Heart, Play } from "lucide-react";
+import { Heart } from "lucide-react";
 import {
   KIND_META,
   ageLabel,
@@ -52,9 +51,6 @@ export function MediaCard({
   const wide = isWide(content);
   const date = dateOf(content);
   const age = ageLabel(date);
-  // Sur tactile il n'y a pas de survol : le halo « lecture » resterait
-  // invisible sur mobile et la carte donnerait l'impression d'être morte.
-  const [tapped, setTapped] = useState(false);
 
   return (
     <article
@@ -63,14 +59,10 @@ export function MediaCard({
       role="button"
       tabIndex={0}
       aria-label={content.title}
-      onClick={() => {
-        setTapped(true);
-        onOpen(content);
-      }}
+      onClick={() => onOpen(content)}
       onKeyDown={(e: KeyboardEvent<HTMLElement>) => {
         if (e.key !== "Enter" && e.key !== " ") return;
         e.preventDefault();
-        setTapped(true);
         onOpen(content);
       }}
     >
@@ -80,7 +72,7 @@ export function MediaCard({
             src={content.thumbnail}
             alt=""
             loading="lazy"
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            className="size-full object-cover"
           />
         ) : (
           <div className="flex size-full items-center justify-center bg-gradient-to-br from-white/5 to-transparent text-4xl opacity-40">
@@ -131,17 +123,6 @@ export function MediaCard({
             {age ? <span>· {age}</span> : null}
           </div>
         </div>
-      </div>
-
-      <div
-        aria-hidden
-        className={`pointer-events-none absolute inset-0 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-100 ${
-          tapped ? "opacity-100" : "opacity-0 [@media(hover:none)]:opacity-100"
-        }`}
-      >
-        <span className="flex size-12 items-center justify-center rounded-full border border-gold/40 bg-black/70 text-gold backdrop-blur">
-          <Play className="size-5" />
-        </span>
       </div>
     </article>
   );

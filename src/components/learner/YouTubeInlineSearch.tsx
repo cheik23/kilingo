@@ -203,16 +203,11 @@ export function YouTubeInlineSearch({
                     src={v.thumbnail}
                     alt=""
                     loading="lazy"
-                    className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    className="size-full object-cover"
                   />
                 ) : (
                   <div className="flex size-full items-center justify-center text-3xl opacity-40">▶️</div>
                 )}
-                <span className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                  <span className="flex size-10 items-center justify-center rounded-full border border-gold/40 bg-black/70 text-gold">
-                    <Play className="size-4" />
-                  </span>
-                </span>
               </div>
               <div className="p-3">
                 <p className="line-clamp-2 text-sm font-medium text-ink">{v.title}</p>

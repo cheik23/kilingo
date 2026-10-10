@@ -13,6 +13,7 @@ import {
   Flame,
   Gem,
   Globe2,
+  Hand,
   Headphones,
   Heart,
   History,
@@ -74,9 +75,16 @@ import { soundEngine } from "@/lib/soundEngine";
    montées ici via des routes imbriquées : aucune fonctionnalité n'est
    réécrite ni dupliquée, elles sont simplement raccordées.
 
-   Navigation §5 : Accueil · Films & vidéos · Musiques · Livres · Audio ·
-   Actualités · Explorer · Recherche · Ma bibliothèque · Ma mémoire ·
-   Historique · Favoris · Mon espace · Paramètres.
+   Navigation §5 : Accueil · Atlas · Ma bibliothèque · Ma mémoire ·
+   Historique · Favoris · Stats · Classement · Succès · Langue des signes
+   (LSF) · puis Boutique · Défis · Conversation · Mon espace · Inviter ·
+   Paramètres.
+
+   Media Hub masqué (12/10) : les entrées Films & vidéos · Musiques ·
+   Livres · Audio ne sont plus rendues dans la navigation (voir
+   MEDIA_NAV_HIDDEN ci-dessous). Les routes /app/screen, /app/music,
+   /app/books et /app/talk restent montées : les liens directs continuent
+   de fonctionner, mais plus aucun menu ne les expose.
 
    L'administration n'apparaît jamais dans la navigation utilisateur :
    elle n'est montée que si le compte connecté possède le rôle admin.
@@ -91,13 +99,22 @@ type NavItem = {
   end?: boolean;
 };
 
-/** §5 — navigation principale. */
-const MAIN_NAV: NavItem[] = [
-  { key: "nav.home", to: "/app", icon: Home, end: true },
+/**
+ * Media Hub — retiré de la navigation.
+ * Conservé comme source du titre d'en-tête (`labelKey`) pour qu'une visite
+ * par URL directe affiche encore « Films & vidéos » et non « Accueil ».
+ * Pour les ré-afficher : les recopier dans MAIN_NAV au même endroit.
+ */
+const MEDIA_NAV_HIDDEN: NavItem[] = [
   { key: "nav.screen", to: "/app/screen", icon: Clapperboard },
   { key: "nav.music", to: "/app/music", icon: Music2 },
   { key: "nav.books", to: "/app/books", icon: BookOpen },
   { key: "nav.audio", to: "/app/talk", icon: Mic },
+];
+
+/** §5 — navigation principale. */
+const MAIN_NAV: NavItem[] = [
+  { key: "nav.home", to: "/app", icon: Home, end: true },
   { key: "nav.atlas", to: "/app/atlas", icon: MapIcon },
   { key: "nav.library", to: "/app/library", icon: Library },
   { key: "nav.memory", to: "/app/memory", icon: Sparkles },
@@ -106,6 +123,7 @@ const MAIN_NAV: NavItem[] = [
   { key: "nav.analytics", to: "/app/analytics", icon: BarChart3 },
   { key: "nav.leaderboard", to: "/app/leaderboard", icon: Trophy },
   { key: "nav.achievements", to: "/app/achievements", icon: Award },
+  { key: "nav.signs", to: "/app/signs", icon: Hand },
   { key: "nav.store", to: "/app/store", icon: Store },
   { key: "nav.quiz", to: "/app/quiz", icon: BrainCircuit },
   { key: "nav.conversation", to: "/app/conversation", icon: MessageCircle },
@@ -594,6 +612,8 @@ const ROUTE_LABEL: Record<string, string> = {
   "/app": "nav.home",
   "/app/talk": "nav.audio",
   "/app/hub": "nav.hub",
+  "/app/signs": "nav.signs",
+  "/app/signs/credits": "nav.signs",
   "/app/space": "nav.space",
   "/app/analytics": "nav.analytics",
   "/app/performance": "nav.space",
@@ -604,6 +624,9 @@ function labelKey(pathname: string): string {
   const normalized = pathname.replace(/\/+$/, "") || "/app";
   const known = ROUTE_LABEL[normalized];
   if (known) return known;
-  const hit = [...MAIN_NAV, ...TOOL_NAV].find((i) => i.to === normalized);
+  // MEDIA_NAV_HIDDEN inclus : une route masquée garde son nom dans l'en-tête.
+  const hit = [...MAIN_NAV, ...TOOL_NAV, ...MEDIA_NAV_HIDDEN].find(
+    (i) => i.to === normalized,
+  );
   return hit?.key ?? "nav.home";
 }

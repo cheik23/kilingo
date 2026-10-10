@@ -59,6 +59,12 @@ const AchievementsView = lazy(
 const InviteView = lazy(
   () => import("@/components/learner/InviteView").then((m) => ({ default: m.InviteView })),
 );
+const SignLanguageView = lazy(
+  () => import("@/components/learner/SignLanguageView").then((m) => ({ default: m.SignLanguageView })),
+);
+const SignCreditsView = lazy(
+  () => import("@/components/learner/SignCreditsView").then((m) => ({ default: m.SignCreditsView })),
+);
 const Landing = lazy(() => import("./pages/Landing.tsx"));
 const AuthPage = lazy(() => import("./pages/Auth.tsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
@@ -310,6 +316,26 @@ createRoot(rootEl).render(
                       </Suspense>
                     }
                   />
+                  {/* LANGUE DES SIGNES (LSF) — clips Wikimedia Commons avec
+                      leur licence et leur crédit ; le gloss reste marqué
+                      « à valider » et chaque fiche offre un signalement. */}
+                  <Route
+                    path="signs"
+                    element={
+                      <Suspense fallback={<RouteLoading />}>
+                        <SignLanguageView />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="signs/credits"
+                    element={
+                      <Suspense fallback={<RouteLoading />}>
+                        <SignCreditsView />
+                      </Suspense>
+                    }
+                  />
+
                   <Route
                     path="invite"
                     element={
