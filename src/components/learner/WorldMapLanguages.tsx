@@ -1,28 +1,45 @@
-/* ═══════════════════════════════════════════════════════════════════════
-   DEBUG BINAIRES DE LA CARTE MONDIALE — TEST DE MONTAGE
-   ═══════════════════════════════════════════════════════════════════════ */
+import React, { useMemo } from 'react';
+import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 
-export function WorldMapLanguages({
-  selectedLanguage,
-  languagesCountries,
-  className,
-  center = [20, 0],
-  scale = 220,
-}: {
-  selectedLanguage?: string | null;
-  languagesCountries: Record<string, readonly string[] | string[]>;
+// URL fiable et légère pour la carte du monde (Natural Earth)
+const geoUrl = "https://raw.githubusercontent.com/zcreativelabs/react-simple-maps/master/topojson-maps/world-110m.json";
+
+interface WorldMapLanguagesProps {
+  selectedLanguage: string | null;
+  languagesCountries: Record<string, string[]>;
   className?: string;
-  center?: [number, number];
-  scale?: number;
-}) {
-  console.log("🚨 TEST MONTAGE COMPOSANT CARTE 🚨", {
-    selectedLanguage,
-    keys: Object.keys(languagesCountries),
-  });
+}
+
+export function WorldMapLanguages({ selectedLanguage, languagesCountries, className }: WorldMapLanguagesProps) {
+  // Liste des codes pays (ISO-2) à mettre en surbrillance
+  const highlightedCountries = useMemo(() => {
+    if (!selectedLanguage || !languagesCountries[selectedLanguage]) return [];
+    return languagesCountries[selectedLanguage];
+  }, [selectedLanguage, languagesCountries]);
+
   return (
-    <div className="w-full h-[400px] bg-red-600 flex flex-col items-center justify-center text-white text-2xl font-bold rounded-xl border-4 border-yellow-400 my-4">
-      <span>🗺️ TEST CARTE VISIBLE</span>
-      <span className="text-sm mt-2">Si tu vois ce rectangle rouge, le composant est monté.</span>
+    <div className={`relative w-full ${className || 'h-[400px]'}`}>
+      <ComposableMap projection="geoMercator" projectionConfig={{ scale: 140, center: [20, 0] }}>
+        <Geographies geography={geoUrl}>
+          {({ geographies }) =>
+            geographies.map((geo) => {
+              // geo.properties.iso_a2 contient le code pays à 2 lettres (ex: "SN", "FR")
+              const countryCode = (geo.properties ?? {}).iso_a2 ?? null;
+              const isHighlighted = countryCode ? highlightedCountries.includes(countryCode) : false;
+
+              return (
+                <Geography
+                  key={geo.rsmKey}
+                  geography={geo}
+                  fill={isHighlighted ? "#F59E0B" : "#334155"}
+                  stroke="#1E293B"
+                  strokeWidth={0.5}
+                />
+              );
+            })
+          }
+        </Geographies>
+      </ComposableMap>
     </div>
   );
 }

@@ -2,6 +2,22 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useOptionalQuery } from "@/lib/optionalQuery";
 import {
+  WorldMapLanguages,
+} from "./WorldMapLanguages";
+import { LANGUAGE_COUNTRIES } from "@/data/languages-geo";
+import { useI18n } from "@/lib/i18n";
+
+const LANGUAGE_COUNTRIES_ENTRIES = [
+  { code: "fr", label: "Français" },
+  { code: "wo", label: "Wolof" },
+  { code: "ln", label: "Lingala" },
+  { code: "sw", label: "Swahili" },
+  { code: "ha", label: "Haoussa" },
+  { code: "yo", label: "Yoruba" },
+  { code: "en", label: "Anglais" },
+] as const;
+
+import {
   Area,
   AreaChart,
   Bar,
@@ -248,6 +264,15 @@ function ActivityTip({
 export function StatsDashboard() {
   const palette = useChartPalette();
   const [period, setPeriod] = useState<PeriodKey>("7d");
+  const [selectedLang, setSelectedLang] = useState<string | null>(null);
+  const { t } = useI18n();
+
+  const activeLanguageLabel = selectedLang
+    ? t("lang." + selectedLang)
+    : t("lang.none");
+  const selectedLangHint = selectedLang
+    ? `${activeLanguageLabel} · ${LANGUAGE_COUNTRIES[selectedLang]?.length ?? 0} pays pleins`
+    : t("lang.noneCountry");
 
   // Lecture TOLÉRANTE : ces deux fonctions sont récentes — un backend en
   // retard (front déployé avant lui) doit dégrader proprement, jamais faire
@@ -439,13 +464,30 @@ export function StatsDashboard() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       {/* ═══════════════════════════════════════════════════════════════
-        DEBUG BINAIRES — TEST DE MONTAGE (STATSDASHBOARD).
-        Injected AVANT toute condition et avant tout chargement.
+        CARTE MONDIALE — première vue du dashboard, avec sélecteur.
         ═══════════════════════════════════════════════════════════════ */}
-      <div className="w-full h-[400px] bg-red-600 flex flex-col items-center justify-center text-white text-2xl font-bold rounded-xl border-4 border-yellow-400 my-6">
-        <span>🗺️ TEST CARTE VISIBLE DANS STATSDASHBOARD</span>
-        <span className="text-sm mt-2">Si tu vois ce rectangle rouge, le composant est monté.</span>
-      </div>
+      <div className="flex flex-wrap gap-2">
+        {LANGUAGE_COUNTRIES_ENTRIES.map(({ code, label }) => (
+          <button
+            key={code}
+            type="button"
+            onClick={() => setSelectedLang(selectedLang === code ? null : code)}
+            className={`rounded-full border px-3 py-1 text-xs font-mono transition-colors ${
+              selectedLang === code
+                ? "border-gold bg-gold/15 text-gold"
+                : "border-white/10 text-ink-2 hover:border-gold/40"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>        <WorldMapLanguages
+          selectedLanguage={selectedLang}
+          languagesCountries={LANGUAGE_COUNTRIES}
+          className="w-full h-[400px]"
+        />
+        <p className="mt-2 font-mono text-[0.6875rem] text-ink-3">            {selectedLangHint}
+          </p>
 
       <DashboardHeader
         period={period}
