@@ -713,18 +713,17 @@ export function DashboardView({ onNavigate }: { onNavigate: (view: string) => vo
     <div className="space-y-5">
       <ScrambleHeading text="Progression" />
 
-      <section className="ln-card rounded-xl p-6 mb-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <WorldMapLanguages
-            selectedLanguage={selectedLang}
-            languagesCountries={LANGUAGE_COUNTRIES}
-            className="w-full h-[360px]"
-          />
-        </div>
-      </section>
-      {/* SLANG DU JOUR — en haut du tableau de bord : l'habitude se pose
-          avant les courbes. Indépendant du chargement des statistiques. */}
+      {/* SLANG DU JOUR — affiché même dans l'état vide pour inciter à commencer. */}
       <DailySlangCard />
+      {/* CARTE MONDIALE — visible dès l'arrivée, même sans stats. */}
+      <section className="ln-card rounded-xl p-6 mb-6">
+        <h2 className="text-lg font-semibold mb-4 text-gold-400">Couverture géographique</h2>
+        <WorldMapLanguages
+          selectedLanguage={selectedLang}
+          languagesCountries={LANGUAGE_COUNTRIES}
+          className="w-full h-[400px]"
+        />
+      </section>
       {!overview ? (
         <div className="grid gap-3 md:grid-cols-3">
           {[0, 1, 2].map((i) => (
