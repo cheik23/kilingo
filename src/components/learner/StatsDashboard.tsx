@@ -389,9 +389,9 @@ export function StatsDashboard() {
             Statistiques indisponibles pour le moment
           </h2>
           <p className="mx-auto mt-2 max-w-lg text-sm text-ink-2">
-            Le serveur ne fournit pas encore la lecture d'activité détaillée utilisée par cette
-            page. Aucune donnée n'est perdue : tes sessions, cartes et conversations restent
-            intactes et réapparaîtront ici dès que le backend aura été mis à jour.
+            Cette vue n'est pas encore disponible. Aucune donnée n'est perdue : tes sessions,
+            cartes et conversations restent intactes et réapparaîtront ici dès que la mise à jour
+            sera terminée.
           </p>
           <Link
             to="/app/analytics"
@@ -978,9 +978,9 @@ export function StatsDashboard() {
 
       <p className="flex items-start gap-2 rounded-xl border border-gold/15 bg-gold/5 p-4 text-xs leading-relaxed text-ink-2">
         <Info className="mt-0.5 size-4 shrink-0 text-gold" />
-        Toutes les valeurs de cette page proviennent de tes données Convex (sessions, cartes SRS,
-        médias analysés, conversations IA, objectifs). Les flèches comparent la période choisie à
-        la période précédente de même longueur ; « — » signifie qu'il n'y a rien à comparer.
+        Tes statistiques sont calculées en temps réel à partir de ton activité : temps d'écoute,
+        expressions apprises, médias analysés et conversations pratiquées. Les flèches de tendance
+        comparent ta progression avec la période précédente.
       </p>
     </div>
   );

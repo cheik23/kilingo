@@ -202,6 +202,39 @@ function samplePool(
     }));
 }
 
+/**
+ * Tout objectif doit être JOUABLE.
+ *
+ * `samplePool` tire 60 expressions au hasard, `resolveObjectives` les
+ * choisit dans toute la base : les deux tirages étaient INDÉPENDANTS, donc
+ * un objectif pouvait tomber hors du pool. Conséquence mesurée : la
+ * mission annonçait 3 situations et n'en affichait que 2 (les situations
+ * sont construites sur les objectifs présents dans le pool), et
+ * l'expression visée n'était ni suggérée ni donnée au modèle comme argot
+ * disponible. On réintègre donc les objectifs manquants en tête de pool.
+ * Le pool ne peut dépasser POOL_SIZE + 8 (nombre maximal d'objectifs).
+ */
+function withObjectivesInPool(
+  pool: { expression: string; meaning: string; example?: string }[],
+  objectives: { expression: string; done: boolean }[],
+  rows: { expression: string; meaning: string; context: string }[],
+): { expression: string; meaning: string; example?: string }[] {
+  const out = [...pool];
+  const have = new Set(out.map((p) => p.expression));
+  for (const objective of objectives) {
+    if (have.has(objective.expression)) continue;
+    const row = rows.find((r) => r.expression === objective.expression);
+    if (!row) continue;
+    out.unshift({
+      expression: row.expression,
+      meaning: row.meaning,
+      example: row.context || undefined,
+    });
+    have.add(row.expression);
+  }
+  return out;
+}
+
 /** 5 à 8 objectifs RÉELS depuis la base, par motifs thématiques du seed. */
 function resolveObjectives(
   rows: { expression: string; meaning: string; popularity: number }[],
@@ -309,13 +342,17 @@ export const startConversation = mutation({
         context: s.context,
         popularity: s.popularity,
       }));
-    const pool = samplePool(rows);
+    const sampled = samplePool(rows);
     // 1.3 — un scénario n'est JAMAIS masqué ni skippé : quand la base slang
     // de la langue est vide (aucun objectif résoluble), la conversation
     // démarre en MODE LIBRE (objectifs = [], freeMode = true) ; l'UI
     // affiche un badge « mode libre » au lieu d'un écran masqué.
     const freeMode = rows.length === 0;
     const objectives = freeMode ? [] : resolveObjectives(rows, scenario.objectives);
+    // Les objectifs sont réintégrés au pool : les situations de mission
+    // sont construites sur ce pool, et un objectif absent donnait une
+    // mission plus courte que ce que le briefing annonçait.
+    const pool = withObjectivesInPool(sampled, objectives, rows);
     const now = Date.now();
 
     const conversationId = await ctx.db.insert("aiConversations", {

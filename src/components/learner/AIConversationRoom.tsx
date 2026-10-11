@@ -4,16 +4,23 @@ import { api } from "@/convex/_generated/api";
 import {
   Check,
   CircleDashed,
+  Compass,
   Flag,
   Flame,
   Loader2,
   Lock,
   MessageCircle,
+  Play,
   Send,
   Sparkles,
+  Target,
+  Timer,
+  Trophy,
+  X,
   Zap,
   BadgeCheck,
 } from "lucide-react";
+import { Link } from "react-router";
 import { toast } from "sonner";
 import type { Id } from "@/convex/_generated/dataModel";
 import { loadDefLang, uiLangMeta, useI18n, type UiLang } from "@/lib/i18n";
@@ -33,12 +40,24 @@ import { RpmHead } from "@/components/fx/RpmHead";
    CONVERSATION IA (Phase 3/4) — personnages + scénarios + corrections
    temps réel. Thème or/noir (ln-card, text-gold, bg-noir).
 
-   Écrans : accueil (personnage + scénario) → chat (temps réel) →
-   résultats (XP, objectifs, badges). Aucun crash sur données vides :
-   loading states + fallbacks partout, hooks toujours inconditionnels.
+   Écrans : accueil (personnage + scénario) → briefing de mission
+   (contexte, objectifs, durée) → chat (situations à choix + saisie
+   libre) → résultats (XP, objectifs, badges). Aucun crash sur données
+   vides : loading states + fallbacks partout, hooks toujours
+   inconditionnels.
    ═══════════════════════════════════════════════════════════════════ */
 
 const MAX_LEN = 500;
+
+/* ── MISSION — 3 situations, 40 XP ──────────────────────────────────────
+   Le cœur du jeu : au lieu d'un champ de texte nu, la conversation
+   propose des SITUATIONS à choix. Chaque situation cible une expression
+   que la mission doit faire apprendre ; les deux autres propositions
+   viennent de la même banque d'argot. La bonne réponse est envoyée au
+   serveur comme un vrai message : c'est le serveur qui compte l'XP et
+   coche l'objectif, exactement comme en saisie libre. */
+const MISSION_COUNT = 3;
+const MISSION_XP_TARGET = 40;
 
 type CharacterView = {
   id: string;
@@ -90,9 +109,107 @@ type EndResult = {
   lootBoxId?: Id<"userLootBoxes">;
   totalXP: number;
   level: number;
+  /**
+   * Bilan de MISSION — calculé par le client à partir des situations
+   * réellement jouées (le serveur ne connaît que la conversation). `xp`
+   * est le total de la mission : XP gagné pendant le jeu + XP de fin
+   * accordé par le serveur. `learned` vient du serveur (objectifs cochés).
+   */
+  missions?: { total: number; passed: number; learned: number; xp: number };
+};
+
+/** Résultat d'une situation : ce que le joueur a choisi, et ce que ça a valu. */
+type Outcome = {
+  correct: boolean;
+  picked: string;
+  /** XP accordé par le SERVEUR pour cette réponse (0 tant qu'il n'a pas répondu). */
+  xp: number;
 };
 
 type TLabel = (k: string, p?: Record<string, string | number>) => string;
+
+type PoolItem = { expression: string; meaning: string };
+
+/** Une situation = une expression à retrouver + trois propositions. */
+type Situation = {
+  key: string;
+  target: PoolItem;
+  options: PoolItem[];
+};
+
+/** Hash FNV-1a : même entrée ⇒ même mélange, donc aucun saut entre deux
+ *  rendus (un tirage aléatoire ferait bouger les propositions sous le
+ *  doigt de l'utilisateur). */
+function stableSeed(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function stableShuffle<T>(items: T[], seed: number): T[] {
+  const out = [...items];
+  let s = seed || 1;
+  for (let i = out.length - 1; i > 0; i--) {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    const j = s % (i + 1);
+    const swap = out[i];
+    out[i] = out[j];
+    out[j] = swap;
+  }
+  return out;
+}
+
+/**
+ * Construit les situations depuis les objectifs RÉELS de la conversation.
+ *
+ * Aucune donnée inventée : chaque cible est une expression que le serveur
+ * a déjà inscrite dans les objectifs, et chaque proposition vient de la
+ * banque d'argot de la conversation. Deux garde-fous :
+ *   - moins de 3 expressions disponibles ⇒ pas de situation du tout
+ *     (l'interface retombe sur les suggestions existantes) ;
+ *   - une proposition de même SENS que la bonne réponse est écartée,
+ *     sinon la question aurait deux réponses justes.
+ */
+function buildSituations(
+  objectives: { expression: string; done: boolean }[],
+  pool: PoolItem[],
+): Situation[] {
+  if (pool.length < 3) return [];
+  const byExpression = new Map(pool.map((p) => [p.expression, p]));
+  const fromObjectives = objectives
+    .map((o) => byExpression.get(o.expression))
+    .filter((p): p is PoolItem => p !== undefined);
+  const chosen = (fromObjectives.length > 0 ? fromObjectives : pool).slice(
+    0,
+    MISSION_COUNT,
+  );
+  const norm = (s: string) => s.trim().toLowerCase();
+  return chosen
+    .map((target): Situation | null => {
+      const candidates = pool.filter(
+        (p) =>
+          p.expression !== target.expression &&
+          norm(p.meaning) !== norm(target.meaning),
+      );
+      if (candidates.length < 2) return null;
+      const distractors = stableShuffle(
+        candidates,
+        stableSeed(target.expression),
+      ).slice(0, 2);
+      return {
+        key: target.expression,
+        target,
+        options: stableShuffle(
+          [target, ...distractors],
+          stableSeed(`${target.meaning}|${target.expression}`),
+        ),
+      };
+    })
+    .filter((s): s is Situation => s !== null);
+}
 
 /* ── Rendu d'un message IA : expressions «…» en gras doré ─────────── */
 function RichReply({ text }: { text: string }) {
@@ -124,6 +241,151 @@ function RichReply({ text }: { text: string }) {
   );
 }
 
+/* ── CARTE DE MISSION — situations à choix ─────────────────────────── */
+
+function SituationBoard({
+  situations,
+  cursor,
+  outcomes,
+  busy,
+  t,
+  onPick,
+  onContinue,
+}: {
+  situations: Situation[];
+  cursor: number;
+  outcomes: Record<string, Outcome>;
+  busy: boolean;
+  t: TLabel;
+  onPick: (situation: Situation, option: PoolItem) => void;
+  onContinue: () => void;
+}) {
+  const total = situations.length;
+  // La progression compte les situations RÉSOLUES (celles dont le feedback
+  // a été vu), pas la position du curseur : la barre avance au moment où
+  // le joueur appuie sur « Continuer ».
+  const done = Math.min(cursor, total);
+  const current = situations[cursor] ?? null;
+
+  if (!current) {
+    return (
+      <div className="rounded-xl border border-gold/30 bg-gold/[0.07] p-3">
+        <p className="flex items-center gap-2 text-sm font-semibold text-gold">
+          <Trophy className="size-4" aria-hidden /> {t("conv.situation.complete")}
+        </p>
+        <p className="mt-1 text-xs leading-relaxed text-ink-2">
+          {t("conv.situation.summary")}
+        </p>
+      </div>
+    );
+  }
+
+  const outcome = outcomes[current.key];
+  const head = (
+    <>
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5 font-mono text-[0.625rem] tracking-[0.25em] text-gold uppercase">
+          <Target className="size-3" aria-hidden /> {t("conv.situation.progress")}
+        </span>
+        <span className="font-mono text-[0.625rem] text-ink-3">
+          {t("conv.situation.label", { current: done + 1, total })}
+        </span>
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-gold-strong to-gold transition-all"
+          style={{ width: `${Math.round((done / total) * 100)}%` }}
+        />
+      </div>
+    </>
+  );
+
+  /* ── C · FEEDBACK — la réponse est commentée AVANT la suite ─────────
+     La carte dit ce qui était attendu et ce que l'expression veut dire :
+     c'est le moment d'apprentissage. « Continuer » n'est actif qu'une
+     fois l'XP du serveur arrivé — on n'affiche jamais « +X XP » avant de
+     l'avoir reçu. */
+  if (outcome) {
+    return (
+      <div
+        className={cn(
+          "rounded-xl border p-3",
+          outcome.correct
+            ? "border-green-400/30 bg-green-500/[0.06]"
+            : "border-red-400/30 bg-red-500/[0.05]",
+        )}
+      >
+        {head}
+        <p
+          className={cn(
+            "mt-3 flex items-center gap-2 text-sm font-semibold",
+            outcome.correct ? "text-green-300" : "text-red-300",
+          )}
+        >
+          {outcome.correct ? (
+            <Check className="size-4 shrink-0" aria-hidden />
+          ) : (
+            <X className="size-4 shrink-0" aria-hidden />
+          )}
+          {outcome.correct ? t("conv.feedback.good") : t("conv.feedback.bad")}
+          {outcome.correct && outcome.xp > 0 ? (
+            <span className="ml-auto rounded-full bg-gold/15 px-2.5 py-0.5 font-mono text-xs font-normal text-gold">
+              {t("conv.feedback.xp", { xp: outcome.xp })}
+            </span>
+          ) : null}
+        </p>
+        <p className="mt-1.5 text-xs leading-relaxed text-ink-2">
+          {outcome.correct
+            ? t("conv.feedback.means", {
+                expression: current.target.expression,
+                meaning: current.target.meaning,
+              })
+            : `${t("conv.feedback.expected", {
+                expression: current.target.expression,
+              })} ${t("conv.feedback.means", {
+                expression: current.target.expression,
+                meaning: current.target.meaning,
+              })}`}
+        </p>
+        <button
+          type="button"
+          onClick={onContinue}
+          disabled={busy}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold-strong to-gold py-2.5 text-sm font-semibold text-noir transition-opacity hover:opacity-90 disabled:cursor-progress disabled:opacity-50"
+        >
+          {busy && <Loader2 className="size-3.5 animate-spin" />}
+          {t("conv.feedback.next")}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-gold/25 bg-gold/[0.05] p-3">
+      {head}
+      <p className="mt-3 text-sm text-ink">
+        {t("conv.situation.prompt", { meaning: current.target.meaning })}
+      </p>
+      <div className="mt-2 space-y-1.5">
+        {current.options.map((option) => (
+          <button
+            key={option.expression}
+            type="button"
+            onClick={() => onPick(current, option)}
+            disabled={busy}
+            className={cn(
+              "w-full rounded-xl border border-white/10 bg-noir-2 px-3 py-2 text-left text-sm text-ink transition-colors hover:border-gold/50 hover:bg-gold/5",
+              busy && "opacity-60",
+            )}
+          >
+            {option.expression}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function DifficultyStars({ level }: { level: string }) {
   const n = level === "advanced" ? 3 : level === "intermediate" ? 2 : 1;
   return (
@@ -145,12 +407,60 @@ export function AIConversationRoom() {
     setLanguage(loadDefLang());
   }, []);
 
-  const [screen, setScreen] = useState<"pick" | "chat" | "results">("pick");
+  const [screen, setScreen] = useState<
+    "pick" | "briefing" | "chat" | "results"
+  >("pick");
   const [conversationId, setConversationId] = useState<Id<"aiConversations"> | null>(null);
   const [character, setCharacter] = useState<CharacterView | null>(null);
   const [scenario, setScenario] = useState<ScenarioView | null>(null);
   const [result, setResult] = useState<EndResult | null>(null);
 
+  /**
+   * E — « Rejouer cette mission » : une NOUVELLE conversation sur le même
+   * personnage et le même scénario (donc de nouveaux objectifs et une
+   * nouvelle banque d'argot), puis retour au briefing. Tout se fait dans
+   * l'état du composant : la route ne change pas, la page ne recharge pas.
+   */
+  const startConv = useMutation(api.aiConversation.startConversation);
+  const [replaying, setReplaying] = useState(false);
+  const replay = useCallback(async () => {
+    if (!character || !scenario || replaying) return;
+    setReplaying(true);
+    try {
+      const r = await startConv({
+        characterId: character.id,
+        scenarioId: scenario.id,
+        language: character.language,
+      });
+      setResult(null);
+      setConversationId(r.conversationId);
+      setScreen("briefing");
+    } catch (err) {
+      // Échec signalé, et surtout : pas d'impasse. On rend la sélection,
+      // où le joueur peut relancer la mission lui-même.
+      toast.error(err instanceof Error ? err.message : "Démarrage impossible.");
+      setConversationId(null);
+      setScreen("pick");
+    } finally {
+      setReplaying(false);
+    }
+  }, [character, scenario, replaying, startConv]);
+
+  if (screen === "briefing" && conversationId && character && scenario) {
+    return (
+      <Briefing
+        conversationId={conversationId}
+        character={character}
+        scenario={scenario}
+        t={t}
+        onLaunch={() => setScreen("chat")}
+        onBack={() => {
+          setScreen("pick");
+          setConversationId(null);
+        }}
+      />
+    );
+  }
   if (screen === "chat" && conversationId) {
     return (
       <ChatRoom
@@ -172,6 +482,8 @@ export function AIConversationRoom() {
         conversationId={conversationId}
         result={result}
         t={t}
+        replaying={replaying}
+        onReplay={() => void replay()}
         onHome={() => {
           setScreen("pick");
           setConversationId(null);
@@ -187,7 +499,7 @@ export function AIConversationRoom() {
         setConversationId(id);
         setCharacter(c);
         setScenario(s);
-        setScreen("chat");
+        setScreen("briefing");
       }}
     />
   );
@@ -490,13 +802,179 @@ function ConversationHome({
         ) : (
           <Sparkles className="size-4" />
         )}
-        {t("conv.start")}
+        {t("conv.prepare")}
       </button>
     </div>
   );
 }
 
-/* ── 2.3 Interface de chat ──────────────────────────────────────────── */
+/* ── 2.3 Carte de briefing — le contexte AVANT l'action ─────────────── */
+
+/**
+ * Le briefing dit ce qui va se passer, avec les CHIFFRES RÉELS de la
+ * conversation : le nombre d'expressions vient des objectifs résolus par
+ * le serveur, la cible d'XP de la constante de mission, la durée de la
+ * difficulté du scénario. Aucune promesse inventée : on n'annonce jamais
+ * « 5 expressions » avant de savoir combien le serveur en a inscrites.
+ */
+function Briefing({
+  conversationId,
+  character,
+  scenario,
+  t,
+  onLaunch,
+  onBack,
+}: {
+  conversationId: Id<"aiConversations">;
+  character: CharacterView;
+  scenario: ScenarioView;
+  t: TLabel;
+  onLaunch: () => void;
+  onBack: () => void;
+}) {
+  const conv = useQuery(api.aiConversationStore.getConversation, {
+    conversationId,
+  });
+  /**
+   * La banque d'argot sert à vérifier qu'un objectif est réellement
+   * JOUABLE : les situations se construisent sur le pool, donc un objectif
+   * absent du pool ne produirait aucune situation. On ne promet jamais
+   * « 3 situations » avant de savoir combien le pool en permet — le
+   * compte affiché est celui que le tableau de mission affichera.
+   */
+  const pool = useQuery(api.aiConversationStore.getPoolFor, {
+    conversationId,
+  });
+  const objectives = conv?.objectives ?? [];
+  const total = objectives.length;
+  const freeMode = conv !== undefined && total === 0;
+  const playable = useMemo(() => {
+    if (!pool) return null;
+    const known = new Set(pool.map((p) => p.expression));
+    return objectives.filter((o) => known.has(o.expression)).length;
+  }, [pool, objectives]);
+  const missions =
+    playable === null ? MISSION_COUNT : Math.min(MISSION_COUNT, playable);
+  const range =
+    scenario.difficulty === "advanced"
+      ? "7-10"
+      : scenario.difficulty === "intermediate"
+        ? "5-7"
+        : "3-5";
+
+  return (
+    <div className="mx-auto w-full max-w-2xl space-y-4 p-4 sm:p-6">
+      <div className="ln-card p-6">
+        <p className="font-mono text-[0.625rem] tracking-[0.3em] text-gold uppercase">
+          {t("conv.briefing.title")}
+        </p>
+
+        <div className="mt-4 flex items-center gap-3">
+          <span className="text-4xl" aria-hidden>
+            {character.avatar}
+          </span>
+          <div className="min-w-0">
+            <p className="font-display text-xl font-bold text-ink">
+              {scenario.title}
+            </p>
+            <p className="text-xs text-ink-3">
+              {character.name} · {character.register}
+            </p>
+          </div>
+        </div>
+
+        {/* Contexte narratif : la phrase d'accroche du personnage, puis le
+            décor écrit du scénario. Le joueur sait OÙ il est et POURQUOI
+            il parle, au lieu d'atterrir sur un champ de texte vide. */}
+        <p className="mt-4 flex items-start gap-2 text-sm leading-relaxed text-ink-2">
+          <Compass className="mt-0.5 size-4 shrink-0 text-gold" aria-hidden />
+          <span>
+            {t("conv.briefing.lead", { character: character.name })}{" "}
+            {scenario.description}
+          </span>
+        </p>
+
+        <h3 className="mt-5 mb-2 flex items-center gap-1.5 font-mono text-[0.625rem] tracking-[0.25em] text-gold uppercase">
+          <Target className="size-3" aria-hidden /> {t("conv.briefing.objectives")}
+        </h3>
+        <ul className="space-y-2 text-sm">
+          <li className="flex items-start gap-2">
+            <Sparkles className="mt-0.5 size-4 shrink-0 text-gold" aria-hidden />
+            <span className="text-ink-2">
+              {freeMode
+                ? t("conv.briefing.learnFree")
+                : t("conv.briefing.learnExpressions", { count: total })}
+            </span>
+          </li>
+          {!freeMode && missions > 0 ? (
+            <li className="flex items-start gap-2">
+              <Trophy className="mt-0.5 size-4 shrink-0 text-gold" aria-hidden />
+              <span className="text-ink-2">
+                {t("conv.briefing.situations", { count: missions })}
+              </span>
+            </li>
+          ) : null}
+          <li className="flex items-start gap-2">
+            <Zap className="mt-0.5 size-4 shrink-0 text-gold" aria-hidden />
+            <span className="text-ink-2">
+              {t("conv.briefing.xpTarget", { xp: MISSION_XP_TARGET })}
+            </span>
+          </li>
+        </ul>
+
+        {freeMode ? (
+          <p className="mt-3 text-xs leading-relaxed text-ink-3">
+            {t("conv.briefing.freeNote")}
+          </p>
+        ) : (
+          <div className="mt-4 flex flex-wrap gap-1.5">
+            {objectives.map((o) => (
+              <span
+                key={o.expression}
+                className="rounded-full border border-gold/25 bg-gold/5 px-2.5 py-1 text-[0.6875rem] text-gold"
+              >
+                {o.expression}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <p className="mt-5 flex items-center gap-1.5 text-xs text-ink-3">
+          <Timer className="size-3.5 text-gold" aria-hidden />
+          {t("conv.briefing.duration")} ·{" "}
+          {t("conv.briefing.minutes", { range })}
+        </p>
+
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={onLaunch}
+            // Tant que les objectifs ne sont pas lus, on ne prétend pas
+            // savoir combien d'expressions la mission contient.
+            disabled={conv === undefined || pool === undefined}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold-strong to-gold py-3 font-display font-semibold text-noir transition-opacity hover:opacity-90 disabled:cursor-progress disabled:opacity-60"
+          >
+            {conv === undefined || pool === undefined ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Play className="size-4" aria-hidden />
+            )}
+            {t("conv.briefing.start")}
+          </button>
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex-1 rounded-xl border border-gold/40 py-3 text-sm font-medium text-gold transition-colors hover:bg-gold/10"
+          >
+            {t("conv.briefing.back")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── 2.4 Interface de chat ──────────────────────────────────────────── */
 
 function ChatRoom({
   conversationId,
@@ -550,10 +1028,30 @@ function ChatRoom({
     return (pool ?? []).filter((p) => !used.has(p.expression)).slice(0, 3);
   }, [pool, conv?.expressionsUsed]);
 
+  /**
+   * Situations de la mission, figées à la PREMIÈRE lecture des données.
+   *
+   * Les recalculer à chaque changement d'objectifs ferait disparaître la
+   * situation en cours juste après une bonne réponse : le joueur verrait
+   * la liste se réorganiser sous son doigt. Une fois construites, elles
+   * ne bougent plus.
+   */
+  const [missions, setMissions] = useState<Situation[] | null>(null);
+  /** Situation en cours + résultat de chacune (le feedback s'affiche ici). */
+  const [cursor, setCursor] = useState(0);
+  const [outcomes, setOutcomes] = useState<Record<string, Outcome>>({});
+
+  useEffect(() => {
+    if (missions !== null || !conv || !pool) return;
+    const built = buildSituations(conv.objectives, pool);
+    if (built.length > 0) setMissions(built);
+  }, [missions, conv, pool]);
+
+  /** Envoie un message et renvoie l'XP ACCORDÉ PAR LE SERVEUR (0 si échec). */
   const sendMsg = useCallback(
-    async (text: string) => {
+    async (text: string): Promise<number> => {
       const value = text.trim();
-      if (!value || sending) return;
+      if (!value || sending) return 0;
       setSending(true);
       setInput("");
       try {
@@ -568,13 +1066,51 @@ function ChatRoom({
         }
         if (r.corrections.length === 0) soundEngine.play("correct");
         if (r.iaFailed) { soundEngine.play("error"); toast.error(t("conv.iaUnavailable")); }
+        return r.xpGained;
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Envoi impossible.");
+        return 0;
       } finally {
         setSending(false);
       }
     },
     [conversationId, send, sending, t],
+  );
+
+  /**
+   * Réponse à une situation.
+   *
+   * Le geste décisif : la bonne expression part au serveur comme un VRAI
+   * message (`sendMsg`). L'XP et la coche de l'objectif restent donc
+   * calculés par le serveur, exactement comme en saisie libre — aucune
+   * récompense décidée par le navigateur. Une mauvaise proposition, elle,
+   * ne part jamais : on ne fait pas écrire au personnage une phrase fausse.
+   */
+  const pickOption = useCallback(
+    async (situation: Situation, option: PoolItem) => {
+      if (sending || outcomes[situation.key]) return;
+      if (option.expression !== situation.target.expression) {
+        // Mauvaise réponse : rien ne part au serveur (on ne fait pas écrire
+        // au personnage une phrase fausse) et la situation est consommée.
+        soundEngine.play("error");
+        setOutcomes((prev) => ({
+          ...prev,
+          [situation.key]: { correct: false, picked: option.expression, xp: 0 },
+        }));
+        return;
+      }
+      setOutcomes((prev) => ({
+        ...prev,
+        [situation.key]: { correct: true, picked: option.expression, xp: 0 },
+      }));
+      const xp = await sendMsg(option.expression);
+      setOutcomes((prev) => {
+        const settled = prev[situation.key];
+        if (!settled) return prev;
+        return { ...prev, [situation.key]: { ...settled, xp } };
+      });
+    },
+    [sending, outcomes, sendMsg],
   );
 
   const end = useCallback(async () => {
@@ -590,12 +1126,53 @@ function ChatRoom({
         setLootId(r.lootBoxId);
       }
       void checkAchievements({}).then((result) => { showAchievementFeedback(result); if (result.completed.length > 0) soundEngine.play("achievement"); }).catch(() => undefined);
-      onFinished(r);
+      // Bilan de mission : situations RÉELLEMENT jouées (comptées ici) +
+      // XP total = celui déjà gagné dans la conversation avant clôture,
+      // augmenté de l'XP de fin que le serveur vient d'accorder. Les
+      // expressions apprises viennent du serveur (`objectivesDone`).
+      const total = missions?.length ?? 0;
+      const passed = missions
+        ? missions.filter((m) => outcomes[m.key]?.correct).length
+        : 0;
+      onFinished({
+        ...r,
+        missions: {
+          total,
+          passed,
+          learned: r.objectivesDone,
+          xp: (conv?.xpEarned ?? 0) + r.xpGained,
+        },
+      });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Clôture impossible.");
       setEnding(false);
     }
-  }, [conversationId, endConv, onFinished, t, checkAchievements]);
+  }, [
+    conversationId,
+    endConv,
+    onFinished,
+    t,
+    checkAchievements,
+    missions,
+    outcomes,
+    conv?.xpEarned,
+  ]);
+
+  /**
+   * « Continuer » : situation suivante. Après la DERNIÈRE, on clôture la
+   * conversation — c'est le serveur qui calcule l'XP de fin, les badges et
+   * les gems, puis l'écran de bilan s'affiche. Aucun rechargement : tout
+   * se joue dans l'état du composant.
+   */
+  const continueMission = useCallback(() => {
+    const total = missions?.length ?? 0;
+    if (cursor + 1 < total) {
+      setCursor(cursor + 1);
+      return;
+    }
+    setCursor(total);
+    void end();
+  }, [missions, cursor, end]);
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-4 p-4 sm:p-6">
@@ -695,7 +1272,30 @@ function ChatRoom({
 
           {/* Saisie : suggestions + compteur + envoi */}
           <div className="border-t border-white/5 p-3">
-            {suggestions.length > 0 && (
+            {/* Le guidage d'abord. Les suggestions d'expressions ne
+                s'affichent que lorsqu'aucune situation n'est disponible
+                (mode libre) : à côté d'un choix multiple, elles
+                donnaient la réponse. */}
+            {missions && missions.length > 0 ? (
+              <>
+                <div className="mb-3">
+                  <SituationBoard
+                    situations={missions}
+                    cursor={cursor}
+                    outcomes={outcomes}
+                    busy={sending || ending}
+                    t={t}
+                    onPick={(situation, option) =>
+                      void pickOption(situation, option)
+                    }
+                    onContinue={continueMission}
+                  />
+                </div>
+                <p className="mb-1.5 font-mono text-[0.5625rem] tracking-widest text-ink-3 uppercase">
+                  {t("conv.situation.orFree")}
+                </p>
+              </>
+            ) : suggestions.length > 0 ? (
               <div className="mb-2 flex flex-wrap gap-1.5">
                 {suggestions.map((s) => (
                   <button
@@ -710,7 +1310,7 @@ function ChatRoom({
                   </button>
                 ))}
               </div>
-            )}
+            ) : null}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -809,41 +1409,80 @@ function ChatRoom({
   );
 }
 
-/* ── 2.4 Écran de résultats ─────────────────────────────────────────── */
+/* ── 2.5 Écran de fin de mission (résultats) ───────────────────────── */
 
 function Results({
   conversationId,
   result,
   t,
+  replaying,
+  onReplay,
   onHome,
 }: {
   conversationId: Id<"aiConversations">;
   result: EndResult;
   t: TLabel;
+  replaying: boolean;
+  onReplay: () => void;
   onHome: () => void;
 }) {
   const conv = useQuery(api.aiConversationStore.getConversation, {
     conversationId,
   });
+  const mission = result.missions;
+  const hasMission = !!mission && mission.total > 0;
+  const cleared = hasMission && mission.passed === mission.total;
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-4 p-4 sm:p-6">
-      {/* Score + XP */}
+      {/* Titre + score de mission */}
       <div className="ln-card p-6 text-center">
         <p className="font-mono text-[0.625rem] tracking-[0.3em] text-gold uppercase">
           {t("conv.results")}
         </p>
-        <p className="mt-2 font-display text-4xl font-bold text-ink">
-          {result.objectivesDone}/{result.objectivesTotal}{" "}
-          <span className="text-lg text-ink-2">{t("conv.objectives")}</span>
+        <p className="mt-2 font-display text-3xl font-bold text-ink">
+          {cleared ? t("conv.recap.done") : t("conv.recap.ended")}
         </p>
-        <p className="mt-1 text-sm text-ink-2">
-          {t("conv.quality")} {result.avgQuality} %
-        </p>
-        <p className="mt-4 font-display text-5xl font-bold text-gold">
-          +{result.xpGained} XP
-        </p>
-        <p className="mt-1 text-xs text-ink-3">
+
+        {hasMission ? (
+          <>
+            <p className="mt-4 font-display text-5xl font-bold text-gold">
+              +{mission.xp} XP
+            </p>
+            <ul className="mt-4 space-y-1.5 text-sm text-ink-2">
+              <li className="flex items-center justify-center gap-2">
+                <Trophy className="size-4 text-gold" aria-hidden />
+                {t("conv.recap.situations", {
+                  passed: mission.passed,
+                  total: mission.total,
+                })}
+              </li>
+              <li className="flex items-center justify-center gap-2">
+                <Sparkles className="size-4 text-gold" aria-hidden />
+                {t("conv.recap.learned", { count: mission.learned })}
+              </li>
+              <li className="text-xs text-ink-3">
+                {t("conv.quality")} {result.avgQuality} %
+              </li>
+            </ul>
+          </>
+        ) : (
+          /* Mode libre (aucune situation jouable) : on garde le bilan
+             historique — objectifs + XP, jamais un écran vide. */
+          <>
+            <p className="mt-3 font-display text-4xl font-bold text-ink">
+              {result.objectivesDone}/{result.objectivesTotal}{" "}
+              <span className="text-lg text-ink-2">{t("conv.objectives")}</span>
+            </p>
+            <p className="mt-1 text-sm text-ink-2">
+              {t("conv.quality")} {result.avgQuality} %
+            </p>
+            <p className="mt-4 font-display text-5xl font-bold text-gold">
+              +{result.xpGained} XP
+            </p>
+          </>
+        )}
+        <p className="mt-2 text-xs text-ink-3">
           {t("quiz.level")} {result.level} · {result.totalXP} XP
         </p>
       </div>
@@ -890,22 +1529,38 @@ function Results({
         </div>
       </div>
 
-      {/* Rejouer ce scénario / choisir un autre / retour hub */}
+      {/* D — trois issues claires : rejouer, changer de personnage, ou
+          aller voir ses courbes. « Rejouer » crée une VRAIE nouvelle
+          conversation (nouveaux objectifs, nouvelle banque d'argot). */}
       <div className="flex flex-col gap-2 sm:flex-row">
         <button
           type="button"
-          onClick={onHome}
-          className="flex-1 rounded-xl bg-gradient-to-r from-gold-strong to-gold py-3 text-sm font-semibold text-noir transition-opacity hover:opacity-90"
+          onClick={onReplay}
+          disabled={replaying}
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold-strong to-gold py-3 text-sm font-semibold text-noir transition-opacity hover:opacity-90 disabled:cursor-progress disabled:opacity-60"
         >
-          {t("conv.replay")}
+          {replaying ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              {t("conv.recap.replaying")}
+            </>
+          ) : (
+            t("conv.recap.replay")
+          )}
         </button>
         <button
           type="button"
           onClick={onHome}
           className="flex-1 rounded-xl border border-gold/40 py-3 text-sm font-medium text-gold transition-colors hover:bg-gold/10"
         >
-          {t("conv.backHub")}
+          {t("conv.recap.otherCharacter")}
         </button>
+        <Link
+          to="/app/dashboard"
+          className="flex flex-1 items-center justify-center rounded-xl border border-white/10 py-3 text-sm font-medium text-ink transition-colors hover:border-gold/40"
+        >
+          {t("conv.recap.dashboard")}
+        </Link>
       </div>
     </div>
   );
