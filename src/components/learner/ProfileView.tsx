@@ -22,6 +22,7 @@ import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { useOptionalQuery } from "@/lib/optionalQuery";
 import { ActivityHeatmap } from "@/components/analytics/ActivityHeatmap";
+import { useChartPalette } from "@/components/analytics/chartTheme";
 import { RollingCounter } from "@/components/fx/rewards";
 import { MasteryTree } from "./MasteryTree";
 import { AvatarPicker, SelectedAvatar } from "./AvatarPicker";
@@ -73,6 +74,8 @@ export function ProfileView() {
   // Lecture tolérante : l'historique d'abonnement est un détail — un backend
   // en retard ne doit pas faire tomber le profil entier.
   const subscriptions = useOptionalQuery(api.subscriptions.getMySubscriptions, {}).data;
+  /** Palette des graphiques du thème actif (le radar doit suivre clair/sombre). */
+  const palette = useChartPalette();
 
   if (!stats || !deck) {
     return (
@@ -267,21 +270,21 @@ export function ProfileView() {
           <div className="mt-2 h-72">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData} outerRadius="75%">
-                <PolarGrid stroke="rgba(255,255,255,0.08)" />
+                <PolarGrid stroke={palette.grid} strokeOpacity={0.14} />
                 <PolarAngleAxis
                   dataKey="lang"
-                  tick={{ fill: "#a0a0a0", fontSize: 11 }}
+                  tick={{ fill: palette.axis, fontSize: 11 }}
                 />
                 <Radar
                   dataKey="niveau"
-                  stroke="#d4a574"
-                  fill="#d4a574"
+                  stroke={palette.gold}
+                  fill={palette.gold}
                   fillOpacity={0.25}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: "#141414",
-                    border: "1px solid rgba(212,165,116,0.3)",
+                    background: palette.surface,
+                    border: `1px solid ${palette.gold}55`,
                     borderRadius: 12,
                     fontSize: 12,
                   }}
