@@ -23,25 +23,32 @@ const resultValidator = v.object({
 export const getExisting = internalQuery({
   args: { dayKey: v.string(), userId: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
+    // Résilient : si plusieurs lignes existent pour la même clé (ex. doublons
+    // créés par des tests précédents), on ne prend pas le risque de faire
+    // planter l'action avec `.unique()`. On trie par insertion récente et on
+    // garde le premier. En production propre on n'en aura jamais plus d'un.
     const row = args.userId
       ? await ctx.db
           .query("dailyChallenges")
-          .withIndex("by_user_day", (q) => q.eq("userId", args.userId).eq("dayKey", args.dayKey))
-          .unique()
-      : (
-          await ctx.db
-            .query("dailyChallenges")
-            .withIndex("by_day", (q) => q.eq("dayKey", args.dayKey))
-            .collect()
-        ).find((item) => item.userId == null);
-    if (!row) return null;
+          .withIndex("by_user_day", (q) =>
+            q.eq("userId", args.userId).eq("dayKey", args.dayKey),
+          )
+          .order("desc")
+          .take(1)
+      : await ctx.db
+          .query("dailyChallenges")
+          .withIndex("by_day", (q) => q.eq("dayKey", args.dayKey))
+          .order("desc")
+          .take(1);
+    const chosen = row[0] ?? null;
+    if (!chosen || chosen.userId != null) return null;
     return {
-      _id: row._id,
-      dayKey: row.dayKey,
-      type: row.type,
-      payload: { ...row.payload, expression: row.payload.expression ?? "" },
-      expiresAt: row.expiresAt,
-      completedAt: row.completedAt ?? null,
+      _id: chosen._id,
+      dayKey: chosen.dayKey,
+      type: chosen.type,
+      payload: { ...chosen.payload, expression: chosen.payload.expression ?? "" },
+      expiresAt: chosen.expiresAt,
+      completedAt: chosen.completedAt ?? null,
     };
   },
   returns: v.union(v.null(), resultValidator),

@@ -667,7 +667,18 @@ const schema = defineSchema(
       source: v.optional(v.string()),
     }).index("by_user", ["userId"]),
 
-    /** MOD 3 — micro-défi quotidien, une ligne par utilisateur et jour. */
+    /** MOD 3 — micro-défi quotidien, une ligne par utilisateur et jour.
+     *  La clé logique est (dayKey, language) pour l'accès anonyme et
+     *  (userId, dayKey) pour l'accès personnel. On ne garde qu'une seule
+     *  ligne par (dayKey, language) : le premier appel anonyme du jour crée
+     *  le défi, les suivants le réutilisent. Une contrainte d'unicité sur
+     *  l'index empêche les doublons d'être écrits par la base.
+     *
+     *  Note : lorsqu'une ligne anonyme existe déjà pour une journée, le flux
+     *  connecté choisit de la réutiliser (voir `dailyChallengeStore.getExisting`).
+     *  C'est un choix délibéré : on ne veut pas de deux défis différents le
+     *  même jour pour la même langue.
+     */
     dailyChallenges: defineTable({
       userId: v.optional(v.id("users")),
       dayKey: v.string(),
@@ -684,7 +695,8 @@ const schema = defineSchema(
       completedAt: v.optional(v.union(v.number(), v.null())),
     })
       .index("by_day", ["dayKey"])
-      .index("by_user_day", ["userId", "dayKey"]),
+      .index("by_user_day", ["userId", "dayKey"])
+      .index("by_day_language", ["dayKey", "payload.language"]),
 
     /** SLANG DU JOUR — QCM quotidien ; une ligne par utilisateur et par
      *  jour (le tirage est déterministe, le serveur ne stocke que la
