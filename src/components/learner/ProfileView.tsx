@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { Link } from "react-router";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { useOptionalQuery } from "@/lib/optionalQuery";
 import { ActivityHeatmap } from "@/components/analytics/ActivityHeatmap";
 import { RollingCounter } from "@/components/fx/rewards";
 import { MasteryTree } from "./MasteryTree";
@@ -69,7 +70,9 @@ export function ProfileView() {
   const favorites = useQuery(api.favorites.mySlangFavorites, {});
   const heatmap = useQuery(api.stats.heatmap, { weeks: 26 });
   const premium = useQuery(api.subscriptions.getMyPremiumStatus);
-  const subscriptions = useQuery(api.subscriptions.getMySubscriptions);
+  // Lecture tolérante : l'historique d'abonnement est un détail — un backend
+  // en retard ne doit pas faire tomber le profil entier.
+  const subscriptions = useOptionalQuery(api.subscriptions.getMySubscriptions, {}).data;
 
   if (!stats || !deck) {
     return (

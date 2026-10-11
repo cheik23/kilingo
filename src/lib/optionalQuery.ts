@@ -45,7 +45,8 @@ export type OptionalQueryResult<Data> = {
 
 export function useOptionalQuery<Query extends FunctionReference<"query">>(
   query: Query,
-  args: FunctionArgs<Query>,
+  /** `"skip"` est accepté, comme dans `useQuery` : la requête n'est pas souscrite. */
+  args: FunctionArgs<Query> | "skip",
 ): OptionalQueryResult<FunctionReturnType<Query>> {
   const state = useQuery_experimental({ query, args, throwOnError: false });
   if (state.status === "success") {

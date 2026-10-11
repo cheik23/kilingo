@@ -21,14 +21,17 @@ import {
   Flame,
   Gem,
   HelpCircle,
+  Info,
   Languages,
   MessagesSquare,
   Sparkles,
   Trophy,
   Users,
 } from "lucide-react";
+import { Link } from "react-router";
 
 import { api } from "@/convex/_generated/api";
+import { useOptionalQuery } from "@/lib/optionalQuery";
 import { useChartPalette } from "@/components/analytics/chartTheme";
 import { RankingItem } from "@/components/analytics/RankingItem";
 import { LEAGUE_LABELS, type RankingEntry } from "@/components/analytics/leagues";
@@ -146,18 +149,50 @@ export function RankingDashboard() {
   const [scope, setScope] = useState<Scope>("global");
   const [period, setPeriod] = useState<Period>("week");
 
-  const board = useQuery(
+  const boardRead = useOptionalQuery(
     api.ranking.getRankingBoard,
     scope === "global" ? { period } : "skip",
   );
-  const friends = useQuery(
+  const friendsRead = useOptionalQuery(
     api.ranking.getFriendRanking,
     scope === "friends" ? { period } : "skip",
   );
-  const history = useQuery(api.ranking.getRankingHistory, { weeks: 12 });
+  const historyRead = useOptionalQuery(api.ranking.getRankingHistory, { weeks: 12 });
+  const history = historyRead.data;
   const achievements = useQuery(api.achievements.getMyAchievements, {});
 
-  const active = scope === "global" ? board : friends;
+  /* Repli de production : le classement hebdomadaire (`leaderboard`) est déjà
+     en production, le module multi-périodes non. Tant que `ranking` n'est pas
+     déployé, la vue « Global · cette semaine » reste servie par l'ancienne
+     lecture au lieu de laisser une page morte. */
+  const legacyActive = boardRead.unavailable && scope === "global" && period === "week";
+  const legacyRead = useOptionalQuery(
+    api.leaderboard.getCurrentLeaderboard,
+    legacyActive ? {} : "skip",
+  );
+
+  const active = useMemo(() => {
+    if (scope === "friends") return friendsRead.data;
+    if (boardRead.data) return boardRead.data;
+    const legacy = legacyRead.data;
+    if (!legacyActive || !legacy) return undefined;
+    const entries = legacy.entries as RankingEntry[];
+    return {
+      period: "week" as const,
+      days: 7,
+      entries,
+      my: legacy.my
+        ? {
+            rank: legacy.my.rank,
+            xp: legacy.my.xp,
+            league: legacy.my.league,
+            previousRank: legacy.my.previousRank,
+            rankDelta: legacy.my.rankDelta,
+            participants: entries.length,
+          }
+        : null,
+    };
+  }, [scope, friendsRead.data, boardRead.data, legacyRead.data, legacyActive]);
   const entries = active?.entries ?? [];
   const my = active?.my ?? null;
   const top = entries.slice(0, 10);
@@ -196,6 +231,44 @@ export function RankingDashboard() {
   }, [achievements]);
 
   const medalTones = [palette.gold, palette.blue, palette.green, palette.violet, palette.orange, palette.red];
+
+  /* Ni le module multi-périodes ni le repli hebdomadaire n'ont répondu :
+     on explique au lieu de laisser un squelette éternel. */
+  const unavailableHere =
+    !legacyActive &&
+    (scope === "friends" ? friendsRead.unavailable : boardRead.unavailable) &&
+    legacyRead.data === undefined;
+
+  if (unavailableHere) {
+    return (
+      <div className="mx-auto max-w-6xl space-y-6">
+        <PlaceHeader
+          place="leaderboard"
+          title="Classement"
+          icon={Trophy}
+          motif="kente"
+          description="Global · par semaine, par mois ou depuis le début"
+        />
+        <section className="ln-card rounded-xl border-white/5 p-8 text-center">
+          <Info className="mx-auto size-9 text-gold/60" aria-hidden />
+          <h2 className="mt-4 font-display text-xl font-semibold text-ink">
+            Classement indisponible pour le moment
+          </h2>
+          <p className="mx-auto mt-2 max-w-lg text-sm text-ink-2">
+            Le serveur ne fournit pas encore cette vue du classement
+            {scope === "friends" ? " (filleuls)" : ""}. Ton XP et ta ligue restent enregistrés :
+            ils réapparaîtront dès la prochaine mise à jour du backend.
+          </p>
+          <Link
+            to="/app/dashboard"
+            className="mt-5 inline-block rounded-xl border border-gold/35 px-4 py-2.5 text-sm font-semibold text-gold"
+          >
+            Voir mon tableau de bord
+          </Link>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -263,6 +336,15 @@ export function RankingDashboard() {
           </div>
         }
       />
+
+      {legacyActive && (
+        <p className="flex items-start gap-2 rounded-xl border border-gold/15 bg-gold/5 px-4 py-3 text-xs text-ink-2">
+          <Info className="mt-0.5 size-3.5 shrink-0 text-gold" aria-hidden />
+          Vue hebdomadaire servie par le classement existant : les fenêtres <strong>Ce mois</strong>{" "}
+          et <strong>Tout</strong>, ainsi que le classement entre filleuls, s'activeront avec la
+          prochaine mise à jour du backend.
+        </p>
+      )}
 
       {/* ── Ma position ─────────────────────────────────────────────── */}
       <section className="ln-card relative overflow-hidden rounded-xl border-gold/30 bg-gradient-to-br from-gold/[0.08] to-transparent p-5">
@@ -389,7 +471,12 @@ export function RankingDashboard() {
                   : "Aucune semaine finalisée ni XP sur la semaine en cours"
           }
         >
-          {history === undefined ? (
+          {historyRead.unavailable ? (
+            <p className="text-sm text-ink-3">
+              Historique indisponible pour le moment : le serveur ne fournit pas encore la
+              lecture semaine par semaine.
+            </p>
+          ) : history === undefined ? (
             <Loading className="h-52" />
           ) : historyData.length === 0 ? (
             <p className="text-sm text-ink-3">

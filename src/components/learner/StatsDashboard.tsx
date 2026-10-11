@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { useOptionalQuery } from "@/lib/optionalQuery";
 import {
   Area,
   AreaChart,
@@ -248,16 +249,18 @@ export function StatsDashboard() {
   const palette = useChartPalette();
   const [period, setPeriod] = useState<PeriodKey>("7d");
 
-  const series = useQuery(api.analytics.getActivitySeries, { days: SERIES_DAYS }) as
-    | SeriesPoint[]
-    | undefined;
+  // Lecture TOLÉRANTE : ces deux fonctions sont récentes — un backend en
+  // retard (front déployé avant lui) doit dégrader proprement, jamais faire
+  // tomber tout l'écran sur l'ErrorBoundary.
+  const seriesRead = useOptionalQuery(api.analytics.getActivitySeries, { days: SERIES_DAYS });
+  const series = seriesRead.data as SeriesPoint[] | undefined;
   const overview = useQuery(api.stats.overview);
   const skills = useQuery(api.stats.skills);
   const languages = useQuery(api.analytics.getLanguageBreakdown);
   const heatmap = useQuery(api.analytics.getActivityHeatmap);
   const insights = useQuery(api.analytics.getInsights);
   const goals = useQuery(api.analytics.getGoals) as Goal[] | undefined;
-  const recent = useQuery(api.analytics.getRecentActivity, { limit: 8 });
+  const recent = useOptionalQuery(api.analytics.getRecentActivity, { limit: 8 }).data;
 
   const seedSuggested = useMutation(api.analytics.seedSuggestedGoals);
 
@@ -374,6 +377,32 @@ export function StatsDashboard() {
   };
 
   const loading = series === undefined || overview === undefined;
+
+  // Backend en retard : on le DIT au lieu d'un squelette éternel ou d'un crash.
+  if (seriesRead.unavailable) {
+    return (
+      <div className="mx-auto max-w-6xl space-y-6">
+        <DashboardHeader period={period} onPeriod={setPeriod} onExport={exportCsv} disabled />
+        <section className="ln-card rounded-xl border-white/5 p-8 text-center">
+          <Info className="mx-auto size-9 text-gold/60" aria-hidden />
+          <h2 className="mt-4 font-display text-xl font-semibold text-ink">
+            Statistiques indisponibles pour le moment
+          </h2>
+          <p className="mx-auto mt-2 max-w-lg text-sm text-ink-2">
+            Le serveur ne fournit pas encore la lecture d'activité détaillée utilisée par cette
+            page. Aucune donnée n'est perdue : tes sessions, cartes et conversations restent
+            intactes et réapparaîtront ici dès que le backend aura été mis à jour.
+          </p>
+          <Link
+            to="/app/analytics"
+            className="mt-5 inline-block rounded-xl border border-gold/35 px-4 py-2.5 text-sm font-semibold text-gold"
+          >
+            Voir mes statistiques détaillées
+          </Link>
+        </section>
+      </div>
+    );
+  }
 
   if (insights && !insights.active) {
     return (
