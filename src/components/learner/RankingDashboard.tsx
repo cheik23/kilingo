@@ -188,7 +188,8 @@ export function RankingDashboard() {
             league: legacy.my.league,
             previousRank: legacy.my.previousRank,
             rankDelta: legacy.my.rankDelta,
-            participants: entries.length,
+            // Mon rang peut dépasser le nombre de lignes affichées (0 XP).
+            participants: Math.max(entries.length, legacy.my.rank),
           }
         : null,
     };
@@ -358,9 +359,13 @@ export function RankingDashboard() {
                 Ma position · {PERIOD_LABELS.find((p) => p.key === period)?.label}
               </p>
               <p className="mt-1 font-display text-3xl font-bold text-ink">
-                {my ? `#${my.rank}` : "—"}
+                {my === null || my.xp === 0 ? "Non classé" : `#${my.rank}`}
                 <span className="ms-2 font-mono text-xs font-normal text-ink-3">
-                  {my ? `sur ${my.participants} classé(s)` : "aucune activité sur la fenêtre"}
+                  {my === null
+                    ? "—"
+                    : my.xp === 0
+                      ? `aucun XP sur cette fenêtre · ${my.participants} classé(s)`
+                      : `sur ${my.participants} classé(s)`}
                 </span>
               </p>
             </div>

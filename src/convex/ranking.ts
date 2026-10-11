@@ -233,6 +233,9 @@ export const getRankingBoard = query({
       const xp = totals.get(authUserId) ?? 0;
       const rank = ranks.get(authUserId) ?? participants + 1;
       const previousRank = previousRanks.get(authUserId) ?? null;
+      // Un rang au-delà du nombre de classés reste possible (0 XP) : le total
+      // ne doit jamais afficher « #4 sur 3 classé(s) ».
+      const total = Math.max(participants, rank);
       const stats = await ctx.db
         .query("userStats")
         .withIndex("by_user", (q) => q.eq("userId", authUserId))
@@ -243,7 +246,7 @@ export const getRankingBoard = query({
         league: (stats?.currentLeague ?? "bronze") as League,
         previousRank,
         rankDelta: previousRank === null ? 0 : previousRank - rank,
-        participants,
+        participants: total,
       };
     }
 
@@ -301,7 +304,7 @@ export const getFriendRanking = query({
               league: mine.league,
               previousRank: mine.previousRank,
               rankDelta: mine.rankDelta,
-              participants: entries.length,
+              participants: Math.max(entries.length, mine.rank),
             },
     };
   },
