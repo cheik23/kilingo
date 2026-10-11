@@ -53,8 +53,8 @@ const Atlas = lazy(
 const StoreView = lazy(
   () => import("@/components/learner/StoreView").then((m) => ({ default: m.StoreView })),
 );
-const LeaderboardView = lazy(
-  () => import("@/components/learner/LeaderboardView").then((m) => ({ default: m.LeaderboardView })),
+const RankingDashboard = lazy(
+  () => import("@/components/learner/RankingDashboard").then((m) => ({ default: m.RankingDashboard })),
 );
 const AchievementsView = lazy(
   () => import("@/components/learner/AchievementsView").then((m) => ({ default: m.AchievementsView })),
@@ -312,15 +312,19 @@ createRoot(rootEl).render(
                     }
                   />
 
-                  {/* MOD 4 — classement hebdomadaire et ligues. */}
+                  {/* MOD 4 — CLASSEMENT : global ou entre filleuls, sur trois
+                      fenêtres (semaine, mois, tout) + podium et courbes. */}
                   <Route
-                    path="leaderboard"
+                    path="ranking"
                     element={
                       <Suspense fallback={<RouteLoading />}>
-                        <LeaderboardView />
+                        <RankingDashboard />
                       </Suspense>
                     }
                   />
+                  {/* Ancien chemin `/app/leaderboard` : conservé pour ne
+                      casser aucun lien ni favori. */}
+                  <Route path="leaderboard" element={<Navigate to="/app/ranking" replace />} />
 
                   <Route
                     path="achievements"
@@ -361,7 +365,9 @@ createRoot(rootEl).render(
 
                   {/* Anciens chemins, conservés pour les liens existants. */}
                   <Route path="performance" element={<Navigate to="/app/space" replace />} />
-                  <Route path="profile" element={<Navigate to="/app/space" replace />} />
+                  {/* `/app/profile` reste un chemin valide : il ouvre
+                      directement l'onglet Profil de Mon espace. */}
+                  <Route path="profile" element={<Navigate to="/app/space?tab=profile" replace />} />
 
                   <Route path="discover" element={<DiscoverView />} />
                   {/* MEMORY — vue dédiée (parcourt la mémoire + lance la révision) */}

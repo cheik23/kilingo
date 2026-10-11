@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import {
   Heart,
   Languages,
@@ -191,7 +191,13 @@ function ProfileStrip({ onCustomize }: { onCustomize: () => void }) {
 }
 
 export function MySpaceView({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const [tab, setTab] = useState<SpaceTab>("overview");
+  // `?tab=profile` (utilisé par l'ancien chemin /app/profile) ouvre
+  // directement le bon onglet ; toute valeur inconnue retombe sur Aperçu.
+  const [searchParams] = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [tab, setTab] = useState<SpaceTab>(
+    TABS.some((item) => item.key === requestedTab) ? (requestedTab as SpaceTab) : "overview",
+  );
   // La forge d'avatar vit ici, au même niveau que le bandeau : en desktop
   // elle se déplie comme une section, jamais comme une modale.
   const [customizationOpen, setCustomizationOpen] = useState(false);

@@ -10,6 +10,7 @@ import {
   Gem,
   HelpCircle,
   Languages,
+  Lock,
   MessagesSquare,
   Sparkles,
   Trophy,
@@ -27,6 +28,7 @@ import { Confetti, CountUp } from "@/components/fx/rewards";
 import { coinTrailFrom } from "@/components/fx/coinTrail";
 import { PlaceHeader } from "@/components/fx/PlaceHeader";
 import { Card3D } from "@/components/fx/Card3D";
+import { ProgressRing } from "@/components/analytics/ProgressRing";
 
 /* MODULE 4 — la scène 3D du déblocage vit dans un chunk séparé : three.js
    n'est téléchargé qu'à l'ouverture réelle d'un succès. `fallback` garde
@@ -44,6 +46,15 @@ const CATEGORIES = [
 ] as const;
 
 type Category = (typeof CATEGORIES)[number][0];
+
+/** Filtre d'état : tous, débloqués, encore verrouillés. */
+type Status = "all" | "unlocked" | "locked";
+
+const STATUSES: ReadonlyArray<{ key: Status; label: string }> = [
+  { key: "all", label: "Tous" },
+  { key: "unlocked", label: "Débloqués" },
+  { key: "locked", label: "À débloquer" },
+];
 
 /** LOT G — une section par famille, avec son icône : les 150 cartes sont
  *  regroupées au lieu de former un mur unique illisible. */
@@ -136,6 +147,8 @@ export function AchievementsView() {
   const data = useQuery(api.achievements.getMyAchievements, { lang });
   const notifications = useQuery(api.notifications.list);
   const [filter, setFilter] = useState<Category>("all");
+  /** Filtre d'état, indépendant du filtre par famille. */
+  const [status, setStatus] = useState<Status>("all");
   /** Sections dépliées à la demande (clé = famille). */
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [modal, setModal] = useState<{ title: string; body: string } | null>(null);
@@ -159,18 +172,32 @@ export function AchievementsView() {
   }, [notifications]);
 
   const items = data?.items ?? [];
-  const filtered = useMemo(() => filter === "all" ? items : items.filter((item) => item.category === filter), [filter, items]);
+  /** Total réel du catalogue (jamais un 150 codé en dur). */
+  const total = data?.summary.total ?? items.length;
+  const completed = data?.summary.completed ?? 0;
+  /** Filtre d'état (tous / débloqués / à débloquer) — la famille vient après. */
+  const statusItems = useMemo(
+    () =>
+      items.filter((item) =>
+        status === "all" ? true : status === "unlocked" ? item.completed : !item.completed,
+      ),
+    [items, status],
+  );
+  const filtered = useMemo(
+    () =>
+      filter === "all" ? statusItems : statusItems.filter((item) => item.category === filter),
+    [filter, statusItems],
+  );
   /** Regroupement par famille — construit une seule fois par jeu de données. */
   const grouped = useMemo(() => {
     const map = new Map<string, Item[]>();
-    for (const item of items) {
+    for (const item of statusItems) {
       const list = map.get(item.category) ?? [];
       list.push(item);
       map.set(item.category, list);
     }
     return map;
-  }, [items]);
-  const completed = data?.summary.completed ?? 0;
+  }, [statusItems]);
 
   /** Dépliage initial : la première famille sur laquelle il y a du progrès
    *  est ouverte d'emblée — c'est là que l'utilisateur peut agir. Les autres
@@ -199,14 +226,49 @@ export function AchievementsView() {
         description={t("achievements.subtitle")}
         actions={
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:min-w-[370px]">
-            <div className="rounded-2xl border border-gold/25 bg-gold/10 p-4"><p className="font-mono text-[0.5625rem] uppercase tracking-widest text-ink-3">{t("achievements.unlocked")}</p><p className="mt-1 font-display text-3xl font-bold text-gold"><CountUp value={completed} /><span className="text-base text-ink-3">/150</span></p></div>
+            <div className="rounded-2xl border border-gold/25 bg-gold/10 p-4"><p className="font-mono text-[0.5625rem] uppercase tracking-widest text-ink-3">{t("achievements.unlocked")}</p><p className="mt-1 font-display text-3xl font-bold text-gold"><CountUp value={completed} /><span className="text-base text-ink-3">/{total}</span></p></div>
             <div className="rounded-2xl border border-white/8 bg-noir/70 p-4"><p className="font-mono text-[0.5625rem] uppercase tracking-widest text-ink-3">XP gagnés</p><p className="mt-1 font-display text-2xl font-bold"><CountUp value={data?.summary.xpEarned ?? 0} prefix="+" /></p></div>
             <div className="rounded-2xl border border-white/8 bg-noir/70 p-4"><p className="font-mono text-[0.5625rem] uppercase tracking-widest text-ink-3">Gems gagnés</p><p className="mt-1 font-display text-2xl font-bold text-gold"><CountUp value={data?.summary.gemsEarned ?? 0} prefix="+" /></p></div>
           </div>
         }
       />
 
-      <div className="h-2 overflow-hidden rounded-full bg-white/8"><motion.div animate={{ width: `${(completed / 150) * 100}%` }} className="h-full rounded-full bg-gradient-to-r from-gold-strong to-gold" /></div>
+      {/* Progression globale + filtre d'état, sur une seule ligne. */}
+      <section className="ln-card flex flex-wrap items-center gap-6 rounded-2xl border-white/5 p-5">
+        <ProgressRing
+          value={total > 0 ? completed / total : 0}
+          size={116}
+          caption={`${completed} / ${total}`}
+        />
+        <div className="min-w-0 flex-1 space-y-3">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-ink">Collection en cours</h2>
+            <p className="mt-0.5 text-xs text-ink-3">
+              {data === undefined
+                ? "Chargement du catalogue…"
+                : `${completed} succès débloqué${completed > 1 ? "s" : ""} · ${total - completed} à débloquer`}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par état">
+            {STATUSES.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => setStatus(option.key)}
+                aria-pressed={status === option.key}
+                className={cn(
+                  "rounded-full border px-3.5 py-1.5 text-xs transition-colors",
+                  status === option.key
+                    ? "border-gold/55 bg-gold/10 font-semibold text-gold"
+                    : "border-white/10 text-ink-2 hover:border-gold/30 hover:text-gold",
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <div className="flex flex-wrap gap-2" role="tablist" aria-label={t("achievements.filters")}>
         {CATEGORIES.map(([key, label]) => <button key={key} type="button" onClick={() => setFilter(key)} className={cn("rounded-full border px-4 py-2 text-xs transition-colors", filter === key ? "border-gold/55 bg-gold/10 font-semibold text-gold" : "border-white/10 text-ink-2 hover:border-gold/30 hover:text-gold")}>{t(label)}</button>)}
@@ -215,6 +277,29 @@ export function AchievementsView() {
       {shareItem && <ShareModal open onOpenChange={(open) => { if (!open) setShareItem(null); }} userId={user?._id ?? referrals?.inviteCode ?? ""} filename={`kilingo-${shareItem.achievementId}`} generate={() => shareAchievement({ userId: user?._id ?? referrals?.inviteCode ?? "kilingo", title: shareItem.title, icon: shareItem.icon, completedAt: shareItem.completedAt ?? Date.now(), avatar: { avatar: customization?.catalog.find((item) => item.itemId === customization.selectedAvatar)?.previewUrl ?? "🦁", hat: customization?.catalog.find((item) => item.itemId === customization.selectedHat)?.previewUrl ?? null, glasses: customization?.catalog.find((item) => item.itemId === customization.selectedGlasses)?.previewUrl ?? null, background: customization?.catalog.find((item) => item.itemId === customization.selectedBackground)?.previewUrl ?? null } })} />}
       {data === undefined ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 9 }, (_, i) => <div key={i} className="h-44 animate-shimmer rounded-2xl bg-white/5" />)}</div>
+      ) : items.length === 0 ? (
+        <div className="ln-card flex min-h-52 flex-col items-center justify-center rounded-2xl p-8 text-center">
+          <Award className="size-9 text-gold/60" />
+          <p className="mt-3 font-display text-lg font-semibold text-ink">
+            Catalogue de succès vide sur ce déploiement
+          </p>
+          <p className="mt-1 max-w-md text-sm text-ink-3">
+            Les succès sont définis côté serveur (mutation d'amorçage idempotente). Dès que le
+            catalogue est chargé, la collection s'affiche ici — aucune progression n'est perdue.
+          </p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="ln-card flex min-h-52 flex-col items-center justify-center rounded-2xl p-8 text-center">
+          <Award className="size-9 text-gold/60" />
+          <p className="mt-3 font-display text-lg font-semibold text-ink">
+            {status === "unlocked" ? "Aucun succès débloqué ici" : "Tout est déjà débloqué ici"}
+          </p>
+          <p className="mt-1 max-w-md text-sm text-ink-3">
+            {status === "unlocked"
+              ? "Change de famille ou repasse en « Tous » pour voir ce qu'il te reste à accomplir."
+              : "Chaque succès de ce filtre est acquis. Change de filtre pour en trouver d'autres."}
+          </p>
+        </div>
       ) : filter === "all" ? (
         <div className="space-y-8">
           {SECTIONS.map(({ key, label, icon: Icon }) => {
@@ -343,6 +428,7 @@ function AchievementCard({ item, onOpen }: { item: Item; onOpen: () => void }) {
       aria-label={`${item.title} — ${t("achievements.titles.progress")}: ${item.progress}/${item.target}`}
     >
       {item.completed && <span className="absolute end-4 top-4 flex size-6 items-center justify-center rounded-full bg-gold text-noir"><Check className="size-4" /></span>}
+      {!item.completed && <span className="absolute end-4 top-4 flex size-6 items-center justify-center rounded-full border border-white/10 bg-noir/80 text-ink-3"><Lock className="size-3.5" /></span>}
       <div className="flex items-start gap-3"><span data-card3d-depth="30" className={cn("text-4xl transition-transform group-hover:scale-[1.06]", !item.completed && "grayscale opacity-55")}>{item.icon}</span><div className="min-w-0 flex-1"><div className="flex items-center gap-2"><h2 title={item.title} className="truncate font-display text-lg font-semibold text-ink">{item.title}</h2><span className={cn("rounded-full border px-1.5 py-0.5 font-mono text-[0.5rem] uppercase", item.tier === "gold" ? "border-gold/40 text-gold" : item.tier === "silver" ? "border-slate-300/35 text-slate-200" : "border-orange-400/35 text-orange-300")}>{item.tier}</span></div><p title={item.description} className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-3">{item.description}</p></div></div>
       <div className="mt-5 flex items-center justify-between font-mono text-[0.625rem] text-ink-3"><span>{item.progress}/{item.target}</span><span>{item.completed ? t("achievements.completed") : item.progress === 0 ? t("achievements.notStarted") : `${percent}%`}</span></div>
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/8"><motion.div initial={{ width: 0 }} animate={{ width: `${percent}%` }} transition={{ duration: 0.6 }} className="h-full rounded-full bg-gradient-to-r from-gold-strong to-gold" /></div>

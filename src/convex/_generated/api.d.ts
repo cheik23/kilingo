@@ -92,6 +92,7 @@ import type * as ovStudioEngine from "../ovStudioEngine.js";
 import type * as ovStudioOps from "../ovStudioOps.js";
 import type * as premium from "../premium.js";
 import type * as quizEngine from "../quizEngine.js";
+import type * as ranking from "../ranking.js";
 import type * as referrals from "../referrals.js";
 import type * as signs from "../signs.js";
 import type * as slang from "../slang.js";
@@ -196,6 +197,7 @@ declare const fullApi: ApiFromModules<{
   ovStudioOps: typeof ovStudioOps;
   premium: typeof premium;
   quizEngine: typeof quizEngine;
+  ranking: typeof ranking;
   referrals: typeof referrals;
   signs: typeof signs;
   slang: typeof slang;

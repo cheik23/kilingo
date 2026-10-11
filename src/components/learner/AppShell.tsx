@@ -123,7 +123,7 @@ const MAIN_NAV: NavItem[] = [
   { key: "nav.favorites", to: "/app/favorites", icon: Heart },
   { key: "nav.analytics", to: "/app/analytics", icon: BarChart3 },
   { key: "nav.dashboard", to: "/app/dashboard", icon: LayoutDashboard },
-  { key: "nav.leaderboard", to: "/app/leaderboard", icon: Trophy },
+  { key: "nav.leaderboard", to: "/app/ranking", icon: Trophy },
   { key: "nav.achievements", to: "/app/achievements", icon: Award },
   { key: "nav.signs", to: "/app/signs", icon: Hand },
   { key: "nav.store", to: "/app/store", icon: Store },

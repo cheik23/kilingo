@@ -167,6 +167,56 @@ export const getMyPremiumStatus = query({
   },
 });
 
+/**
+ * Abonnements enregistrés pour ce compte, du plus récent au plus ancien.
+ *
+ * C'est un état courant par abonnement (upsert par identifiant Lemon
+ * Squeezy), pas un journal d'événements : l'historique des changements de
+ * statut vit dans `lemonSqueezyWebhookEvents`, qui n'est pas exposé au
+ * client. On n'affiche donc que ce qui est réellement lisible ici.
+ */
+export const getMySubscriptions = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) return [];
+    const rows = await ctx.db
+      .query("subscriptions")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    return rows
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+      .map((row) => ({
+        status: row.status,
+        providerStatus: row.lemonSqueezyStatus,
+        variantId: row.variantId ?? null,
+        currentPeriodEnd: row.currentPeriodEnd ?? null,
+        trialEndsAt: row.trialEndsAt ?? null,
+        testMode: row.testMode === true,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      }));
+  },
+  returns: v.array(
+    v.object({
+      status: v.union(
+        v.literal("active"),
+        v.literal("cancelled"),
+        v.literal("past_due"),
+        v.literal("trialing"),
+        v.literal("expired"),
+      ),
+      providerStatus: v.string(),
+      variantId: v.union(v.string(), v.null()),
+      currentPeriodEnd: v.union(v.number(), v.null()),
+      trialEndsAt: v.union(v.number(), v.null()),
+      testMode: v.boolean(),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    }),
+  ),
+});
+
 /* ═══════════════════════════════════════════════════════════════════════
    ÉTAT DU PRESTATAIRE (ce que l'interface doit savoir AVANT de promettre)
 

@@ -520,3 +520,255 @@ export const archiveGoal = mutation({
   },
   returns: v.object({ ok: v.literal(true) }),
 });
+
+/* ── 1h. Série d'activité ventilée par type ───────────────────────────
+
+   Une seule lecture par source, un point par jour — y compris les jours
+   vides (0) : le graphe garde son axe même sans activité, aucune
+   interpolation trompeuse.
+
+   - `minutes`        : toutes les sessions (`durationSeconds`) ;
+   - `shadowingMinutes`: sessions `shadowing` + `sleep` (écoute active) ;
+   - `conversationMinutes`: durée RÉELLE des conversations IA
+     (`endedAt - startedAt`, ou dernier message si la session est en
+     cours) — pas une estimation ;
+   - `sessions` / `reviews` / `words` : volumes bruts du jour.
+*/
+
+export const getActivitySeries = query({
+  args: { days: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) return [];
+    const days = Math.min(Math.max(args.days ?? 7, 1), 90);
+    const today = dayStartMs(Date.now());
+    const since = today - (days - 1) * DAY_MS;
+
+    const [sessions, conversations] = await Promise.all([
+      ctx.db
+        .query("learningSessions")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect(),
+      ctx.db
+        .query("aiConversations")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect(),
+    ]);
+
+    type Bucket = {
+      minutes: number;
+      shadowing: number;
+      conversation: number;
+      sessions: number;
+      reviews: number;
+      words: number;
+    };
+    const byDay = new Map<string, Bucket>();
+    const touch = (key: string): Bucket => {
+      let bucket = byDay.get(key);
+      if (!bucket) {
+        bucket = {
+          minutes: 0,
+          shadowing: 0,
+          conversation: 0,
+          sessions: 0,
+          reviews: 0,
+          words: 0,
+        };
+        byDay.set(key, bucket);
+      }
+      return bucket;
+    };
+
+    for (const s of sessions) {
+      if (s.completedAt < since) continue;
+      const bucket = touch(dayKey(s.completedAt));
+      const minutes = (s.durationSeconds ?? 0) / 60;
+      bucket.minutes += minutes;
+      bucket.sessions += 1;
+      bucket.words += s.itemsLearned ?? 0;
+      if (s.kind === "shadowing" || s.kind === "sleep") bucket.shadowing += minutes;
+      else if (s.kind === "srs") bucket.reviews += s.itemsLearned ?? 0;
+    }
+
+    for (const c of conversations) {
+      if (c.startedAt < since) continue;
+      const bucket = touch(dayKey(c.startedAt));
+      const lastTurn = c.messages[c.messages.length - 1]?.timestamp ?? c.startedAt;
+      const end = c.endedAt ?? lastTurn;
+      bucket.conversation += Math.max(0, (end - c.startedAt) / 60_000);
+    }
+
+    const round1 = (n: number) => Math.round(n * 10) / 10;
+    const out: Array<{
+      date: string;
+      minutes: number;
+      shadowingMinutes: number;
+      conversationMinutes: number;
+      sessions: number;
+      reviews: number;
+      words: number;
+    }> = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const key = dayKey(today - i * DAY_MS);
+      const bucket = byDay.get(key);
+      out.push({
+        date: key,
+        minutes: round1(bucket?.minutes ?? 0),
+        shadowingMinutes: round1(bucket?.shadowing ?? 0),
+        conversationMinutes: round1(bucket?.conversation ?? 0),
+        sessions: bucket?.sessions ?? 0,
+        reviews: bucket?.reviews ?? 0,
+        words: bucket?.words ?? 0,
+      });
+    }
+    return out;
+  },
+  returns: v.array(
+    v.object({
+      date: v.string(),
+      minutes: v.number(),
+      shadowingMinutes: v.number(),
+      conversationMinutes: v.number(),
+      sessions: v.number(),
+      reviews: v.number(),
+      words: v.number(),
+    }),
+  ),
+});
+
+/* ── 1i. Fil d'activité récente (timeline du dashboard) ────────────────
+
+   Fusion de quatre sources réelles, triées par date et bornées à
+   `limit` lignes : sessions terminées, médias analysés, conversations IA
+   et succès débloqués. Aucun événement n'est inventé : une source vide
+   n'apparaît simplement pas.
+*/
+
+export const getRecentActivity = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) return [];
+    const limit = Math.min(Math.max(args.limit ?? 8, 1), 30);
+    const since = Date.now() - 60 * DAY_MS;
+
+    const [sessions, media, conversations, unlocked] = await Promise.all([
+      ctx.db
+        .query("learningSessions")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect(),
+      ctx.db
+        .query("userMedia")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect(),
+      ctx.db
+        .query("aiConversations")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect(),
+      ctx.db
+        .query("userAchievements")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect(),
+    ]);
+
+    type Entry = { id: string; kind: string; label: string; detail: string; at: number };
+    const entries: Entry[] = [];
+
+    for (const s of sessions) {
+      if (s.completedAt < since) continue;
+      const minutes = Math.round((s.durationSeconds ?? 0) / 60);
+      const base = {
+        id: `session:${s._id}`,
+        at: s.completedAt,
+        kind: s.kind,
+      };
+      if (s.kind === "shadowing") {
+        entries.push({
+          ...base,
+          label: "Shadowing terminé",
+          detail: `${minutes} min · ${s.itemsLearned ?? 0} expression(s)`,
+        });
+      } else if (s.kind === "sleep") {
+        entries.push({ ...base, label: "Session SleepShadow", detail: `${minutes} min d'écoute` });
+      } else if (s.kind === "discovery") {
+        entries.push({
+          ...base,
+          label: "Séance de découverte",
+          detail: `${s.itemsLearned ?? 0} nouvelle(s) expression(s)`,
+        });
+      } else if (s.kind === "srs") {
+        entries.push({
+          ...base,
+          label: "Révision SRS",
+          detail: `${s.itemsLearned ?? 0} carte(s) revue(s) en ${minutes} min`,
+        });
+      } else {
+        entries.push({ ...base, label: `Session ${s.kind}`, detail: `${minutes} min` });
+      }
+    }
+
+    for (const m of media) {
+      if (m.status !== "completed" || m._creationTime < since) continue;
+      entries.push({
+        id: `media:${m._id}`,
+        kind: "media",
+        label: "Média analysé",
+        detail: `${m.title} · ${m.sourceName}`,
+        at: m._creationTime,
+      });
+    }
+
+    for (const c of conversations) {
+      if (c.startedAt < since) continue;
+      const turns = c.messages.filter((m) => m.role === "user").length;
+      entries.push({
+        id: `conversation:${c._id}`,
+        kind: "conversation",
+        label: c.status === "completed" ? "Conversation IA terminée" : "Conversation IA en cours",
+        detail: `${turns} échange(s) · +${c.xpEarned} XP`,
+        at: c.endedAt ?? c.startedAt,
+      });
+    }
+
+    for (const row of unlocked) {
+      if (!row.completedAt || row.completedAt < since) continue;
+      entries.push({
+        id: `achievement:${row._id}`,
+        kind: "achievement",
+        label: "Succès débloqué",
+        detail: row.achievementId,
+        at: row.completedAt,
+      });
+    }
+
+    const top = entries.sort((a, b) => b.at - a.at).slice(0, limit);
+
+    // Titre lisible des succès : une lecture ciblée par ligne affichée seulement.
+    const out: Entry[] = [];
+    for (const entry of top) {
+      if (entry.kind !== "achievement") {
+        out.push(entry);
+        continue;
+      }
+      const definition = await ctx.db
+        .query("achievements")
+        .withIndex("by_slug", (q) => q.eq("achievementId", entry.detail))
+        .unique();
+      out.push({
+        ...entry,
+        detail: definition ? `${definition.icon} ${definition.title}` : entry.detail,
+      });
+    }
+    return out;
+  },
+  returns: v.array(
+    v.object({
+      id: v.string(),
+      kind: v.string(),
+      label: v.string(),
+      detail: v.string(),
+      at: v.number(),
+    }),
+  ),
+});
