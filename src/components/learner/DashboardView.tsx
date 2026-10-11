@@ -20,6 +20,7 @@ import {
 import { TiltCard } from "@/components/fx/interact";
 import { GoldBurst, RollingCounter } from "@/components/fx/rewards";
 import { ScrambleHeading } from "@/components/fx/text";
+import { DailySlangCard } from "./DailySlangCard";
 import { cn } from "@/lib/utils";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -708,6 +709,9 @@ export function DashboardView({ onNavigate }: { onNavigate: (view: string) => vo
   return (
     <div className="space-y-5">
       <ScrambleHeading text="Progression" />
+      {/* SLANG DU JOUR — en haut du tableau de bord : l'habitude se pose
+          avant les courbes. Indépendant du chargement des statistiques. */}
+      <DailySlangCard />
       {!overview ? (
         <div className="grid gap-3 md:grid-cols-3">
           {[0, 1, 2].map((i) => (

@@ -686,6 +686,19 @@ const schema = defineSchema(
       .index("by_day", ["dayKey"])
       .index("by_user_day", ["userId", "dayKey"]),
 
+    /** SLANG DU JOUR — QCM quotidien ; une ligne par utilisateur et par
+     *  jour (le tirage est déterministe, le serveur ne stocke que la
+     *  réponse). Une seule ligne ⇒ une seule réussite comptée. */
+    dailySlangProgress: defineTable({
+      userId: v.id("users"),
+      dayKey: v.string(),
+      slangId: v.id("slangExpressions"),
+      correct: v.boolean(),
+      /** XP réellement crédité par `applyAward` (Double XP / decay inclus). */
+      xpGained: v.number(),
+      completedAt: v.number(),
+    }).index("by_user_day", ["userId", "dayKey"]),
+
     /** MOD 6 — catalogue statique de personnalisation (85 items). */
     customizationCatalog: defineTable({
       itemId: v.string(),

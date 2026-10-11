@@ -28,6 +28,7 @@ import { getFirstRunCopy } from "./i18n.firstrun";
 import { getPremiumCopy } from "./i18n.premium";
 import { getUpgradeCopy } from "./i18n.upgrade";
 import { getSignsCopy } from "./i18n.signs";
+import { getFlowCopy } from "./i18n.flow";
 // Overlays are resolved after the base dictionaries so newly-added modules
 // remain localized without rewriting the large historical dictionary.
 
@@ -793,6 +794,9 @@ function applyDictionaryOverlays(): void {
     // La langue des signes (LSF) — crédits, fiches, quiz ; fr/en complets,
     // les autres langues retombent sur le français via le repli de t().
     mergeInto(dict, getSignsCopy(lang));
+    // Flow Check (évaluation d'une prise de voix) — module entier, absent
+    // des dictionnaires historiques.
+    mergeInto(dict, getFlowCopy(lang));
     for (const key of PRUNED_NAV_KEYS) {
       const nav = dict.nav;
       if (nav && typeof nav === "object") {

@@ -55,6 +55,7 @@ import type * as customization from "../customization.js";
 import type * as customizationCatalog from "../customizationCatalog.js";
 import type * as dailyChallenge from "../dailyChallenge.js";
 import type * as dailyChallengeStore from "../dailyChallengeStore.js";
+import type * as dailySlang from "../dailySlang.js";
 import type * as dynamicDict from "../dynamicDict.js";
 import type * as dynamicMemory from "../dynamicMemory.js";
 import type * as favorites from "../favorites.js";
@@ -160,6 +161,7 @@ declare const fullApi: ApiFromModules<{
   customizationCatalog: typeof customizationCatalog;
   dailyChallenge: typeof dailyChallenge;
   dailyChallengeStore: typeof dailyChallengeStore;
+  dailySlang: typeof dailySlang;
   dynamicDict: typeof dynamicDict;
   dynamicMemory: typeof dynamicMemory;
   favorites: typeof favorites;

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { cn, friendlyError } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  BookOpen,
   Brain,
   Check,
   Clapperboard,
@@ -62,6 +63,7 @@ import {
 import { registerBuiltinTranscriptProviders } from "@/lib/transcriptProviders";
 import { SubtitlePanel } from "./SubtitlePanel";
 import { PronunciationCheck } from "./PronunciationCheck";
+import { ExpressionDetailCard } from "./ExpressionDetailCard";
 import {
   SubtitleImportPanel,
   type SubtitleImportMeta,
@@ -151,6 +153,8 @@ export function ShadowView() {
   const [busyUrl, setBusyUrl] = useState(false);
   // Flow Check ouvert sur cette expression d'argot (une à la fois).
   const [flowOpen, setFlowOpen] = useState<string | null>(null);
+  // Fiche enrichie ouverte sur cette expression (une à la fois).
+  const [ficheOpen, setFicheOpen] = useState<string | null>(null);
 
   // MODULE B — le quota est montré AVANT la première analyse, et un refus du
   // serveur devient un panneau de gain : jamais une erreur rouge sur une
@@ -1787,18 +1791,45 @@ export function ShadowView() {
                         {/* Flow Check : la prise de voix se fait sur
                             l'expression détectée dans CE média — le contexte
                             que l'utilisateur vient d'entendre. */}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFlowOpen((current) =>
-                              current === hit.expression ? null : hit.expression,
-                            )
-                          }
-                          aria-expanded={flowOpen === hit.expression}
-                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-gold/30 px-2 py-1 text-[0.6875rem] font-medium text-gold transition-colors hover:bg-gold/10"
-                        >
-                          <Mic className="size-3" /> {t("flow.title")}
-                        </button>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFicheOpen((current) =>
+                                current === hit.expression ? null : hit.expression,
+                              )
+                            }
+                            aria-expanded={ficheOpen === hit.expression}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2 py-1 text-[0.6875rem] font-medium text-ink-2 transition-colors hover:border-gold/30 hover:text-gold"
+                          >
+                            <BookOpen className="size-3" /> Fiche
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFlowOpen((current) =>
+                                current === hit.expression ? null : hit.expression,
+                              )
+                            }
+                            aria-expanded={flowOpen === hit.expression}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-gold/30 px-2 py-1 text-[0.6875rem] font-medium text-gold transition-colors hover:bg-gold/10"
+                          >
+                            <Mic className="size-3" /> {t("flow.title")}
+                          </button>
+                        </div>
+                        {/* Fiche enrichie : expression, définition, contexte
+                            culturel, variations et exemple — la même carte
+                            que celle de l'Atlas. */}
+                        {ficheOpen === hit.expression && (
+                          <ExpressionDetailCard
+                            key={`fiche-${hit.expression}`}
+                            className="mt-2"
+                            expression={hit.expression}
+                            language={status.language}
+                            meaning={hit.meaning}
+                            context={hit.context}
+                          />
+                        )}
                         {flowOpen === hit.expression && (
                           <PronunciationCheck
                             key={hit.expression}

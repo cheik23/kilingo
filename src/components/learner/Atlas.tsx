@@ -22,6 +22,8 @@ import { registerKey } from "@/convex/languages";
 import { MediaCard } from "@/components/openverse/MediaCard";
 import { LANGS, langLabel, type Content } from "@/openverse/model";
 import { SpeakButton } from "./SpeakButton";
+import { ExpressionCultureBlock } from "./ExpressionDetailCard";
+import { hasCultureContent } from "@/data/slang-culture";
 import { PlaceEmpty, PlaceHeader } from "@/components/fx/PlaceHeader";
 import { Card3D } from "@/components/fx/Card3D";
 import { normWord, resolveInLang, type LocalizedEntry } from "@/lib/dictionary";
@@ -1041,6 +1043,30 @@ export function Atlas() {
                           </span>
                         )}
                       </Field>
+
+                      {/* Contexte culturel — origine, usage, niveau de langue,
+                          variation et exemple. Rendu seulement si la donnée
+                          existe (base + enrichissement éditorial) : une section
+                          vide serait un titre sans contenu. */}
+                      {hasCultureContent(
+                        headLang,
+                        head.expression,
+                        head.register,
+                        head.context,
+                      ) && (
+                        <div className="mt-5 border-t border-white/5 pt-3">
+                          <p className="mb-3 font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
+                            Contexte culturel
+                          </p>
+                          <ExpressionCultureBlock
+                            expression={head.expression}
+                            language={headLang}
+                            register={head.register}
+                            region={head.region}
+                            context={head.context}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
