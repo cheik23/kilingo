@@ -8,6 +8,9 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "verify": "bun run typecheck && bun test",
+    "verify:locks": "node scripts/verify-premium-locks.mjs",
+    "verify:upgrade": "node scripts/verify-upgrade.mjs",
+    "verify:honesty": "node scripts/verify-premium-locks.mjs && node scripts/verify-upgrade.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "preview": "vite preview"

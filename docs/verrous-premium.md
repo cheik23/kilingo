@@ -144,7 +144,7 @@ déjà eues. » CTA : « Ouvrir les 8 personnages ».
 ## Le test qui garantit tout cela
 
 ```bash
-bun run locks:verify   # scripts/verify-premium-locks.mjs
+npm run verify:locks   # scripts/verify-premium-locks.mjs (node, sans bun)
 ```
 
 Huit familles de règles, toutes vérifiées à chaque exécution :
