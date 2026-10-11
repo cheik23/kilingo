@@ -438,6 +438,15 @@ export function StatsDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
+      {/* ═══════════════════════════════════════════════════════════════
+        DEBUG BINAIRES — TEST DE MONTAGE (STATSDASHBOARD).
+        Injected AVANT toute condition et avant tout chargement.
+        ═══════════════════════════════════════════════════════════════ */}
+      <div className="w-full h-[400px] bg-red-600 flex flex-col items-center justify-center text-white text-2xl font-bold rounded-xl border-4 border-yellow-400 my-6">
+        <span>🗺️ TEST CARTE VISIBLE DANS STATSDASHBOARD</span>
+        <span className="text-sm mt-2">Si tu vois ce rectangle rouge, le composant est monté.</span>
+      </div>
+
       <DashboardHeader
         period={period}
         onPeriod={setPeriod}

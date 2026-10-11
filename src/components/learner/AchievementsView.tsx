@@ -103,7 +103,7 @@ function CompletionModal({ title, body, onClose }: { title: string; body: string
         {!reduced && (
           <motion.div aria-hidden initial={{ opacity: 0 }} animate={{ opacity: [0, 0.5, 0] }} transition={{ duration: 0.3, times: [0, 0.35, 1], ease: "easeOut" }} className="pointer-events-none absolute inset-0 bg-gradient-to-b from-gold/45 via-gold/15 to-transparent" />
         )}
-        <motion.div ref={cardRef} initial={reduced ? { opacity: 0 } : { rotateY: 180, opacity: 0 }} animate={reduced ? { opacity: 1 } : { rotateY: 0, opacity: 1 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} style={{ transformPerspective: 1400 }} className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-gold/35 bg-noir-2 p-8 text-center shadow-[0_0_90px_rgba(212,165,116,0.2)]">
+        <motion.div ref={cardRef} initial={reduced ? { opacity: 0 } : { rotateY: 180, opacity: 0 }} animate={reduced ? { opacity: 1 } : { rotateY: 0, opacity: 1 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} style={{ transformPerspective: 1400 }} className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-gold/35 bg-noir-2 p-8 text-center shadow-[0_0_90px_rgba(212,165,116,0.2)] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20">
           {/* LOT H — 80 confettis or/noir à l'ouverture du succès. */}
           <Confetti pieces={80} />
           <button type="button" onClick={onClose} aria-label="Fermer" className="absolute end-4 top-4 p-1 text-ink-3 hover:text-ink"><X className="size-4" /></button>
@@ -115,8 +115,9 @@ function CompletionModal({ title, body, onClose }: { title: string; body: string
                 animate={reduced ? undefined : { scale: [1, 1.12, 1], rotate: [0, 4, -4, 0] }}
                 transition={{ repeat: Infinity, duration: 1.8 }}
                 className="text-6xl"
+                aria-label="trophée"
               >
-                🏆
+                <Trophy className="size-12 text-yellow-400" />
               </motion.div>
             }
           >
@@ -127,15 +128,19 @@ function CompletionModal({ title, body, onClose }: { title: string; body: string
                   transition={{ repeat: Infinity, duration: 1.8 }}
                   className="text-6xl"
                 >
-                  🏆
+                  <Trophy className="size-12 text-yellow-400" />
                 </motion.div>
               }
             />
           </Suspense>
           <p className="mt-4 font-mono text-[0.625rem] tracking-[0.25em] text-gold uppercase">Achievement</p>
+          <div className="mt-2 flex items-center gap-2">
+            <Trophy className="size-5 text-yellow-400" />
+            <span className="text-xs text-ink-3">déblocage</span>
+          </div>
           <h2 className="mt-2 font-display text-2xl font-bold text-ink">{title}</h2>
           <p className="mt-2 text-sm text-ink-2">{body}</p>
-          <button type="button" onClick={onClose} className="mt-6 w-full rounded-xl bg-gradient-to-r from-gold-strong to-gold py-3 font-semibold text-noir">Continuer</button>
+          <button type="button" onClick={onClose} className="mt-6 w-full rounded-xl bg-gradient-to-r from-gold-strong to-gold py-3 font-semibold text-noir transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20">Continuer</button>
         </motion.div>
       </motion.div>
     </AnimatePresence>

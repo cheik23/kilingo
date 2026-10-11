@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
-import { Eye, Gem, Gift, Snowflake, Store, Zap } from "lucide-react";
+import { Eye, Flame, Gem, Gift, MessageSquare, Snowflake, Store, Trophy, Zap } from "lucide-react";
 import { Link } from "react-router";
 
 import { api } from "@/convex/_generated/api";
@@ -144,7 +144,8 @@ export function StoreView() {
                   data-card3d-depth="25"
                   className="font-display text-lg font-semibold text-gold"
                 >
-                  💎 {item.price}
+                  <Gem className="size-5 text-gold" />
+                  {item.price}
                 </span>
                 <span
                   title={
@@ -215,9 +216,9 @@ export function StoreView() {
           {t("store.howTo")}
         </h2>
         <ul className="mt-3 grid gap-2 text-sm text-ink-2 sm:grid-cols-3">
-          <li>🏆 {t("store.howQuiz")}</li>
-          <li>💬 {t("store.howConv")}</li>
-          <li>🔥 {t("store.howStreak")}</li>
+          <li className="transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20"><Trophy className="size-4 text-yellow-400 shrink-0" /> {t("store.howQuiz")}</li>
+          <li className="transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20"><MessageSquare className="size-4 text-ink-2 shrink-0" /> {t("store.howConv")}</li>
+          <li className="transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20"><Flame className="size-4 text-orange-500 shrink-0" /> {t("store.howStreak")}</li>
         </ul>
         <div className="mt-4 flex gap-3">
           <Link
