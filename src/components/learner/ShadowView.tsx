@@ -61,6 +61,7 @@ import {
 } from "@/lib/transcript";
 import { registerBuiltinTranscriptProviders } from "@/lib/transcriptProviders";
 import { SubtitlePanel } from "./SubtitlePanel";
+import { PronunciationCheck } from "./PronunciationCheck";
 import {
   SubtitleImportPanel,
   type SubtitleImportMeta,
@@ -148,6 +149,8 @@ export function ShadowView() {
     thumbnailUrl?: string;
   } | null>(null);
   const [busyUrl, setBusyUrl] = useState(false);
+  // Flow Check ouvert sur cette expression d'argot (une à la fois).
+  const [flowOpen, setFlowOpen] = useState<string | null>(null);
 
   // MODULE B — le quota est montré AVANT la première analyse, et un refus du
   // serveur devient un panneau de gain : jamais une erreur rouge sur une
@@ -1780,6 +1783,30 @@ export function ShadowView() {
                           <p className="mt-1 line-clamp-2 text-xs text-ink-3">
                             {hit.context}
                           </p>
+                        )}
+                        {/* Flow Check : la prise de voix se fait sur
+                            l'expression détectée dans CE média — le contexte
+                            que l'utilisateur vient d'entendre. */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFlowOpen((current) =>
+                              current === hit.expression ? null : hit.expression,
+                            )
+                          }
+                          aria-expanded={flowOpen === hit.expression}
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-gold/30 px-2 py-1 text-[0.6875rem] font-medium text-gold transition-colors hover:bg-gold/10"
+                        >
+                          <Mic className="size-3" /> {t("flow.title")}
+                        </button>
+                        {flowOpen === hit.expression && (
+                          <PronunciationCheck
+                            key={hit.expression}
+                            className="mt-2"
+                            expression={hit.expression}
+                            meaning={hit.meaning}
+                            language={status.language as LanguageCode}
+                          />
                         )}
                       </motion.div>
                     ))}

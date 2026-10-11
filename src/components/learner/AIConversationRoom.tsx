@@ -10,6 +10,7 @@ import {
   Loader2,
   Lock,
   MessageCircle,
+  Mic,
   Play,
   Send,
   Sparkles,
@@ -35,6 +36,8 @@ import { soundEngine } from "@/lib/soundEngine";
 import { PlaceHeader } from "@/components/fx/PlaceHeader";
 import { Card3D } from "@/components/fx/Card3D";
 import { RpmHead } from "@/components/fx/RpmHead";
+import { PronunciationCheck } from "./PronunciationCheck";
+import type { LanguageCode } from "@/convex/languages";
 
 /* ═══════════════════════════════════════════════════════════════════
    CONVERSATION IA (Phase 3/4) — personnages + scénarios + corrections
@@ -1432,6 +1435,10 @@ function Results({
   const mission = result.missions;
   const hasMission = !!mission && mission.total > 0;
   const cleared = hasMission && mission.passed === mission.total;
+  // Flow Check : expression de la mission choisie pour la prise de voix.
+  const [flowExp, setFlowExp] = useState<string | null>(null);
+  const usedExpressions = conv?.expressionsUsed ?? [];
+  const conversationLanguage = (conv?.language ?? "en") as LanguageCode;
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-4 p-4 sm:p-6">
@@ -1528,6 +1535,42 @@ function Results({
           )}
         </div>
       </div>
+
+      {/* Flow Check — la mission se prolonge par la voix : on choisit une
+          expression réellement utilisée et on la dit à voix haute. */}
+      {usedExpressions.length > 0 && (
+        <div className="ln-card p-4">
+          <h3 className="mb-2 flex items-center gap-1.5 font-mono text-[0.625rem] tracking-[0.25em] text-gold uppercase">
+            <Mic className="size-3" /> {t("flow.title")}
+          </h3>
+          <div className="flex flex-wrap gap-1.5">
+            {usedExpressions.map((e) => (
+              <button
+                key={e}
+                type="button"
+                onClick={() => setFlowExp((current) => (current === e ? null : e))}
+                aria-expanded={flowExp === e}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-[0.6875rem] transition-colors",
+                  flowExp === e
+                    ? "border-gold bg-gold/15 text-gold"
+                    : "border-gold/25 bg-gold/5 text-gold hover:bg-gold/10",
+                )}
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+          {flowExp && (
+            <PronunciationCheck
+              key={flowExp}
+              className="mt-3"
+              expression={flowExp}
+              language={conversationLanguage}
+            />
+          )}
+        </div>
+      )}
 
       {/* D — trois issues claires : rejouer, changer de personnage, ou
           aller voir ses courbes. « Rejouer » crée une VRAIE nouvelle
