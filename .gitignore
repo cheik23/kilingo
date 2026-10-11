@@ -1,4 +1,6 @@
 .env.local
+# Clés de déploiement (CONVEX_DEPLOY_KEY) : jamais versionnées.
+.env.production
 node_modules
 dist
 src/convex/_generated

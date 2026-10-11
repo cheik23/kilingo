@@ -276,6 +276,34 @@ npx convex dev --once --configure new --project kilingo --dev-deployment cloud
 
 Une **clé d'intégration VLY** (`sk_*`) est requise pour l'IA, l'email et les paiements.
 
+### Pousser le backend vers la production (`formal-vulture-518`)
+
+Le front Vercel (`kilingo-ten.vercel.app`) pointe vers le déploiement **Convex Cloud**
+`formal-vulture-518.convex.cloud`, pas vers le backend Docker local. Or `.env.local`
+cible le backend local : un simple `npx convex deploy` **pousse donc en local**
+(vérifié : « Deploying code to deployment: http://127.0.0.1:33210 ») — sans le moindre
+avertissement, alors que le front attend des fonctions qui n'y sont pas encore.
+
+Il faut une clé de déploiement, qui **prend le pas** sur `CONVEX_SELF_HOSTED_URL` :
+
+```bash
+# 1. Créer la clé (une seule fois) — écrite dans .env.production, gitignoré
+npx convex deployment token create kilingo-prod --deployment formal-vulture-518 --save-env .env.production
+
+# 2. Pousser fonctions + schéma vers ce déploiement précis
+npx convex deploy --env-file .env.production
+```
+
+`--env-file` est obligatoire : c'est lui qui choisit la cible et l'emporte sur `.env.local`.
+Contrôle en lecture seule, avant/après (aucune donnée touchée) :
+
+```bash
+npx convex function-spec --deployment formal-vulture-518
+```
+
+Les fonctions des tableaux de bord (statistiques d'activité, classement) sont
+indispensables ici : sans elles, `/app/dashboard` et `/app/ranking` retombent sur leur repli.
+
 ### Remise en route de la base de données
 Les tables se créent au démarrage du backend Convex d'après `schema.ts`. Les données
 d'argot se rejouent avec `slang:seed` et `crossSeed:seedCrossConcepts` (voir section 4).
