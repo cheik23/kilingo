@@ -87,6 +87,7 @@ export function levelFromRegister(register: string | undefined): SlangLevel {
 }
 
 const CULTURE_RAW: Record<string, SlangCulture> = {
+  // TODO: Vérification native requise — ces fiches suivent le même modèle de structure.
   "fr|wesh": {
     origin:
       "Emprunté à l'arabe dialectal « wach » (واش) — « quoi ? ». Passé dans le français urbain par le rap des années 1990, laissa de côté le sens interrogatif pour devenir un salut.",
@@ -126,6 +127,117 @@ const CULTURE_RAW: Record<string, SlangCulture> = {
     level: "familiar",
     variation: "Sens élargi de « douteux » à « bizarre », y compris pour une chose ; s'emploie invariable.",
     example: "Ce type qui traîne là depuis une heure, il est un peu chelou.",
+  },
+
+  // TODO: Vérification native requise
+  "sw|sheng": {
+    origin: "Terme désignant la variété urbaine hybride (Sheng) née à Nairobi, mêlant swahili, anglais et langues locales.",
+    usage: "Jeunes urbains au Kenya, notamment à Nairobi ; désigne le code parlé entre pairs.",
+    level: "common",
+    variation: "« kuongea Sheng » (parler Sheng).",
+    example: "Hawa wanazungumza Sheng sana.",
+  },
+  "sw|mtaa": {
+    origin: "Mot swahili signifiant quartier/voisinage ; courant dans le Sheng pour évoquer l'origine ou le coin.",
+    usage: "Quotidien entre amis ; fait référence au quartier d'origine ou à l'endroit.",
+    level: "common",
+    variation: "« mtu wa mtaa » (habitant du quartier).",
+    example: "Niko mtaa leo, tuko free.",
+  },
+  "sw|msee": {
+    origin: "Terme Sheng courant désignant « un gars/une personne » ; largement documenté dans le lexique Sheng.",
+    usage: "Très informel entre jeunes, surtout à Nairobi ; forme d'adresse entre pairs.",
+    level: "familiar",
+    variation: "Employé seul ou dans « msee wangu » (mon gars).",
+    example: "Sasa msee, uko aje?",
+  },
+  "sw|rada": {
+    origin: "Mot Sheng signifiant « situation / plan / ce qui se passe ».",
+    usage: "Entre amis pour demander ou expliquer la situation.",
+    level: "familiar",
+    variation: "« bamba rada » (comprendre/suivre la situation).",
+    example: "Uko na rada gani leo?",
+  },
+  "sw|chapaa": {
+    origin: "Mot Sheng signifiant « argent ».",
+    usage: "Jeunes urbains, contexte décontracté ; éviter en contexte très formel.",
+    level: "familiar",
+    variation: "« sina chapaa » (je n'ai pas d'argent).",
+    example: "Nahitaji chapaa kidogo.",
+  },
+
+  // TODO: Vérification native requise
+  "ha|sannu": {
+    origin: "Salutation haoussa très répandue au nord du Nigeria et au Niger.",
+    usage: "Formel et informel selon ton ; politesse de base à Kano et ailleurs.",
+    level: "common",
+    variation: "« Sannu da zuwa » (bienvenue).",
+    example: "Sannu, yaya jiki?",
+  },
+  "ha|lafiya": {
+    origin: "Réponse classique au « yaya jiki? » ; « lafiya » = bien/bonne santé.",
+    usage: "Quotidien, tout public ; marque de politesse.",
+    level: "common",
+    variation: "« Lafiya lau » (très bien).",
+    example: "Lafiya lau, kai fa?",
+  },
+  "ha|nagode": {
+    origin: "Forme haoussa de « merci ».",
+    usage: "Universel entre locuteurs haoussa ; courant aussi au-delà.",
+    level: "common",
+    variation: "« Na gode sosai » (merci beaucoup).",
+    example: "Na gode, Allah ya saka da alheri.",
+  },
+  "ha|aboki": {
+    origin: "Signifie « ami/mon frère » en haoussa ; contexte sensible hors cercle haoussa selon ton.",
+    usage: "Entre pairs haoussa ; à manier avec précaution hors groupe.",
+    level: "familiar",
+    variation: "« abokina » (mon ami).",
+    example: "Yaya, aboki?",
+  },
+  "ha|haba": {
+    origin: "Exclamation haoussa très diffusée au Nigeria pour marquer surprise/désappointement.",
+    usage: "Très courant, y compris en pidgin nigérian ; informel.",
+    level: "familiar",
+    variation: "Intensité selon ton.",
+    example: "Haba, ai gaskiya ne?",
+  },
+
+  // TODO: Vérification native requise
+  "yo|omo": {
+    origin: "Terme yoruba « ọmọ » (enfant) ; très répandu en exclamation dans le Lagos informel.",
+    usage: "Entre jeunes, marque surprise/stress/émotion ; diffusé hors yoruba.",
+    level: "familiar",
+    variation: "« Omo mi » (mon enfant) ; usage exclamatoire détaché ici.",
+    example: "Omo, see traffic o!",
+  },
+  "yo|oya": {
+    origin: "Mot yoruba signifiant « allons-y / dépêche-toi / vas-y » selon ton.",
+    usage: "Quotidien ; encouragement ou impatience selon contexte.",
+    level: "common",
+    variation: "« Oya o ».",
+    example: "Oya, let’s go now.",
+  },
+  "yo|egbon": {
+    origin: "« Ẹ̀gbọ́n » = frère/sœur aîné(e) ; utilisé pour adresser quelqu'un plus âgé ou en signe de respect.",
+    usage: "Poli et respectueux ; très courant à Lagos.",
+    level: "common",
+    variation: "« Egbon mi ».",
+    example: "Egbon, good afternoon o.",
+  },
+  "yo|ose": {
+    origin: "« Ọ̀ṣé » = merci / bravo.",
+    usage: "Quotidien, tout public ; marque de gratitude.",
+    level: "common",
+    variation: "« Ose gan » (merci beaucoup).",
+    example: "Ose, I appreciate.",
+  },
+  "yo|wahala": {
+    origin: "Mot yoruba « wàhálà » = problème/tracas ; largement diffusé en pidgin nigérian.",
+    usage: "Très courant pour évoquer souci ou difficulté ; « no wahala » universel.",
+    level: "common",
+    variation: "« wahala no dey ».",
+    example: "No wahala, we go fix am.",
   },
 };
 
@@ -173,5 +285,7 @@ export function hasCultureContent(
   );
 }
 
-/** Nombre d'expressions enrichies — lu par le contrôle d'intégrité. */
-export const SLANG_CULTURE_COUNT = Object.keys(CULTURE).length;
+/** Nombre d'expressions enrichies FR — lu par le contrôle d'intégrité. */
+export const SLANG_CULTURE_COUNT = Object.keys(CULTURE).filter((k) =>
+  k.startsWith("fr|"),
+).length;

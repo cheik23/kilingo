@@ -83,6 +83,7 @@ export function DailySlangCard({ className }: { className?: string }) {
 
   const card = daily.data;
   const answered = outcome !== null;
+  const completed = card.completed || outcome?.already;
 
   const answer = async (index: number) => {
     if (busy || answered) return;
@@ -211,14 +212,25 @@ export function DailySlangCard({ className }: { className?: string }) {
       )}
 
       {/* Action */}
-      {!quizzing && !answered && (
-        <button
-          type="button"
-          onClick={() => setQuizzing(true)}
-          className="mt-3 w-full rounded-xl bg-gradient-to-r from-gold-strong to-gold py-2.5 text-sm font-semibold text-noir transition-opacity hover:opacity-90"
-        >
-          {COPY.quiz}
-        </button>
+      {completed ? (
+        <div className="mt-3 rounded-xl border border-green-400/40 bg-green-500/10 p-3 text-center">
+          <div className="flex items-center justify-center gap-2 text-sm font-medium text-green-300">
+            <span className="flex size-5 items-center justify-center rounded-full border border-green-400/60 bg-green-400/20">
+              ✓
+            </span>
+            Expression du jour apprise ! Reviens demain pour la suivante.
+          </div>
+        </div>
+      ) : (
+        !quizzing && !answered && (
+          <button
+            type="button"
+            onClick={() => setQuizzing(true)}
+            className="mt-3 w-full rounded-xl bg-gradient-to-r from-gold-strong to-gold py-2.5 text-sm font-semibold text-noir transition-opacity hover:opacity-90"
+          >
+            {COPY.quiz}
+          </button>
+        )
       )}
     </section>
   );
