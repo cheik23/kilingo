@@ -354,7 +354,7 @@ export function AchievementsView() {
                     className="h-full rounded-full bg-gradient-to-r from-gold-strong to-gold"
                   />
                 </div>
-                <div className="ln-grid-tight">
+                <div className="ln-grid-badges">
                   {shownItems.map((item, i) => (
                     <div
                       key={item.achievementId}
@@ -390,7 +390,7 @@ export function AchievementsView() {
           })}
         </div>
       ) : (
-        <div className="ln-grid-tight">
+        <div className="ln-grid-badges">
           {filtered.map((item, i) => (
             <div
               key={item.achievementId}
@@ -429,8 +429,11 @@ function AchievementCard({ item, onOpen }: { item: Item; onOpen: () => void }) {
     >
       {item.completed && <span className="absolute end-4 top-4 flex size-6 items-center justify-center rounded-full bg-gold text-noir"><Check className="size-4" /></span>}
       {!item.completed && <span className="absolute end-4 top-4 flex size-6 items-center justify-center rounded-full border border-white/10 bg-noir/80 text-ink-3"><Lock className="size-3.5" /></span>}
-      <div className="flex items-start gap-3"><span data-card3d-depth="30" className={cn("text-4xl transition-transform group-hover:scale-[1.06]", !item.completed && "grayscale opacity-55")}>{item.icon}</span><div className="min-w-0 flex-1"><div className="flex items-center gap-2"><h2 title={item.title} className="truncate font-display text-lg font-semibold text-ink">{item.title}</h2><span className={cn("rounded-full border px-1.5 py-0.5 font-mono text-[0.5rem] uppercase", item.tier === "gold" ? "border-gold/40 text-gold" : item.tier === "silver" ? "border-slate-300/35 text-slate-200" : "border-orange-400/35 text-orange-300")}>{item.tier}</span></div><p title={item.description} className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-3">{item.description}</p></div></div>
-      <div className="mt-5 flex items-center justify-between font-mono text-[0.625rem] text-ink-3"><span>{item.progress}/{item.target}</span><span>{item.completed ? t("achievements.completed") : item.progress === 0 ? t("achievements.notStarted") : `${percent}%`}</span></div>
+      {/* Le rang de rareté vit avec le compteur, pas en ligne avec le titre :
+          sur une carte de 13rem il ne laissait au titre qu'une trentaine de
+          pixels de large. */}
+      <div className="flex items-start gap-3"><span data-card3d-depth="30" className={cn("shrink-0 text-3xl transition-transform group-hover:scale-[1.06]", !item.completed && "grayscale opacity-55")}>{item.icon}</span><div className="min-w-0 flex-1"><h2 title={item.title} className="truncate font-display text-lg font-semibold text-ink">{item.title}</h2><p title={item.description} className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-3">{item.description}</p></div></div>
+      <div className="mt-5 flex items-center justify-between gap-2 font-mono text-[0.625rem] text-ink-3"><span className="flex min-w-0 items-center gap-2"><span className={cn("shrink-0 rounded-full border px-1.5 py-0.5 text-[0.5rem] uppercase", item.tier === "gold" ? "border-gold/40 text-gold" : item.tier === "silver" ? "border-slate-300/35 text-slate-200" : "border-orange-400/35 text-orange-300")}>{item.tier}</span><span className="truncate">{item.progress}/{item.target}</span></span><span className="shrink-0">{item.completed ? t("achievements.completed") : item.progress === 0 ? t("achievements.notStarted") : `${percent}%`}</span></div>
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/8"><motion.div initial={{ width: 0 }} animate={{ width: `${percent}%` }} transition={{ duration: 0.6 }} className="h-full rounded-full bg-gradient-to-r from-gold-strong to-gold" /></div>
       <div className="mt-4 flex items-center justify-between border-t border-white/6 pt-3 text-[0.6875rem] text-ink-3"><span className="flex items-center gap-1"><Award className="size-3.5 text-gold" /> +{item.reward.xp} XP · +{item.reward.gems} gems</span>{item.completed && <span className="flex items-center gap-1 text-gold">✓ {t("achievements.rewardClaimed")} <ChevronRight className="size-3" /></span>}</div>
     </article>

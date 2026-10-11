@@ -350,6 +350,15 @@ body,
   gap: var(--ln-space-4);
 }
 
+/* Grille de badges : une carte de 13rem ne laisse que ~93px au titre, qui
+   finit en « Maître d… ». 15rem passe à 4 colonnes sur un écran de bureau et
+   rend son sens au nom du succès, sans étirer une carte presque vide. */
+.ln-grid-badges {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--ln-space-4);
+}
+
 /* Carrousel tactile : swipe natif + points d'accroche. */
 .ln-snap-x {
   display: flex;
@@ -507,6 +516,21 @@ h6 {
      quand le glyphe est large. */
   overflow-wrap: break-word;
   line-break: auto;
+}
+
+/* `text-wrap: balance` ci-dessus est une règle NON layerisée : elle l'emporte
+   sur les utilitaires Tailwind (rangés dans `@layer utilities`) et réécrit
+   `text-wrap-mode: wrap`. Le `white-space: nowrap` de `.truncate` est donc
+   annulé — mesuré : un titre tronqué dans une carte de 13rem se repliait un
+   caractère par ligne (« M a î t r e ») au lieu de finir en « … ».
+   Là où la troncature est explicitement demandée, le nowrap gagne. */
+h1.truncate,
+h2.truncate,
+h3.truncate,
+h4.truncate,
+h5.truncate,
+h6.truncate {
+  text-wrap: nowrap;
 }
 
 /* Display : réservé aux blocs héro (1.1). */
