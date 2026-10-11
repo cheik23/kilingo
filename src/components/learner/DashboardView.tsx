@@ -21,6 +21,8 @@ import { TiltCard } from "@/components/fx/interact";
 import { GoldBurst, RollingCounter } from "@/components/fx/rewards";
 import { ScrambleHeading } from "@/components/fx/text";
 import { DailySlangCard } from "./DailySlangCard";
+import { WorldMapLanguages } from "./WorldMapLanguages";
+import { LANGUAGE_COUNTRIES } from "@/data/languages-geo";
 import { cn } from "@/lib/utils";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -705,10 +707,21 @@ export function DashboardView({ onNavigate }: { onNavigate: (view: string) => vo
   const badges = useQuery(api.stats.achievements);
   const actions = useQuery(api.stats.nextActions);
   const setDailyGoal = useMutation(api.users.setDailyGoal);
+  const [selectedLang, setSelectedLang] = useState<string | null>(null);
 
   return (
     <div className="space-y-5">
       <ScrambleHeading text="Progression" />
+
+      <section className="ln-card rounded-xl p-6 mb-6">
+        <div className="flex flex-wrap items-center gap-3">
+          <WorldMapLanguages
+            selectedLanguage={selectedLang}
+            languagesCountries={LANGUAGE_COUNTRIES}
+            className="w-full h-[360px]"
+          />
+        </div>
+      </section>
       {/* SLANG DU JOUR — en haut du tableau de bord : l'habitude se pose
           avant les courbes. Indépendant du chargement des statistiques. */}
       <DailySlangCard />
