@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Flame, Moon } from "lucide-react";
 
+import { FlagIcon } from "@/components/ui/FlagIcon";
 import { useI18n } from "@/lib/i18n";
 import { isLanguageCapError } from "@/lib/premiumLimits";
 import { PremiumUpsell } from "./PremiumUpsell";
@@ -139,7 +140,7 @@ export function FocusDialog({
                     : "border-white/8 bg-noir-3/60 hover:border-white/20"
                 }`}
               >
-                <span className="text-2xl">{l.flag}</span>
+                <FlagIcon languageCode={l.code} />
                 <div className="flex-1">
                   <p className="text-sm font-medium">{l.name}</p>
                   <p className="font-mono text-[0.625rem] text-ink-3">

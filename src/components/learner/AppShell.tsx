@@ -56,6 +56,7 @@ import { StreakBanner } from "./StreakBanner";
 import { NotificationsBell } from "./NotificationsBell";
 import { useUnopenedLootCount } from "./LootBoxModal";
 import { Button } from "@/components/ui/button";
+import { FlagIcon } from "@/components/ui/FlagIcon";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -121,6 +122,7 @@ const MAIN_NAV: NavItem[] = [
   { key: "nav.history", to: "/app/history", icon: History },
   { key: "nav.favorites", to: "/app/favorites", icon: Heart },
   { key: "nav.analytics", to: "/app/analytics", icon: BarChart3 },
+  { key: "nav.dashboard", to: "/app/dashboard", icon: LayoutDashboard },
   { key: "nav.leaderboard", to: "/app/leaderboard", icon: Trophy },
   { key: "nav.achievements", to: "/app/achievements", icon: Award },
   { key: "nav.signs", to: "/app/signs", icon: Hand },
@@ -427,7 +429,23 @@ function AppShellInner() {
             aria-label={t("nav.changeFocus")}
             className="hidden items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-[0.6875rem] text-ink-2 transition-colors hover:border-gold/40 hover:text-gold sm:flex"
           >
-            <Flame className="size-3.5 text-gold" />
+            {/* Le focus actif EN DRAPEAUX : l'en-tête doit montrer la même
+                imagerie que la boîte de sélection (mêmes classes de cadrage).
+                Au-delà de deux langues, l'anneau les fait se chevaucher. */}
+            {activeFocus.length > 0 ? (
+              <span className="flex shrink-0 -space-x-1.5">
+                {activeFocus.slice(0, 2).map((code) => (
+                  <FlagIcon
+                    key={code}
+                    languageCode={code}
+                    eager
+                    className="ring-1 ring-noir"
+                  />
+                ))}
+              </span>
+            ) : (
+              <Flame className="size-3.5 text-gold" />
+            )}
             <span className="min-w-0 max-w-40 truncate">{focusLabel}</span>
           </button>
           {/* MOD 2 — compteur gems (toutes pages) + badge Double XP.
@@ -616,6 +634,7 @@ const ROUTE_LABEL: Record<string, string> = {
   "/app/signs/credits": "nav.signs",
   "/app/space": "nav.space",
   "/app/analytics": "nav.analytics",
+  "/app/dashboard": "nav.dashboard",
   "/app/performance": "nav.space",
   "/app/profile": "nav.space",
 };

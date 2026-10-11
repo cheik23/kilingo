@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Check, ChevronRight, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MascotStage, useMascotSafe } from "@/components/three/MascotProvider";
+import { FlagIcon } from "@/components/ui/FlagIcon";
 
 const INTERESTS = [
   "Séries & films",
@@ -115,7 +116,7 @@ export function Onboarding() {
                         : "border-white/8 bg-noir-2/60 hover:border-white/20"
                     }`}
                   >
-                    <span className="text-2xl">{l.flag}</span>
+                    <FlagIcon languageCode={l.code} size="lg" />
                     <div className="flex-1">
                       <p className="font-medium">{l.name}</p>
                       <p className="text-xs text-ink-3">{l.description}</p>

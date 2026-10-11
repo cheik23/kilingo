@@ -38,6 +38,9 @@ import "./index.css";
 const AnalyticsDashboard = lazy(
   () => import("@/components/learner/AnalyticsDashboard").then((m) => ({ default: m.AnalyticsDashboard })),
 );
+const StatsDashboard = lazy(
+  () => import("@/components/learner/StatsDashboard").then((m) => ({ default: m.StatsDashboard })),
+);
 const QuizRoom = lazy(
   () => import("@/components/learner/QuizRoom").then((m) => ({ default: m.QuizRoom })),
 );
@@ -253,6 +256,17 @@ createRoot(rootEl).render(
                     element={
                       <Suspense fallback={<RouteLoading />}>
                         <AnalyticsDashboard />
+                      </Suspense>
+                    }
+                  />
+                  {/* TABLEAU DE BORD — socle de KPIs et de graphiques
+                      (Recharts), données de démonstration en attendant le
+                      branchement sur le backend. */}
+                  <Route
+                    path="dashboard"
+                    element={
+                      <Suspense fallback={<RouteLoading />}>
+                        <StatsDashboard />
                       </Suspense>
                     }
                   />
