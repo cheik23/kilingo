@@ -17,6 +17,7 @@ import { FlagIcon } from "@/components/ui/FlagIcon";
 import { useI18n } from "@/lib/i18n";
 import { isLanguageCapError } from "@/lib/premiumLimits";
 import { PremiumUpsell } from "./PremiumUpsell";
+import { LanguageCapModal } from "./LanguageCapModal";
 
 /* ═══════════════════════════════════════════════════════════════════
    FOCUS DE LANGUES — MODULE A
@@ -162,21 +163,27 @@ export function FocusDialog({
         </div>
 
         {capBlocked ? (
-          <PremiumUpsell
-            variant="card"
-            title={t("premium.lock.languages.title")}
-            body={t("premium.lock.languages.body")}
-            cta={t("premium.lock.languages.cta")}
-            // L'issue gratuite d'abord, comme partout : garder sa langue
-            // actuelle ne coûte rien, et rien n'a été retiré au compte.
-            freeAction={{
-              label: t("common.close"),
-              onClick: () => setCapBlocked(false),
-            }}
-            // Le CTA mène aux tarifs : on referme la boîte en partant,
-            // sinon elle resterait posée par-dessus la page.
-            onCtaClick={() => onOpenChange(false)}
-          />
+          <div className="space-y-4">
+            <PremiumUpsell
+              variant="card"
+              title={t("premium.lock.languages.title")}
+              body={t("premium.lock.languages.body")}
+              cta={t("premium.lock.languages.cta")}
+              // L'issue gratuite d'abord, comme partout : garder sa langue
+              // actuelle ne coûte rien, et rien n'a été retiré au compte.
+              freeAction={{
+                label: t("common.close"),
+                onClick: () => setCapBlocked(false),
+              }}
+              // Le CTA mène aux tarifs : on referme la boîte en partant,
+              // sinon elle resterait posée par-dessus la page.
+              onCtaClick={() => onOpenChange(false)}
+            />
+            <LanguageCapModal
+              open={capBlocked}
+              onClose={() => setCapBlocked(false)}
+            />
+          </div>
         ) : null}
 
         <div className="flex gap-3">

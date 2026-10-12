@@ -7,6 +7,9 @@ import { Check, ChevronRight, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MascotStage, useMascotSafe } from "@/components/three/MascotProvider";
 import { FlagIcon } from "@/components/ui/FlagIcon";
+import { LanguageCapModal } from "./LanguageCapModal";
+import { isLanguageCapError } from "@/lib/premiumLimits";
+import { useI18n } from "@/lib/i18n";
 
 const INTERESTS = [
   "Séries & films",
@@ -25,6 +28,8 @@ export function Onboarding() {
   const [selected, setSelected] = useState<LanguageCode[]>([]);
   const [interests, setInterests] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const { t } = useI18n();
+  const [capModalOpen, setCapModalOpen] = useState(false);
   // Jabari accueille : trois bulles, une par moment clé de l'accueil.
   const mascot = useMascotSafe();
   useEffect(() => {
@@ -69,8 +74,14 @@ export function Onboarding() {
       toast.success("Bienvenue dans l'ombre 🖤", {
         description: `${selected.map((c) => LANGUAGES.find((l) => l.code === c)?.name).join(" + ")} en focus actif`,
       });
-    } catch {
-      toast.error("Une erreur est survenue");
+    } catch (err) {
+      if (isLanguageCapError(err)) {
+        setCapModalOpen(true);
+      } else {
+        toast.error(
+          err instanceof Error ? err.message : t("common.errorGeneric"),
+        );
+      }
     } finally {
       setSaving(false);
     }
@@ -83,6 +94,11 @@ export function Onboarding() {
         className="h-40 w-40 sm:h-48 sm:w-48"
         bubbleClassName="justify-center"
       />
+      <LanguageCapModal
+        open={capModalOpen}
+        onClose={() => setCapModalOpen(false)}
+      />
+
       <motion.div
         key={step}
         initial={{ opacity: 0, x: 30 }}
