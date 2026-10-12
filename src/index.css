@@ -293,6 +293,12 @@
   --ln-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
   --ln-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.35);
   --ln-shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.6), 0 6px 10px -6px rgba(0, 0, 0, 0.4);
+  /* `xl` manquait ici : la carte de repos et la carte survolée n'avaient donc
+     pas la même TEINTE d'ombre (noir au repos, bleu nuit au survol), celles
+     de `:root` reprenant la main sur ce seul palier. Un survol doit changer
+     l'élévation, pas la couleur de l'ombre. Même progression que les autres
+     paliers (0.4/0.3 → 0.5/0.35 → 0.6/0.4 → 0.7/0.45). */
+  --ln-shadow-xl: 0 24px 48px -12px rgba(0, 0, 0, 0.7), 0 12px 20px -8px rgba(0, 0, 0, 0.45);
 }
 
 /* === KILINGO THEME === */
@@ -673,7 +679,13 @@ label {
   background: var(--card-bg);
   border: var(--border-subtle);
   border-radius: var(--ln-radius-lg);
-  box-shadow: var(--ln-shadow-sm);
+  /* Ombre de REPOS volontairement marquée : la carte doit se lire comme
+     posée au-dessus du fond, sans qu'on ait à la survoler. C'est
+     `--ln-shadow-lg` et non `--ln-shadow-xl`, car l'échelle Kilingo est
+     bien plus dense que celle de Tailwind (`shadow-2xl` est à 10 %
+     d'opacité, `--ln-shadow-xl` à 80 %) : prendre le nom « xl » au pied de
+     la lettre donnerait ici une ombre plus FAIBLE qu'au survol. */
+  box-shadow: var(--ln-shadow-lg);
   transition:
     background-color var(--ln-dur) var(--ln-ease),
     transform var(--ln-dur) var(--ln-ease),
@@ -699,7 +711,7 @@ label {
 }
 
 /* ── SURVOL DE CARTE — UNE SEULE DÉFINITION POUR TOUTE L'APP ──────────
-   La carte se soulève de 4 px, grossit de 2 %, et son ombre s'épaissit
+   La carte se soulève de 8 px, grossit de 2 %, et son ombre s'épaissit
    jusqu'à l'épaulement XL doublé d'un liseré or.
 
    Le mouvement vit EXCLUSIVEMENT ici, jamais dans les classes Tailwind
@@ -710,7 +722,7 @@ label {
    afin qu'elles ne puissent pas diverger. */
 .ln-card:hover,
 .ln-lift:hover {
-  transform: translateY(-4px) scale(1.02);
+  transform: translateY(-8px) scale(1.02);
 }
 
 .ln-card:hover {
@@ -719,8 +731,11 @@ label {
     0 0 0 1px color-mix(in srgb, var(--gold-primary) 40%, transparent);
 }
 
-/* Surface interactive sans habillage de carte : reprend exactement le
-   mouvement ci-dessus, avec l'ombre des cartes plus discrètes. */
+/* Surface interactive sans habillage de carte (ligne de langue, pastille) :
+   reprend exactement le mouvement ci-dessus. Elle n'a pas d'ombre au repos
+   (elle est plate dans sa liste), donc le survol l'amène directement au
+   même palier qu'une carte survolée — un seul niveau « au-dessus » dans
+   toute l'application. */
 .ln-lift {
   transition:
     transform var(--ln-dur) var(--ln-ease),
@@ -729,7 +744,7 @@ label {
 }
 
 .ln-lift:hover {
-  box-shadow: var(--ln-shadow-lg);
+  box-shadow: var(--ln-shadow-xl);
 }
 
 /* Épaulements doux réutilisables par les cartes et panneaux. */
@@ -787,12 +802,18 @@ label {
   box-shadow: var(--ln-shadow-md);
 }
 
-/* Module D — pas de hover « collant » sur tactile. */
+/* Module D — pas de hover « collant » sur tactile.
+   La carte retourne à son ombre de REPOS (et non à l'ancienne ombre
+   discrète, qui n'existe plus), la surface `.ln-lift` revient plate. */
 @media (hover: none) {
-  .ln-card:hover,
+  .ln-card:hover {
+    transform: none;
+    box-shadow: var(--ln-shadow-lg);
+  }
+
   .ln-lift:hover {
     transform: none;
-    box-shadow: var(--ln-shadow-sm);
+    box-shadow: none;
   }
 }
 
