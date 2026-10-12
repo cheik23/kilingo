@@ -30,7 +30,7 @@ import { BrandLink } from "@/components/brand/Logo";
 import { MagneticButton, TiltCard } from "@/components/fx/interact";
 import { RevealTitle, ScrambleHeading, ShimmerTitle } from "@/components/fx/text";
 import { useAuth } from "@/hooks/use-auth";
-import { REGISTERS } from "@/convex/languages";
+import { LANGUAGES, REGISTERS } from "@/convex/languages";
 import { PremiumCta } from "@/components/learner/PremiumCta";
 import { SubscriptionCard } from "@/components/learner/SubscriptionCard";
 import {
@@ -63,13 +63,12 @@ const GlobeHero = lazy(() =>
    téléchargement d'œuvre protégée.
    ═══════════════════════════════════════════════════════════════════ */
 
-const LANGUAGES = [
-  { flag: "🇬🇧", name: "Anglais", detail: "US · UK" },
-  { flag: "🇨🇳", name: "Mandarin", detail: "简体 · 繁體" },
-  { flag: "🇪🇸", name: "Espagnol", detail: "España · LatAm" },
-  { flag: "🇸🇦", name: "Arabe", detail: "MSA · dialectes" },
-  { flag: "🇷🇺", name: "Russe", detail: "RU" },
-];
+/* Le mur des langues ne RECOPIE plus la liste : il lit la source unique
+   `convex/languages`, celle des sélecteurs de l'onboarding, du changement de
+   focus et de la découverte. L'ancienne liste figée à cinq entrées annonçait
+   « Cinq langues » alors que l'application en proposait déjà onze, et elle ne
+   pouvait pas suivre le lot des 18 : deux vérités à maintenir en parallèle.
+   Drapeau et libellé viennent donc de la même source que l'application. */
 
 /** Modules d'immersion — un par type de contenu, plus les moteurs transverses. */
 const MODULES = [
@@ -660,13 +659,13 @@ export default function Landing() {
           <div className="mx-auto max-w-6xl px-5">
             <SectionTitle
               eyebrow="Langues"
-              title="Cinq langues, une même exigence"
-              lead="Interface disponible en français, anglais, espagnol, mandarin, arabe (RTL) et russe. D'autres langues s'ajoutent sans toucher au reste."
+              title={`${LANGUAGES.length} langues d'apprentissage, une même exigence`}
+              lead="Interface disponible en douze langues, dont le français, l'anglais, l'espagnol, le mandarin, l'arabe (RTL) et le russe. D'autres s'ajoutent sans toucher au reste."
             />
             <div className="mt-12 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {LANGUAGES.map((l, i) => (
                 <div
-                  key={l.name}
+                  key={l.code}
                   className="ln-card ln-stagger-item p-5 text-center"
                   style={{ ["--ln-i" as string]: i }}
                 >
@@ -675,7 +674,7 @@ export default function Landing() {
                     {l.name}
                   </p>
                   <p className="mt-1 font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
-                    {l.detail}
+                    {l.countries}
                   </p>
                 </div>
               ))}

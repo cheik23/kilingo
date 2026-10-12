@@ -104,6 +104,28 @@ export const LANGUAGE_GEO: readonly LanguageGeoEntry[] = [
     code: "zu",
     countries: ["ZA", "ZW", "MZ", "MW", "LS", "SZ"],
   },
+  /* ── Lot final : 18 langues (12 + 18 = 30) ──────────────────────────
+     Chaque entrée liste EXACTEMENT les pays demandés pour cette langue.
+     Un code absent du fond de carte Natural Earth est ignoré sans erreur :
+     la liste peut donc porter des pays dont la carte ne dessine rien. */
+  { code: "de", countries: ["DE", "AT", "CH"] },
+  { code: "hi", countries: ["IN"] },
+  { code: "bn", countries: ["BD", "IN"] },
+  { code: "pt", countries: ["PT", "BR", "AO", "MZ"] },
+  { code: "ur", countries: ["PK", "IN"] },
+  { code: "id", countries: ["ID"] },
+  { code: "ja", countries: ["JP"] },
+  { code: "tr", countries: ["TR"] },
+  { code: "ko", countries: ["KR"] },
+  { code: "it", countries: ["IT", "CH"] },
+  { code: "th", countries: ["TH"] },
+  { code: "vi", countries: ["VN"] },
+  { code: "am", countries: ["ET"] },
+  { code: "ig", countries: ["NG"] },
+  { code: "fa", countries: ["IR", "AF", "TJ"] },
+  { code: "tl", countries: ["PH"] },
+  { code: "pl", countries: ["PL"] },
+  { code: "el", countries: ["GR", "CY"] },
 ];
 
 /** Code langue → pays surlignés. Dérivé de `LANGUAGE_GEO` (jamais dupliqué). */

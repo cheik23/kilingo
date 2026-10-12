@@ -123,7 +123,12 @@ export function ShadowView() {
   const [lang, setLang] = useState<LanguageCode>("en");
   // Cible « TRADUIRE VERS » : les 12 langues UI, persistée
   // (shadow.targetLang), défaut = langue UI courante.
-  const [targetLang, setTargetLang] = useState<LanguageCode | "fr">(
+  // Le type est `UiLang` (les 12 langues d'interface) et non plus
+  // `LanguageCode | "fr"` : ce dernier coïncidait par accident avec les 12
+  // tant que les langues d'apprentissage étaient au nombre de 11. Depuis le
+  // lot des 18, il ne coïncide plus — la cible de traduction reste bornée
+  // aux langues d'interface, exactement comme la liste d'options ci-dessous.
+  const [targetLang, setTargetLang] = useState<UiLang>(
     loadStoredTargetLang,
   );
   // Re-traduction en cours (changement de cible en session).
@@ -289,7 +294,7 @@ export function ShadowView() {
       re-traduction immédiate du média en cours via la cascade existante
       (le transcript est déjà stocké — aucune re-transcription, cache 24 h
       par cible). Échec ⇒ toast, l'affichage garde l'état précédent. */
-  const changeTargetLang = (next: LanguageCode | "fr") => {
+  const changeTargetLang = (next: UiLang) => {
     // Garde LOT D : la colonne cible ne peut pas être la langue du média
     // (elle recopierait la colonne source à l'identique).
     if (next === lang) {
@@ -904,7 +909,7 @@ export function ShadowView() {
               id="target-lang"
               value={targetLang}
               onChange={(e) =>
-                changeTargetLang(e.target.value as LanguageCode | "fr")
+                changeTargetLang(e.target.value as UiLang)
               }
               className="appearance-none rounded-lg border border-white/10 bg-noir-2 py-2 pl-4 pr-9 text-sm text-ink transition-colors hover:border-white/25 focus:border-gold/50 focus:outline-none"
             >
@@ -1885,7 +1890,7 @@ export function ShadowView() {
                           aria-label="Traduire vers"
                           value={targetLang}
                           onChange={(e) =>
-                            changeTargetLang(e.target.value as LanguageCode | "fr")
+                            changeTargetLang(e.target.value as UiLang)
                           }
                           className="appearance-none rounded-lg border border-white/10 bg-noir-2 py-1.5 pr-8 pl-3 text-[11px] text-ink transition-colors hover:border-white/25 focus:border-gold/50 focus:outline-none"
                         >

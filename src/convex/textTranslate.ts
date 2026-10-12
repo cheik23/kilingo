@@ -1,6 +1,6 @@
 "use node";
 
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import { action } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
@@ -33,14 +33,14 @@ const MAX_HITS = 40;
 /** Langues couvertes par la base d'argot locale (comme le pipeline média). */
 const SLANG_LANGS = ["en", "zh", "es", "ar", "ru"] as const;
 
-type LangCode =
-  | "en" | "fr" | "es" | "zh" | "ar" | "ru"
-  | "sw" | "ln" | "ha" | "yo" | "zu" | "wo";
+/* Dérivé du validateur, jamais recopié : la liste écrite deux fois (type +
+   validateur) divergeait au premier ajout de langue. */
+type LangCode = Infer<typeof langValidator>;
 
 const langValidator = v.union(
   v.literal("en"), v.literal("fr"), v.literal("es"), v.literal("zh"),
   v.literal("ar"), v.literal("ru"), v.literal("sw"), v.literal("ln"),
-  v.literal("ha"), v.literal("yo"), v.literal("zu"), v.literal("wo"),
+  v.literal("ha"), v.literal("yo"), v.literal("zu"), v.literal("wo"), v.literal("de"), v.literal("hi"), v.literal("bn"), v.literal("pt"), v.literal("ur"), v.literal("id"), v.literal("ja"), v.literal("tr"), v.literal("ko"), v.literal("it"), v.literal("th"), v.literal("vi"), v.literal("am"), v.literal("ig"), v.literal("fa"), v.literal("tl"), v.literal("pl"), v.literal("el"),
 );
 
 /** Empreinte stable (djb2) — clé de cache du texte, jamais un secret. */

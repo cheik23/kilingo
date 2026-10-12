@@ -31,15 +31,28 @@ export const LANGUAGE_TO_COUNTRY: Record<string, string> = {
   // Langues d'interface (lib/i18n.tsx)
   fr: "fr",
   // Autres langues rencontrées dans l'app (Media Hub, Atlas)
-  pt: "pt",
-  it: "it",
-  de: "de",
-  ja: "jp",
-  ko: "kr",
   nl: "nl",
-  pl: "pl",
-  tr: "tr",
+  /* ── Lot final : les 18 langues d'apprentissage ajoutées (12 + 18 = 30).
+     Un code absent d'ici n'était pas une erreur visible : le drapeau
+     retombait silencieusement sur le globe de l'ONU. */
+  de: "de",
   hi: "in",
+  bn: "bd",
+  pt: "pt",
+  ur: "pk",
+  id: "id",
+  ja: "jp",
+  tr: "tr",
+  ko: "kr",
+  it: "it",
+  th: "th",
+  vi: "vn",
+  am: "et",
+  ig: "ng",
+  fa: "ir",
+  tl: "ph",
+  pl: "pl",
+  el: "gr",
 };
 
 /** Repli : drapeau de l'ONU (`un` existe réellement sur flagcdn) — un

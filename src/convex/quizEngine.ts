@@ -33,7 +33,7 @@ import {
 
 const languageValidator = v.union(
   v.literal("en"), v.literal("zh"), v.literal("es"), v.literal("ar"), v.literal("ru"),
-  v.literal("sw"), v.literal("ln"), v.literal("ha"), v.literal("yo"), v.literal("zu"), v.literal("wo"),
+  v.literal("sw"), v.literal("ln"), v.literal("ha"), v.literal("yo"), v.literal("zu"), v.literal("wo"), v.literal("de"), v.literal("hi"), v.literal("bn"), v.literal("pt"), v.literal("ur"), v.literal("id"), v.literal("ja"), v.literal("tr"), v.literal("ko"), v.literal("it"), v.literal("th"), v.literal("vi"), v.literal("am"), v.literal("ig"), v.literal("fa"), v.literal("tl"), v.literal("pl"), v.literal("el"),
 );
 
 type SlangDoc = {

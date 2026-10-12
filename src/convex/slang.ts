@@ -4,10 +4,14 @@ import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { SLANG_SEED, slangSlug } from "./slangSeed";
 import { LANGUAGE_CODES, normalizeRegion, registerKey } from "./languages";
+import type { LanguageCode } from "./languages";
 import type { DataModel, Doc, Id } from "./_generated/dataModel";
 import type { GenericDatabaseReader } from "convex/server";
 
-type LearningLanguage = "en" | "zh" | "es" | "ar" | "ru";
+/** Langue d'apprentissage = toute langue de `LANGUAGE_CODES`, plus `fr` qui
+    n'est portée ici que comme vocabulaire cible de traduction. */
+type AnyLang = LanguageCode | "fr";
+type LearningLanguage = Exclude<AnyLang, "fr">;
 const entryTable = "slangExpressions" as const;
 
 /* ── Anti-quota (R6) ──────────────────────────────────────────────────
@@ -15,22 +19,19 @@ const entryTable = "slangExpressions" as const;
    table complète sont remplacés par des lectures par-langue (index
    `by_language_popularity`) ; les filtres pays et la recherche par mot
    exploitent les colonnes dénormalisées indexées `regionKey` / `normExpr`
-   (remplies par slang:seed, backfill idempotent inclus). */
-const ALL_LANGS = [
-  "en",
-  "zh",
-  "es",
-  "ar",
-  "ru",
-  "sw",
-  "ln",
-  "ha",
-  "yo",
-  "zu",
-  "wo",
-  "fr",
-] as const;
-type AnyLang = (typeof ALL_LANGS)[number];
+   (remplies par slang:seed, backfill idempotent inclus).
+
+   ⚠ Cette liste n'est PAS la liste des langues déclarées, mais celle des
+   langues qui portent RÉELLEMENT du contenu : elle est dérivée du seed, avec
+   `fr` en plus (vocabulaire cible). Boucler sur les 30 langues déclarées
+   ferait 18 lectures d'index vides par requête de découverte, pour zéro
+   résultat — et agrandirait le budget de lecture des fonctions Convex sans
+   rien apporter. Ajouter du contenu pour une langue suffit à l'inclure ici.
+   Le seul écrivain hors seed (`dynamicMemory`) écrit toujours `en`. */
+const SEEDED_LANGS = new Set<string>(SLANG_SEED.map((entry) => entry.language));
+const ALL_LANGS: readonly AnyLang[] = [...LANGUAGE_CODES, "fr" as const].filter(
+  (code) => SEEDED_LANGS.has(code),
+);
 
 /**
  * Clé dénormalisée du compteur global du catalogue, écrite par
@@ -182,6 +183,24 @@ const languageValidator = v.union(
   v.literal("yo"),
   v.literal("zu"),
   v.literal("wo"),
+  v.literal("de"),
+  v.literal("hi"),
+  v.literal("bn"),
+  v.literal("pt"),
+  v.literal("ur"),
+  v.literal("id"),
+  v.literal("ja"),
+  v.literal("tr"),
+  v.literal("ko"),
+  v.literal("it"),
+  v.literal("th"),
+  v.literal("vi"),
+  v.literal("am"),
+  v.literal("ig"),
+  v.literal("fa"),
+  v.literal("tl"),
+  v.literal("pl"),
+  v.literal("el"),
   v.literal("fr"),
 );
 
@@ -198,6 +217,24 @@ const learningLanguageValidator = v.union(
   v.literal("yo"),
   v.literal("zu"),
   v.literal("wo"),
+  v.literal("de"),
+  v.literal("hi"),
+  v.literal("bn"),
+  v.literal("pt"),
+  v.literal("ur"),
+  v.literal("id"),
+  v.literal("ja"),
+  v.literal("tr"),
+  v.literal("ko"),
+  v.literal("it"),
+  v.literal("th"),
+  v.literal("vi"),
+  v.literal("am"),
+  v.literal("ig"),
+  v.literal("fa"),
+  v.literal("tl"),
+  v.literal("pl"),
+  v.literal("el"),
 );
 
 /**

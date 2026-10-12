@@ -98,6 +98,171 @@ export const LANGUAGES = [
     description:
       "Dakar rue et mbalax — le wolof urbain qui trimarde sur la scène.",
   },
+  /* ── Lot final : 18 langues (12 + 18 = 30) ──────────────────────────
+     Mêmes champs que les précédentes, donc mêmes écrans (onboarding,
+     FocusDialog, menus, Hero de la boutique) sans code spécifique. */
+  {
+    code: "de",
+    name: "Allemand",
+    flag: "🇩🇪",
+    cities: ["Berlin", "Vienne"],
+    countries: "Deutschland · Österreich · Schweiz",
+    description:
+      "Du Kiez-Berlin au Wiener Schmäh — l'allemand de rue, du rap au TikTok.",
+  },
+  {
+    code: "hi",
+    name: "Hindi",
+    flag: "🇮🇳",
+    cities: ["Delhi", "Mumbai"],
+    countries: "Inde",
+    description:
+      "Du Bambaiya de Bombay au Hinglish de Delhi — la rue qui mélange tout.",
+  },
+  {
+    code: "bn",
+    name: "Bengali",
+    flag: "🇧🇩",
+    cities: ["Dhaka", "Kolkata"],
+    countries: "Bangladesh · Inde",
+    description:
+      "L'adda de Dhaka à Kolkata — le bangla des campus et des réseaux.",
+  },
+  {
+    code: "pt",
+    name: "Portugais",
+    flag: "🇵🇹",
+    cities: ["Lisbonne", "São Paulo"],
+    countries: "Portugal · Brasil",
+    description:
+      "De la gíria de Lisbonne au papo do Rio — le portugais qui débarde.",
+  },
+  {
+    code: "ur",
+    name: "Ourdou",
+    flag: "🇵🇰",
+    cities: ["Karachi", "Lahore"],
+    countries: "Pakistan · Inde",
+    description:
+      "L'ourdou de Karachi à Lahore — sher de rue et vannes de cricket.",
+  },
+  {
+    code: "id",
+    name: "Indonésien",
+    flag: "🇮🇩",
+    cities: ["Jakarta", "Surabaya"],
+    countries: "Indonésie",
+    description:
+      "Bahasa gaul de Jakarta — du warung aux réseaux, le bahasa qui scrolle.",
+  },
+  {
+    code: "ja",
+    name: "Japonais",
+    flag: "🇯🇵",
+    cities: ["Tokyo", "Osaka"],
+    countries: "Japon",
+    description:
+      "Du wakamono-kotoba de Shibuya au keigo de bureau — le japonais connecté.",
+  },
+  {
+    code: "tr",
+    name: "Turc",
+    flag: "🇹🇷",
+    cities: ["Istanbul", "Izmir"],
+    countries: "Türkiye",
+    description:
+      "L'argo d'Istanbul entre sokak et réseaux — le turc qui apostrophe.",
+  },
+  {
+    code: "ko",
+    name: "Coréen",
+    flag: "🇰🇷",
+    cities: ["Séoul", "Busan"],
+    countries: "Corée du Sud",
+    description:
+      "Du banmal de Séoul aux répliques de K-drama — le coréen qui chambre.",
+  },
+  {
+    code: "it",
+    name: "Italien",
+    flag: "🇮🇹",
+    cities: ["Rome", "Milan"],
+    countries: "Italia · Svizzera",
+    description:
+      "Du romanesco au milanese — l'italien de bar et de strada, senza filtri.",
+  },
+  {
+    code: "th",
+    name: "Thaï",
+    flag: "🇹🇭",
+    cities: ["Bangkok", "Chiang Mai"],
+    countries: "Thaïlande",
+    description:
+      "Le thaï de Bangkok — street food, lakorn et argot de campus.",
+  },
+  {
+    code: "vi",
+    name: "Vietnamien",
+    flag: "🇻🇳",
+    cities: ["Hanoï", "Saigon"],
+    countries: "Việt Nam",
+    description:
+      "De Hanoï à Saigon — le tiếng lóng des rues et des réseaux.",
+  },
+  {
+    code: "am",
+    name: "Amharique",
+    flag: "🇪🇹",
+    cities: ["Addis-Abeba", "Gondar"],
+    countries: "Éthiopie",
+    description:
+      "L'amharique d'Addis — azmari, fidel et argot de quartier.",
+  },
+  {
+    code: "ig",
+    name: "Igbo",
+    flag: "🇳🇬",
+    cities: ["Enugu", "Onitsha"],
+    countries: "Nigeria Sud-Est",
+    description:
+      "L'igbo d'Enugu à Onitsha — proverbes, Nollywood et slang de campus.",
+  },
+  {
+    code: "fa",
+    name: "Persan",
+    flag: "🇮🇷",
+    cities: ["Téhéran", "Kaboul"],
+    countries: "Iran · Afghanistan · Tadjikistan",
+    description:
+      "Le persan de Téhéran à Kaboul — zaban-e kuche et poésie de réseaux.",
+  },
+  {
+    code: "tl",
+    name: "Tagalog",
+    flag: "🇵🇭",
+    cities: ["Manille", "Cebu"],
+    countries: "Pilipinas",
+    description:
+      "Le Taglish de Manille — jeepney, teleserye et TikTok.",
+  },
+  {
+    code: "pl",
+    name: "Polonais",
+    flag: "🇵🇱",
+    cities: ["Varsovie", "Cracovie"],
+    countries: "Polska",
+    description:
+      "Le polonais de Varsovie — gwara de quartier et memes d'internet.",
+  },
+  {
+    code: "el",
+    name: "Grec",
+    flag: "🇬🇷",
+    cities: ["Athènes", "Thessalonique"],
+    countries: "Elláda · Chypre",
+    description:
+      "Du grec d'Athènes au chypriote — argot de kafeneio et de TikTok.",
+  },
 ] as const;
 
 export type LanguageCode =
@@ -111,7 +276,25 @@ export type LanguageCode =
   | "ha"
   | "yo"
   | "zu"
-  | "wo";
+  | "wo"
+  | "de"
+  | "hi"
+  | "bn"
+  | "pt"
+  | "ur"
+  | "id"
+  | "ja"
+  | "tr"
+  | "ko"
+  | "it"
+  | "th"
+  | "vi"
+  | "am"
+  | "ig"
+  | "fa"
+  | "tl"
+  | "pl"
+  | "el";
 
 export const LANGUAGE_CODES = LANGUAGES.map((l) => l.code) as LanguageCode[];
 
@@ -233,6 +416,73 @@ export const COUNTRIES: Record<LanguageCode, CountryOption[]> = {
     { code: "sn", label: "Sénégal", flag: "🇸🇳" },
     { code: "gm", label: "Gambie", flag: "🇬🇲" },
   ],
+  /* ── Lot final : mêmes pays que la carte (LANGUAGE_GEO), plus les
+     variantes régionales utiles au filtre de découverte. ─────────────── */
+  de: [
+    { code: "de", label: "Deutschland", flag: "🇩🇪" },
+    { code: "at", label: "Österreich", flag: "🇦🇹" },
+    { code: "ch", label: "Schweiz", flag: "🇨🇭" },
+  ],
+  hi: [
+    { code: "in", label: "Inde", flag: "🇮🇳" },
+  ],
+  bn: [
+    { code: "bd", label: "Bangladesh", flag: "🇧🇩" },
+    { code: "in", label: "Inde (Bengale-Occidental)", flag: "🇮🇳" },
+  ],
+  pt: [
+    { code: "pt", label: "Portugal", flag: "🇵🇹" },
+    { code: "br", label: "Brasil", flag: "🇧🇷" },
+    { code: "ao", label: "Angola", flag: "🇦🇴" },
+    { code: "mz", label: "Moçambique", flag: "🇲🇿" },
+  ],
+  ur: [
+    { code: "pk", label: "Pakistan", flag: "🇵🇰" },
+    { code: "in", label: "Inde", flag: "🇮🇳" },
+  ],
+  id: [
+    { code: "id", label: "Indonesia", flag: "🇮🇩" },
+  ],
+  ja: [
+    { code: "jp", label: "日本", flag: "🇯🇵" },
+  ],
+  tr: [
+    { code: "tr", label: "Türkiye", flag: "🇹🇷" },
+  ],
+  ko: [
+    { code: "kr", label: "대한민국", flag: "🇰🇷" },
+  ],
+  it: [
+    { code: "it", label: "Italia", flag: "🇮🇹" },
+    { code: "ch", label: "Svizzera", flag: "🇨🇭" },
+  ],
+  th: [
+    { code: "th", label: "ประเทศไทย", flag: "🇹🇭" },
+  ],
+  vi: [
+    { code: "vn", label: "Việt Nam", flag: "🇻🇳" },
+  ],
+  am: [
+    { code: "et", label: "ኢትዮጵያ", flag: "🇪🇹" },
+  ],
+  ig: [
+    { code: "ng-se", label: "Nigeria Sud-Est", flag: "🇳🇬" },
+  ],
+  fa: [
+    { code: "ir", label: "ایران", flag: "🇮🇷" },
+    { code: "af", label: "افغانستان", flag: "🇦🇫" },
+    { code: "tj", label: "Тоҷикистон", flag: "🇹🇯" },
+  ],
+  tl: [
+    { code: "ph", label: "Pilipinas", flag: "🇵🇭" },
+  ],
+  pl: [
+    { code: "pl", label: "Polska", flag: "🇵🇱" },
+  ],
+  el: [
+    { code: "gr", label: "Ελλάδα", flag: "🇬🇷" },
+    { code: "cy", label: "Κύπρος", flag: "🇨🇾" },
+  ],
 };
 
 /** Alias région (texte libre des données) → code pays stable. */
@@ -316,6 +566,61 @@ const REGION_ALIASES: Record<string, string> = {
   gambie: "gm",
   gambia: "gm",
   banjul: "gm",
+  // ── Lot final : libellés des pays proposés par les 18 nouvelles langues.
+  // Sans ces alias, une expression de région « Brasil » ne serait jamais
+  // retenue par le filtre pays « br » (le label et le code diffèrent).
+  allemagne: "de",
+  germany: "de",
+  deutschland: "de",
+  autriche: "at",
+  osterreich: "at",
+  austria: "at",
+  suisse: "ch",
+  schweiz: "ch",
+  svizzera: "ch",
+  inde: "in",
+  india: "in",
+  bangladesh: "bd",
+  portugal: "pt",
+  brasil: "br",
+  bresil: "br",
+  brazil: "br",
+  angola: "ao",
+  mozambique: "mz",
+  pakistan: "pk",
+  indonesie: "id",
+  indonesia: "id",
+  japon: "jp",
+  japan: "jp",
+  turkiye: "tr",
+  turquie: "tr",
+  turkey: "tr",
+  "coree du sud": "kr",
+  "south korea": "kr",
+  italie: "it",
+  italia: "it",
+  italy: "it",
+  thailande: "th",
+  thailand: "th",
+  vietnam: "vn",
+  "viet nam": "vn",
+  ethiopie: "et",
+  ethiopia: "et",
+  "nigeria sud-est": "ng-se",
+  iran: "ir",
+  afghanistan: "af",
+  tadjikistan: "tj",
+  tajikistan: "tj",
+  philippines: "ph",
+  pilipinas: "ph",
+  pologne: "pl",
+  polska: "pl",
+  poland: "pl",
+  grece: "gr",
+  greece: "gr",
+  ellada: "gr",
+  chypre: "cy",
+  cyprus: "cy",
 };
 
 /**
