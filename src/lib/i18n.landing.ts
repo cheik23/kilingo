@@ -10,7 +10,7 @@
    `undefined`, fusionné par-dessus les dictionnaires de base (voir
    i18n.tsx → applyDictionaryOverlays).
 
-   Les nombres (28 langues, 2 608 expressions, 85 avatars) ne sont PAS des
+   Les nombres (30 langues, 2 631 expressions, 85 avatars) ne sont PAS des
    chaînes : ils viennent de `landingStats` côté Convex. Seuls le libellé et
    les pluriels sont traduits, via `{n}`. Les `*Value:` ci-dessous ne servent
    que de repli le temps de la requête (voir Landing.tsx) — ils restent
@@ -53,9 +53,9 @@ const LANDING: Record<string, LandingCopy> = {
     features: {
       title: "Tout ce qu'il faut, en un seul endroit",
       lead: "Un catalogue large, un avatar qui te ressemble, et une méthode qui tient dans la vraie vie.",
-      languagesValue: "28",
+      languagesValue: "30",
       languagesLabel: "langues africaines etaslées",
-      expressionsValue: "2 608",
+      expressionsValue: "2 631",
       expressionsLabel: "expressions et argots documentés",
       avatarValue: "3D",
       avatarLabel: "avatar prêt à porter",
@@ -74,9 +74,9 @@ const LANDING: Record<string, LandingCopy> = {
     features: {
       title: "Everything you need, in one place",
       lead: "A wide catalogue, an avatar that looks like you, and a method that survives real life.",
-      languagesValue: "28",
+      languagesValue: "30",
       languagesLabel: "African and global languages",
-      expressionsValue: "2,608",
+      expressionsValue: "2,631",
       expressionsLabel: "documented expressions and slang terms",
       avatarValue: "3D",
       avatarLabel: "avatar ready to wear",
@@ -95,9 +95,9 @@ const LANDING: Record<string, LandingCopy> = {
     features: {
       title: "Todo lo que necesitas, en un solo sitio",
       lead: "Un catálogo amplio, un avatar que se parece a ti y un método que aguanta la vida real.",
-      languagesValue: "28",
+      languagesValue: "30",
       languagesLabel: "lenguas africanas y globales",
-      expressionsValue: "2.608",
+      expressionsValue: "2.631",
       expressionsLabel: "expresiones y argots documentados",
       avatarValue: "3D",
       avatarLabel: "avatar listo para llevar",
@@ -116,9 +116,9 @@ const LANDING: Record<string, LandingCopy> = {
     features: {
       title: "你所需的一切，尽在一处",
       lead: "庞大的词库、像你的头像，以及真正用得上的方法。",
-      languagesValue: "28",
+      languagesValue: "30",
       languagesLabel: "非洲及全球语言",
-      expressionsValue: "2,608",
+      expressionsValue: "2,631",
       expressionsLabel: "条有据可查的表达与俚语",
       avatarValue: "3D",
       avatarLabel: "可佩戴的头像",
@@ -137,9 +137,9 @@ const LANDING: Record<string, LandingCopy> = {
     features: {
       title: "كل ما تحتاجه في مكان واحد",
       lead: "كتالوج واسع، وصورة رمزية تشبهك، وطريقة تصمد في الحياة الحقيقية.",
-      languagesValue: "28",
+      languagesValue: "30",
       languagesLabel: "لغات أفريقية وعالمية",
-      expressionsValue: "2,608",
+      expressionsValue: "2,631",
       expressionsLabel: "تعبير ومصطلح موثّق",
       avatarValue: "3D",
       avatarLabel: "صورة رمزية جاهزة",
@@ -158,9 +158,9 @@ const LANDING: Record<string, LandingCopy> = {
     features: {
       title: "Всё нужное — в одном месте",
       lead: "Большой каталог, аватар похожий на тебя и метод, который работает в жизни.",
-      languagesValue: "28",
+      languagesValue: "30",
       languagesLabel: "африканских и мировых языков",
-      expressionsValue: "2 608",
+      expressionsValue: "2 631",
       expressionsLabel: "документированных выражения и сленга",
       avatarValue: "3D",
       avatarLabel: "готовый аватар",
@@ -179,9 +179,9 @@ const LANDING: Record<string, LandingCopy> = {
     features: {
       title: "Kila unachohitaji, mahali moja",
       lead: "Katalogi nyingi, avatar inayofanana nawe, na njia inayofanya kazi maishani.",
-      languagesValue: "28",
+      languagesValue: "30",
       languagesLabel: "lugha za Afrika na dunia",
-      expressionsValue: "2,608",
+      expressionsValue: "2,631",
       expressionsLabel: "misemo na msamiati iliyoandikwa",
       avatarValue: "3D",
       avatarLabel: "avatar tayari kuvaa",
@@ -200,9 +200,9 @@ const LANDING: Record<string, LandingCopy> = {
     features: {
       title: "Nyonso esengami, molokatu mosusu",
       lead: "Bungi ya biso, avatar elingani na yo, indela ekosala malembe.",
-      languagesValue: "28",
+      languagesValue: "30",
       languagesLabel: "mikótá ya Afrika na ya moninga",
-      expressionsValue: "2.608",
+      expressionsValue: "2.631",
       expressionsLabel: "maloko oyo ekotámbola",
       avatarValue: "3D",
       avatarLabel: "avatar ekotambolá",
@@ -221,9 +221,9 @@ const LANDING: Record<string, LandingCopy> = {
     features: {
       title: "Duk abin da kake buƙata, wuri daya",
       lead: "Babban katalogi, siffar da kake kama da kanka, da hanya da tafi na rayuwa.",
-      languagesValue: "28",
+      languagesValue: "30",
       languagesLabel: "harshen Afirka da duniya",
-      expressionsValue: "2,608",
+      expressionsValue: "2,631",
       expressionsLabel: "siffa da wannan da aka rubuce",
       avatarValue: "3D",
       avatarLabel: "siffar da za ka iya sanya",
@@ -242,9 +242,9 @@ const LANDING: Record<string, LandingCopy> = {
     features: {
       title: "Gbogbo ohun tí o nílò, ní ibí kan",
       lead: "Àkójọ púpọ̀, àwòrán tí ó bẹ̀rẹ̀ sí ọ, àti ọ̀nà tí ó bá ṣiṣẹ́ nínú ìgbésí ayé.",
-      languagesValue: "28",
+      languagesValue: "30",
       languagesLabel: "Èdè Afrika àti ayé",
-      expressionsValue: "2,608",
+      expressionsValue: "2,631",
       expressionsLabel: "ìlù àti slang tí a kọ sílẹ̀",
       avatarValue: "3D",
       avatarLabel: "àwòrán tí a ṣe gbé",
@@ -263,9 +263,9 @@ const LANDING: Record<string, LandingCopy> = {
     features: {
       title: "Konke okudingayo, endaweni eyodwa",
       lead: "Ikhatala elikhulu, isithombe esifana nawe, kanye nendlela esebenza empilweni.",
-      languagesValue: "28",
+      languagesValue: "30",
       languagesLabel: "izilimi zase-Afrika nezomhlaba",
-      expressionsValue: "2,608",
+      expressionsValue: "2,631",
       expressionsLabel: "izisho nezigaba ezichazulwe",
       avatarValue: "3D",
       avatarLabel: "isithombe esilungiselelwe",
@@ -284,9 +284,9 @@ const LANDING: Record<string, LandingCopy> = {
     features: {
       title: "Lool dund bu dox nga bopp bu bees",
       lead: "Liista bu mbaadh, avatar bi lay yër, ak nit mbaad bu bëgg bu topp.",
-      languagesValue: "28",
+      languagesValue: "30",
       languagesLabel: "Làkk yu Afrika ak yu mond",
-      expressionsValue: "2.608",
+      expressionsValue: "2.631",
       expressionsLabel: "mbaat ak wannan dokku",
       avatarValue: "3D",
       avatarLabel: "avatar bu lay tëm",

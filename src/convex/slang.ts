@@ -23,11 +23,12 @@ const entryTable = "slangExpressions" as const;
 
    ⚠ Cette liste n'est PAS la liste des langues déclarées, mais celle des
    langues qui portent RÉELLEMENT du contenu : elle est dérivée du seed, avec
-   `fr` en plus (vocabulaire cible). Boucler sur TOUTES les langues déclarées
-   ferait des lectures d'index vides par requête de découverte (au 10/2026 :
-   am et ig restent sans contenu), pour zéro résultat — et agrandirait le
-   budget de lecture des fonctions Convex sans rien apporter. Ajouter du
-   contenu pour une langue suffit à l'inclure ici.
+   `fr` en plus (vocabulaire cible). Depuis le Lot 4, TOUTES les langues
+   déclarées portent du contenu : cette liste couvre donc désormais
+   l'intégralité de `LANGUAGE_CODES` + `fr`. Elle reste DÉRIVÉE du seed pour
+   la raison d'origine — ajouter une langue vide ne doit pas multiplier des
+   lectures d'index sans résultat, ni élargir le budget de lecture des
+   fonctions Convex pour rien.
    Le seul écrivain hors seed (`dynamicMemory`) écrit toujours `en`. */
 const SEEDED_LANGS = new Set<string>(SLANG_SEED.map((entry) => entry.language));
 // Vérification d'intégrité au démarrage (dev only) : le seed doit couvrir
@@ -35,7 +36,7 @@ const SEEDED_LANGS = new Set<string>(SLANG_SEED.map((entry) => entry.language));
 // Escapée en try/catch pour les backends qui ne supportent pas import.meta.
 try {
   if (import.meta.env && import.meta.env.DEV) {
-    const expected = new Set(["en","zh","es","ar","ru","sw","ln","ha","yo","zu","wo","de","pt","it","ko","ja","tr","pl","hi","bn","ur","id","th","vi","fa","tl","el","fr"]);
+    const expected = new Set(["en","zh","es","ar","ru","sw","ln","ha","yo","zu","wo","de","pt","it","ko","ja","tr","pl","hi","bn","ur","id","th","vi","fa","tl","el","am","ig","fr"]);
     for (const code of expected) {
       if (!SEEDED_LANGS.has(code)) {
         console.warn(`[seed] langue attendue manquante dans SLANG_SEED : ${code}`);

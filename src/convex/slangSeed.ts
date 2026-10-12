@@ -1,5 +1,6 @@
 import { SLANG_SEED_AFRICA } from "./slangSeedAfrica";
 import { SLANG_SEED_2025 } from "./slangSeed2025";
+import { SLANG_SEED_LOT4 } from "./slangSeedLot4";
 import { SLANG_SEED_LOT3 } from "./slangSeedLot3";
 import { SLANG_SEED_LOT2 } from "./slangSeedLot2";
 import { SLANG_SEED_LOT1 } from "./slangSeedLot1";
@@ -36,6 +37,9 @@ export type SlangSeed = {
     | "fa"
     | "tl"
     | "el"
+    // Lot 4 (Phase 2, dernier lot) — amharique et igbo.
+    | "am"
+    | "ig"
     | "fr";
   expression: string;
   literal: string;
@@ -636,6 +640,12 @@ export const SLANG_SEED: SlangSeed[] = [
   // côté backend (ALL_LANGS, slang.ts) — une seule source, aucune liste à
   // tenir à la main.
   ...SLANG_SEED_LOT3,
+  // Lot 4 (Phase 2, DERNIER lot) — amharique et igbo : 23 expressions pour
+  // 2 langues. Après ce spread, les 29 langues d'apprentissage de
+  // `languages.ts` portent toutes du contenu : plus aucun badge « Bientôt ».
+  // ⚠️ Contenu amharique/igbo à faire relire par un natif avant exploitation
+  // commerciale (voir l'en-tête de slangSeedLot4.ts).
+  ...SLANG_SEED_LOT4,
 
   // ─── ANGLAIS (US/UK) — cœur éditorial ─────────────────────────────
   { language: "en", expression: "no cap", literal: "pas de casquette", meaning: "pour de vrai, sans mentir", context: "Sert à insister sur la véracité d'une affirmation, entre amis ou en ligne.", register: "street", region: "US", popularity: 96, mediaRefs: ["Song — « No Cap » (Future)", "TikTok — #NoCap 2B views"] },
