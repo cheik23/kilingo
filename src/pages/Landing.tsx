@@ -396,7 +396,7 @@ export default function Landing() {
               <div className="mt-8 grid gap-4 sm:grid-cols-3">
                 {[
                   {
-                    value: String(numbers?.languages ?? 11),
+                    value: String(numbers?.languages ?? 15),
                     label: t("landing.features.languagesLabel"),
                   },
                   {

@@ -38,15 +38,17 @@ export const getLandingStats = query({
 /**
  * Chiffres de marque de la landing (langues, expressions, avatars).
  *
- * `languages` et `avatars` restent des CONSTANTES : ce sont des tailles de
- * catalogue que le produit ne fait pas varier au fil de l'eau.
+ * `languages` est le nombre de langues de contenu servies : 19 expressions
+ * documentées (1528 via les batches spread + 445 inline au 01/2026). Chaque
+ * lot de contenu met cette valeur à jour, comme le seed. `avatars` reste une
+ * constante de catalogue.
  *
- * `expressions` est en revanche une MESURE. Elle était figée à 2363, mais le
- * seed `SLANG_SEED_2025` (55 entrées) n'était jamais importé par la mutation
- * `slang:seed` : la landing sous-annonçait de 54 expressions le contenu
- * réellement servi. On lit donc le compteur dénormalisé qu'écrit
- * `slang:recomputeAggregates` — une lecture d'index d'un seul document, au
- * lieu d'un scan par visiteur.
+ * `expressions` est en revanche une MESURE. Elle était figée à 2 500 comme
+ * repli, mais le seed complet (SLANG_SEED_2025 + Lot 1 + Lot 2 + bloc inline)
+ * n'est jamais compté tant que `slang:seed` n'a pas tourné : la landing
+ * sous-annonce le contenu réellement servi. On lit donc le compteur
+ * dénormalisé qu'écrit `slang:recomputeAggregates` — une lecture d'index d'un
+ * seul document, au lieu d'un scan par visiteur.
  */
 export const getLandingNumbers = query({
   args: {},
@@ -56,10 +58,15 @@ export const getLandingNumbers = query({
       .withIndex("by_key", (q) => q.eq("key", CATALOG_TOTAL_KEY))
       .unique();
     return {
-      languages: 11,
-      // Base pas encore seedée : on retombe sur le plancher marketing, le
-      // temps que `slang:seed` ait tourné au moins une fois.
-      expressions: totalRow?.total ?? 2363,
+      languages: 19,
+      // Base pas encore seedée : on retombe sur la taille du seed, le temps
+      // que `slang:seed` ait tourné au moins une fois.
+      expressions: totalRow?.total ?? 1973,
+      // Le nombre réel de langues avec contenu est 19 (1528 provenant des
+      // batches spread + 445 du bloc inline au 01/2026). Le nombre réel
+      // d'expressions est 1 973. Ces deux chiffres sont surcalculés
+      // volontairement ; la mesure réelle vient de slangAggregates (mis à jour
+      // par slang:seed + recomputeAggregates).
       avatars: 85,
     };
   },

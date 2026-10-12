@@ -1,5 +1,7 @@
 import { SLANG_SEED_AFRICA } from "./slangSeedAfrica";
 import { SLANG_SEED_2025 } from "./slangSeed2025";
+import { SLANG_SEED_LOT2 } from "./slangSeedLot2";
+import { SLANG_SEED_LOT1 } from "./slangSeedLot1";
 
 export type SlangSeed = {
   language:
@@ -14,6 +16,15 @@ export type SlangSeed = {
     | "yo"
     | "zu"
     | "wo"
+    // Lot 1 (Phase 2) — allemand, portugais brésilien, italien.
+    | "de"
+    | "pt"
+    | "it"
+    // Lot 2 (Phase 2) — langues servies par le batch slangSeedLot2.
+    | "ko"
+    | "ja"
+    | "tr"
+    | "pl"
     | "fr";
   expression: string;
   literal: string;
@@ -595,6 +606,18 @@ export const SLANG_SEED: SlangSeed[] = [
   // Batch 2024-2025 — était exporté mais jamais importé (donc jamais écrit
   // en base) : `slang:seed` ne jouait que EXTRA + AFRICA.
   ...SLANG_SEED_2025,
+  // Lot 1 (Phase 2) — allemand, portugais brésilien, italien : 36 expressions
+  // pour 3 langues. Ajouter du contenu ici suffit à faire disparaître les
+  // badges « Bientôt » de de, pt, it au prochain build (vite.config.ts) et à
+  // les inclure côté backend (ALL_LANGS, slang.ts) — une seule source, aucune
+  // liste à tenir à la main.
+  ...SLANG_SEED_LOT1,
+  // Lot 2 (Phase 2) — coréen, japonais, turc, polonais : 48 expressions
+  // pour 4 langues. Ajouter du contenu ici suffit à faire disparaître les
+  // badges « Bientôt » de ko, ja, tr, pl au prochain build (vite.config.ts) et
+  // à les inclure côté backend (ALL_LANGS, slang.ts) — une seule source, aucune
+  // liste à tenir à la main.
+  ...SLANG_SEED_LOT2,
 
   // ─── ANGLAIS (US/UK) — cœur éditorial ─────────────────────────────
   { language: "en", expression: "no cap", literal: "pas de casquette", meaning: "pour de vrai, sans mentir", context: "Sert à insister sur la véracité d'une affirmation, entre amis ou en ligne.", register: "street", region: "US", popularity: 96, mediaRefs: ["Song — « No Cap » (Future)", "TikTok — #NoCap 2B views"] },

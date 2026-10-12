@@ -755,7 +755,7 @@ const fr = {
 
   atlas: {
     title: "Atlas",
-    subtitle: "2362 expressions · 12 langues · une seule rue",
+    subtitle: "2464 expressions · 16 langues · une seule rue",
     search: "Recherche",
     explore: "Exploration",
     toggle: "Basculer Recherche ↔ Exploration",
@@ -1461,7 +1461,7 @@ const en: Dict = {
 
   atlas: {
     title: "Atlas",
-    subtitle: "2362 expressions · 12 languages · one single street",
+    subtitle: "2464 expressions · 16 languages · one single street",
     search: "Search",
     explore: "Explore",
     toggle: "Switch Search ↔ Explore",
@@ -2075,7 +2075,7 @@ const es: Dict = {
 
   atlas: {
     title: "Atlas",
-    subtitle: "2362 expresiones · 12 lenguas · una sola calle",
+    subtitle: "2464 expresiones · 16 lenguas · una sola calle",
     search: "Búsqueda",
     explore: "Exploración",
     toggle: "Cambiar Búsqueda ↔ Exploración",
@@ -2643,7 +2643,7 @@ const zh: Dict = {
   },
   atlas: {
     title: "阿特拉斯",
-    subtitle: "2362 条俚语 · 12 种语言 · 同一条街",
+    subtitle: "2464 条俚语 · 16 种语言 · 同一条街",
     search: "搜索",
     explore: "探索",
     toggle: "切换 搜索 ↔ 探索",
@@ -3184,7 +3184,7 @@ const ar: Dict = {
   },
   atlas: {
     title: "الأطلس",
-    subtitle: "2362 تعبيرًا · 12 لغة · شارع واحد",
+    subtitle: "2464 تعبيرًا · 16 لغة · شارع واحد",
     search: "بحث",
     explore: "استكشاف",
     toggle: "التبديل بحث ↔ استكشاف",
@@ -3726,7 +3726,7 @@ const ru: Dict = {
   },
   atlas: {
     title: "Атлас",
-    subtitle: "2362 выражения · 12 языков · одна улица",
+    subtitle: "2464 выражения · 16 языков · одна улица",
     search: "Поиск",
     explore: "Обзор",
     toggle: "Переключить Поиск ↔ Обзор",

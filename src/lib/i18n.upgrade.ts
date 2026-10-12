@@ -49,7 +49,7 @@ const UPGRADE: Record<string, UpgradeCopy> = {
       "Ce bouton ne débite rien : il t'emmène à la page des tarifs. Le paiement se fait ensuite sur la page de Lemon Squeezy, où tu vois le prix et la date du premier prélèvement avant de valider.",
     moments: {
       firstLesson:
-        "Ta première leçon est derrière toi. Premium enlève le plafond du shadowing et ouvre les 11 langues du catalogue, pas seulement 3.",
+        "Ta première leçon est derrière toi. Premium enlève le plafond du shadowing et ouvre les 15 langues du catalogue, pas seulement 3.",
       avatar:
         "Ton avatar est en place. Premium ajoute l'export Anki / CSV en un clic et les 8 personnages IA au choix.",
       streak3:
@@ -64,7 +64,7 @@ const UPGRADE: Record<string, UpgradeCopy> = {
       "This button charges nothing: it takes you to the pricing page. Payment then happens on the Lemon Squeezy page, where you see the price and the first charge date before you confirm.",
     moments: {
       firstLesson:
-        "Your first lesson is done. Premium lifts the shadowing limit and opens all 11 catalogue languages, not just 3.",
+        "Your first lesson is done. Premium lifts the shadowing limit and opens all 15 catalogue languages, not just 3.",
       avatar:
         "Your avatar is set. Premium adds one-click Anki / CSV export and all 8 AI characters to pick from.",
       streak3:
@@ -79,7 +79,7 @@ const UPGRADE: Record<string, UpgradeCopy> = {
       "Este botón no cobra nada: te lleva a la página de precios. El pago se hace después en la página de Lemon Squeezy, donde ves el precio y la fecha del primer cobro antes de confirmar.",
     moments: {
       firstLesson:
-        "Tu primera lección ya está hecha. Premium quita el límite del shadowing y abre los 11 idiomas del catálogo, no solo 3.",
+        "Tu primera lección ya está hecha. Premium quita el límite del shadowing y abre los 15 idiomas del catálogo, no solo 3.",
       avatar:
         "Tu avatar está listo. Premium añade la exportación Anki / CSV en un clic y los 8 personajes IA a elegir.",
       streak3:
@@ -94,7 +94,7 @@ const UPGRADE: Record<string, UpgradeCopy> = {
       "这个按钮不扣款，只把你带到价格页。付款随后在 Lemon Squeezy 的页面完成，你可以在确认前看到价格和首次扣款日期。",
     moments: {
       firstLesson:
-        "你的第一节课已经完成。Premium 解除跟读次数上限，并开放目录中全部 11 种语言，而不只是 3 种。",
+        "你的第一节课已经完成。Premium 解除跟读次数上限，并开放目录中全部 15 种语言，而不只是 3 种。",
       avatar:
         "你的头像已就位。Premium 增加一键导出 Anki / CSV，并提供全部 8 个 AI 角色可选。",
       streak3:
@@ -109,7 +109,7 @@ const UPGRADE: Record<string, UpgradeCopy> = {
       "هذا الزر لا يخصم شيئًا: ينقلك إلى صفحة الأسعار. يتم الدفع بعد ذلك في صفحة Lemon Squeezy، حيث ترى السعر وتاريخ أول خصم قبل التأكيد.",
     moments: {
       firstLesson:
-        "أنهيت درسك الأول. Premium يرفع حد التكرار الصوتي ويفتح لغات الكتالوج الـ11، لا ثلاثًا فقط.",
+        "أنهيت درسك الأول. Premium يرفع حد التكرار الصوتي ويفتح لغات الكتالوج الـ15، لا ثلاثًا فقط.",
       avatar:
         "صورتك جاهزة. Premium يضيف التصدير إلى Anki / CSV بضغطة واحدة، ويفتح الشخصيات الثماني.",
       streak3:
@@ -124,7 +124,7 @@ const UPGRADE: Record<string, UpgradeCopy> = {
       "Эта кнопка ничего не списывает: она ведёт на страницу цен. Оплата проходит затем на странице Lemon Squeezy, где до подтверждения видно цену и дату первого списания.",
     moments: {
       firstLesson:
-        "Первый урок позади. Premium снимает ограничение на повторение и открывает все 11 языков каталога, а не три.",
+        "Первый урок позади. Premium снимает ограничение на повторение и открывает все 15 языков каталога, а не три.",
       avatar:
         "Аватар готов. Premium добавляет экспорт в Anki / CSV в один клик и все 8 ИИ-персонажей на выбор.",
       streak3:
@@ -139,7 +139,7 @@ const UPGRADE: Record<string, UpgradeCopy> = {
       "Kitufe hiki hakichakati chochote: kinakuendesha kwenye ukurasa wa bei. Malipo hufanyika kisha kwenye ukurasa wa Lemon Squeezy, ambapo unaona bei na tarehe ya malipo ya kwanza kabla ya kuthibitisha.",
     moments: {
       firstLesson:
-        "Somo lako la kwanza limekwisha. Premium huondoa kipimo cha marudio na kufungua lugha zote 11 za katalogi, si tatu tu.",
+        "Somo lako la kwanza limekwisha. Premium huondoa kipimo cha marudio na kufungua lugha zote 15 za katalogi, si tatu tu.",
       avatar:
         "Avatar yako iko tayari. Premium inaongeza uagizaji wa Anki / CSV kwa moja bonye na wahusika wote 8 wa AI.",
       streak3:
@@ -169,7 +169,7 @@ const UPGRADE: Record<string, UpgradeCopy> = {
       "Wannan mabuɗi ba ya kuma kowane: yana kai ka shafiyar farashin. Biyan an ɗauka a gaban a kan shafiyar Lemon Squeezy, kana ka ga kudi da ranar biyan na farko kafin ka tabbatar.",
     moments: {
       firstLesson:
-        "Karfafin da farko ya ka an ƙare. Premium ya rage iyakan shadowing kuma ya buɗe dukkanin kalmomin 11, ba 3 kawai.",
+        "Karfafin da farko ya ka an ƙare. Premium ya rage iyakan shadowing kuma ya buɗe dukkanin kalmomin 15, ba 3 kawai.",
       avatar:
         "Hoto ɗinka ka na nan lokacin. Premium ya ƙara fitarwa Anki / CSV da click kuma dukkanin haruffa 8 na AI.",
       streak3:
@@ -184,7 +184,7 @@ const UPGRADE: Record<string, UpgradeCopy> = {
       "Tẹ̀lé yìí kò bá gba owó: ó ń ọ̀kọ̀ ìwé àkọ́kọ́ ọfẹ́. Àwọn owó máa bá ṣe lórí ojú-ìwé Lemon Squeezy, níbi tí o bá rí iye àti ọjọ́ ìsanwó akọ́kọ́ ṣáájú ìfẹ́rànṣe.",
     moments: {
       firstLesson:
-        "Kọ́ọ̀kan ní gbogbo ìkọ́kọ́ rẹ ti parí. Premium yóo pa àmì ìtọ́kọ̀ sí i, kí o sì gbé 11 èdè kúrò, kìí kan 3 nìkan.",
+        "Kọ́ọ̀kan ní gbogbo ìkọ́kọ́ rẹ ti parí. Premium yóo pa àmì ìtọ́kọ̀ sí i, kí o sì gbé 15 èdè kúrò, kìí kan 3 nìkan.",
       avatar:
         "Àvátààrì rẹ ti wà. Premium yóo fi àtúnṣe Anki / CSV ní ẹ̀tàn, kí o sì gbé àwọn eréké AI 8 láti yíyàn.",
       streak3:
@@ -199,7 +199,7 @@ const UPGRADE: Record<string, UpgradeCopy> = {
       "Lesi button akusukeli mali: likuthumela ekhasini yamapheshana. Ukukhokha kwenziwa ekhasini ye-Lemon Squeezy, lapho ubona inani nokusuku lokukhokhwa okokuqala ngaphambi kokugcina.",
     moments: {
       firstLesson:
-        "Isifundo sakho sokuqala siqediwe. Premium khipha umkhawulo wokupinda futhi ivula zonke izilimi ezingu-11, hhayi ezintathu kuphela.",
+        "Isifundo sakho sokuqala siqediwe. Premium khipha umkhawulo wokupinda futhi ivula zonke izilimi ezingu-15, hhayi ezintathu kuphela.",
       avatar:
         "I-avatar yakho isibekiwe. Premium ingeze ukukhipha i-Anki / CSV ngokuchofoza kanye futhi zonke izinhundlo ezingu-8 ze-AI.",
       streak3:
@@ -214,7 +214,7 @@ const UPGRADE: Record<string, UpgradeCopy> = {
       "Bouton bi bi nekkati safari: efi di yóbbu na fees bi. Teggi di di done ci Lemon Squeezy, fo nga yeem nddi te tekkati ndi laye teggi te.",
     moments: {
       firstLesson:
-        "Kurs bu bees bu ggis bu pari. Premium di((- sanq yeccatu ngay def tey)) tekk ci yebbu nekk yi 11 bu bees, kìi ci 3 dara.",
+        "Kurs bu bees bu ggis bu pari. Premium di((- sanq yeccatu ngay def tey)) tekk ci yebbu nekk yi 15 bu bees, kìi ci 3 dara.",
       avatar:
         "Avatar bu yës bu dal. Premium bu baara mbirtu Anki / CSV ci click bu bees, tekk ci yoro AI 8.",
       streak3:
