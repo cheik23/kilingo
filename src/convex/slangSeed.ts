@@ -49,6 +49,15 @@ export type SlangSeed = {
   region: string;
   popularity: number;
   mediaRefs?: string[];
+  /**
+   * Fiche en attente de relecture par un locuteur natif.
+   *
+   * Laisser ABSENT par défaut ; ne le renseigner à `false` que pour un lot
+   * qui n'a pas encore été validé par un natif (aujourd'hui : l'amharique et
+   * l'igbo du Lot 4). Voir le commentaire du champ dans `schema.ts` : l'UI ne
+   * signale que `validated === false`, jamais l'absence.
+   */
+  validated?: boolean;
 };
 
 /** Batch-2 additions, spread into the main seed below. */

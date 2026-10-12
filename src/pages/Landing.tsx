@@ -399,7 +399,7 @@ export default function Landing() {
                     // Repli avant l'arrivée de la requête : la valeur réelle
                     // vient de landingStats.getLandingNumbers (dérivée du seed,
                     // comme contentLanguages et ALL_LANGS).
-                    value: String(numbers?.languages ?? 30),
+                    value: String(numbers?.languages ?? 29),
                     label: t("landing.features.languagesLabel"),
                   },
                   {

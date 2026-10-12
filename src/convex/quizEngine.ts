@@ -43,6 +43,8 @@ type SlangDoc = {
   meaning: string;
   example?: string;
   register: string;
+  /** `false` = fiche à faire relire par un natif (voir UnverifiedBadge). */
+  validated?: boolean;
 };
 
 const LANG_NAMES: Record<string, string> = {
@@ -172,6 +174,8 @@ export const generateQuiz = mutation({
       example?: string;
       expression: string;
       meaning: string;
+      /** Fiche à faire relire par un natif (`false`) — sinon absent. */
+      validated?: boolean;
     };
     type StoredQuestion = PublicQuestion & { correctIndex: number };
 
@@ -220,6 +224,9 @@ export const generateQuiz = mutation({
         example,
         expression: target.expression,
         meaning: target.meaning,
+        // Recopié pour que l'avertissement « à faire relire » s'affiche sur la
+        // question, pas seulement dans la Découverte.
+        validated: target.validated,
       };
       publicQuestions.push(question);
       storedQuestions.push({ ...question, correctIndex });
@@ -285,6 +292,8 @@ export const submitQuiz = mutation({
       meaning: string;
       example?: string;
       correctOption: string;
+      /** Fiche à faire relire par un natif (`false`) — sinon absent. */
+      validated?: boolean;
     }[] = [];
     const questionTypes: string[] = [];
 
@@ -299,6 +308,9 @@ export const submitQuiz = mutation({
           meaning: q.meaning,
           example: q.example,
           correctOption: q.options[q.correctIndex] ?? q.meaning,
+          // Le récapitulatif des erreurs doit porter le même avertissement que
+          // la question : c'est là que l'apprenant relit ce qu'il a raté.
+          validated: q.validated,
         });
       }
     }

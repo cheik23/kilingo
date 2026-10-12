@@ -84,6 +84,10 @@ const slangPublicValidator = v.object({
   region: v.string(),
   popularity: v.number(),
   mediaRefs: v.optional(v.array(v.string())),
+  // Fiche à faire relire par un natif — recopiée depuis slangExpressions pour
+  // que la file de révision puisse porter le même avertissement que la
+  // Découverte. Absente (undefined) pour tout le contenu déjà validé.
+  validated: v.optional(v.boolean()),
 });
 
 /** Card fields exposed to the client. */
@@ -428,6 +432,7 @@ export const reviewQueue = query({
             region: slang.region,
             popularity: slang.popularity,
             mediaRefs: slang.mediaRefs,
+            validated: slang.validated,
           },
           assisted: (card.consecutiveFails ?? 0) >= 3,
           status: statusOf(card),

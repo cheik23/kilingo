@@ -29,6 +29,7 @@ import { getPremiumCopy } from "./i18n.premium";
 import { getUpgradeCopy } from "./i18n.upgrade";
 import { getSignsCopy } from "./i18n.signs";
 import { getFlowCopy } from "./i18n.flow";
+import { getValidationCopy } from "./i18n.validation";
 // Overlays are resolved after the base dictionaries so newly-added modules
 // remain localized without rewriting the large historical dictionary.
 
@@ -821,6 +822,10 @@ function applyDictionaryOverlays(): void {
     // Flow Check (évaluation d'une prise de voix) — module entier, absent
     // des dictionnaires historiques.
     mergeInto(dict, getFlowCopy(lang));
+    // L'avertissement « contenu en attente de validation par un natif » —
+    // fr/en/es/zh/ar/ru seulement, repli français pour les six autres
+    // (voir l'en-tête de i18n.validation.ts).
+    mergeInto(dict, getValidationCopy(lang));
     for (const key of PRUNED_NAV_KEYS) {
       const nav = dict.nav;
       if (nav && typeof nav === "object") {

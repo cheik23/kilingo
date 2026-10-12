@@ -40,6 +40,10 @@ export const quizStoredQuestionValidator = v.object({
   example: v.optional(v.string()),
   expression: v.string(),
   meaning: v.string(),
+  // Recopié depuis la fiche source au moment de la génération du quiz : le
+  // quiz tourne sur une session figée, la fiche peut disparaître ensuite et
+  // l'avertissement « à faire relire » doit survivre au sessionnage.
+  validated: v.optional(v.boolean()),
   correctIndex: v.number(),
 });
 
@@ -129,6 +133,19 @@ const schema = defineSchema(
       // "en" pour les importations Urban Dictionary). Permet à l'UI de savoir
       // quand le sens doit passer par la cascade de traduction avant affichage.
       meaningLang: v.optional(v.string()),
+      // Fiche en attente de relecture par un locuteur natif.
+      //
+      // OPTIONNEL, et « absent » ne vaut PAS « false » : seules les fiches
+      // explicitement marquées `false` sont signalées dans l'interface
+      // (aujourd'hui l'amharique et l'igbo du Lot 4). Un champ requis aurait
+      // invalidé les ~2 600 fiches déjà en base dès le premier push et imposé
+      // une migration pour un simple drapeau d'affichage ; et un défaut `false`
+      // appliqué à tout aurait affiché l'avertissement sur les 30 langues,
+      // ce qui revient à n'en signaler aucune.
+      //
+      // Interprétation unique, côté serveur comme côté UI : `validated === false`
+      // ⇒ à faire relire. Toute autre valeur ⇒ rien à signaler.
+      validated: v.optional(v.boolean()),
     })
       .index("by_language", ["language"])
       .index("by_language_popularity", ["language", "popularity"])

@@ -12,7 +12,8 @@
     "verify:upgrade": "node scripts/verify-upgrade.mjs",
     "verify:flow": "node scripts/verify-flowcheck.mjs",
     "verify:daily": "node scripts/verify-daily-slang.mjs",
-    "verify:honesty": "node scripts/verify-premium-locks.mjs && node scripts/verify-upgrade.mjs && node scripts/verify-flowcheck.mjs && node scripts/verify-daily-slang.mjs",
+    "verify:seeds": "node scripts/verify-seed-uniqueness.mjs",
+    "verify:honesty": "node scripts/verify-premium-locks.mjs && node scripts/verify-upgrade.mjs && node scripts/verify-flowcheck.mjs && node scripts/verify-daily-slang.mjs && node scripts/verify-seed-uniqueness.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "preview": "vite preview"

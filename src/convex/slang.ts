@@ -305,6 +305,11 @@ const PUBLIC_FIELDS = {
   popularity: v.number(),
   mediaRefs: v.optional(v.array(v.string())),
   meaningLang: v.optional(v.string()),
+  // Fiche à faire relire par un natif (`false`) — absente partout ailleurs.
+  // Doit figurer ici : les `returns` de ces requêtes sont STRICTS, et
+  // `stripInternal` laisse passer tout le reste de la ligne → sans cette
+  // ligne, chaque requête publique échouerait à la validation.
+  validated: v.optional(v.boolean()),
 };
 
 /**
@@ -359,7 +364,12 @@ export const seed = mutation({
           row.literal !== item.literal ||
           row.register !== item.register ||
           row.region !== item.region ||
-          row.popularity !== item.popularity)
+          row.popularity !== item.popularity ||
+          // Le drapeau « à faire relire » fait partie du contenu : le retirer
+          // (retour à `undefined`) ou le poser doit rattraper les lignes
+          // déjà en base au prochain seed, sans quoi une correction de
+          // validation resterait invisible pour toujours.
+          row.validated !== item.validated)
       ) {
         await ctx.db.patch(found, {
           literal: item.literal,
@@ -371,6 +381,11 @@ export const seed = mutation({
           normExpr: normKey(item.expression),
           regionKey: normalizeRegion(item.region),
           ...(item.mediaRefs ? { mediaRefs: item.mediaRefs } : {}),
+          // `undefined` = non signalé (Convex retire alors le champ), ce qui
+          // permet d'effacer un `false` devenu caduc. Toujours l'écrire ici :
+          // sans ça, une fiche repassée en « non signalé » resterait marquée
+          // `false` et serait re-patchée à chaque exécution du seed.
+          validated: item.validated,
         });
         updated += 1;
       } else {

@@ -24,6 +24,7 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LootBoxModal } from "./LootBoxModal";
+import { UnverifiedBadge } from "./UnverifiedBadge";
 import { showAchievementFeedback } from "@/lib/achievementFeedback";
 import { soundEngine } from "@/lib/soundEngine";
 import { MascotStage, useMascotSafe } from "@/components/three/MascotProvider";
@@ -48,6 +49,8 @@ type PublicQuestion = {
   example?: string;
   expression: string;
   meaning: string;
+  /** `false` = fiche à faire relire par un natif (voir UnverifiedBadge). */
+  validated?: boolean;
 };
 
 type GenerateResult = {
@@ -75,6 +78,8 @@ type SubmitResult = {
     meaning: string;
     example?: string;
     correctOption: string;
+    /** `false` = fiche à faire relire par un natif. */
+    validated?: boolean;
   }[];
 };
 
@@ -588,9 +593,10 @@ function QuizGame({
                 💡 {t("quiz.revealHint")} : {q.options[tokenHint]}
               </p>
             )}
-            <p className="text-xs text-ink-2">
+            <p className="flex flex-wrap items-center gap-2 text-xs text-ink-2">
               <span className="font-medium text-ink">{q.expression}</span>
               {q.meaning ? ` — ${q.meaning}` : ""}
+              <UnverifiedBadge validated={q.validated} />
             </p>
             {q.example && (
               <p className="text-xs italic text-ink-2">« {q.example} »</p>
@@ -709,7 +715,10 @@ function QuizResults({
                 key={`${w.expression}-${i}`}
                 className="ln-card border-red-400/20 p-4"
               >
-                <p className="text-sm font-medium text-ink">{w.expression}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-medium text-ink">{w.expression}</p>
+                  <UnverifiedBadge validated={w.validated} />
+                </div>
                 <p className="text-xs text-ink-2">{w.meaning}</p>
                 <p className="mt-1 text-xs text-gold">
                   ✓ {w.correctOption}

@@ -38,17 +38,24 @@ export const getLandingStats = query({
 /**
  * Chiffres de marque de la landing (langues, expressions, avatars).
  *
- * `languages` est le nombre de langues de contenu servies : 30 depuis le
- * Lot 4, le dernier (28 après le Lot 3, + amharique et igbo). C'est le MÊME
- * chiffre que `CONTENT_LANGUAGES` (`vite.config.ts`, 30 entrées dont `fr`) et
- * que `ALL_LANGS` (`slang.ts`), dérivés du même seed : la landing, les badges
- * « Bientôt » et le backend ne peuvent pas diverger.
+ * `languages` est le nombre de langues APPRENABLES servies : 29, la totalité
+ * de `LANGUAGES` (`languages.ts`), chacune désormais pourvue de contenu depuis
+ * le Lot 4 (amharique et igbo).
  *
- * 30 = les 29 langues d'apprentissage déclarées dans `languages.ts` (toutes
- * désormais pourvues de contenu) + `fr`, le vocabulaire cible de traduction.
- * Le catalogue est COMPLET : `languageIsComingSoon()` ne retourne plus vrai
- * pour aucune langue, donc plus aucun badge « Bientôt ». `avatars` reste une
- * constante de catalogue.
+ * « 29 », PAS « 30 » : `fr` figure bien dans le seed (c'est le vocabulaire
+ * cible de traduction) mais ce n'est pas une langue qu'on apprend — il n'est
+ * ni dans `LANGUAGE_CODES`, ni sélectionnable, ni badgeable. Les valeurs
+ * précédentes (19, puis 28) comptaient `fr` comme une langue de plus, ce qui
+ * désalignait la copy de `languages.ts` d'exactement un et faisait échouer
+ * l'assertion de `scripts/verify-upgrade.mjs` (« la copy annonce N,
+ * languages.ts en compte 29 »). Le chiffre affiché doit être celui des
+ * langues qu'on peut réellement suivre : 29.
+ *
+ * C'est donc `LANGUAGE_CODES.length`, PAS la taille de `CONTENT_LANGUAGES`
+ * (`vite.config.ts`, 30 entrées `fr` inclus) ni celle de `ALL_LANGS`
+ * (`slang.ts`). Le catalogue est COMPLET : `languageIsComingSoon()` ne
+ * retourne plus vrai pour aucune langue, donc plus aucun badge « Bientôt ».
+ * `avatars` reste une constante de catalogue.
  *
  * `expressions` est en revanche une MESURE. Elle était figée comme repli,
  * mais le seed complet (SLANG_SEED_2025 + Lots 1 à 4 + bloc inline) n'est
@@ -65,7 +72,7 @@ export const getLandingNumbers = query({
       .withIndex("by_key", (q) => q.eq("key", CATALOG_TOTAL_KEY))
       .unique();
     return {
-      languages: 30,
+      languages: 29,
       // Base pas encore seedée : on retombe sur la taille du seed, le temps
       // que `slang:seed` ait tourné au moins une fois. Valeur mesurée après
       // le Lot 4 (2 608 après le Lot 3, + 23 du Lot 4 — 24 lignes fournies,

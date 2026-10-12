@@ -52,5 +52,14 @@ jobs:
       - name: Assertions — verrous premium + conversion
         run: npm run verify:honesty
 
+      # Slugs uniques dans les seeds d'argot : `slang:seed` déduplique par
+      # slug et JETTE les occurrences suivantes en silence (« skipped »).
+      # Sans cette étape, deux fiches identiques peuvent être commitées,
+      # déployées, et n'en servir qu'une sans que rien ne le signale.
+      # Le script transpile les `slangSeed*.ts` avec le `typescript` du projet
+      # (déjà installé par `npm ci`) : aucune dépendance supplémentaire.
+      - name: Assertions — unicité des slugs de seed
+        run: npm run verify:seeds
+
       - name: Typecheck
         run: npx tsc -b --noEmit
