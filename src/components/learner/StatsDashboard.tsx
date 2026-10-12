@@ -403,11 +403,44 @@ export function StatsDashboard() {
 
   const loading = series === undefined || overview === undefined;
 
+  /* CARTE MONDIALE — indépendante des statistiques : un nouvel arrivant doit
+     voir les langues disponibles avant d'avoir la moindre session. Rendue une
+     seule fois puis réutilisée par chaque branche de la vue (état vide et
+     backend indisponible compris), pour qu'aucune ne puisse la faire
+     disparaître. */
+  const worldMapSection = (
+    <>
+      <div className="flex flex-wrap gap-2">
+        {LANGUAGE_COUNTRIES_ENTRIES.map(({ code, label }) => (
+          <button
+            key={code}
+            type="button"
+            onClick={() => setSelectedLang(selectedLang === code ? null : code)}
+            className={`rounded-full border px-3 py-1 text-xs font-mono transition-colors ${
+              selectedLang === code
+                ? "border-gold bg-gold/15 text-gold"
+                : "border-white/10 text-ink-2 hover:border-gold/40"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <WorldMapLanguages
+        selectedLanguage={selectedLang}
+        languagesCountries={LANGUAGE_COUNTRIES}
+        className="w-full h-[400px]"
+      />
+      <p className="mt-2 font-mono text-[0.6875rem] text-ink-3">{selectedLangHint}</p>
+    </>
+  );
+
   // Backend en retard : on le DIT au lieu d'un squelette éternel ou d'un crash.
   if (seriesRead.unavailable) {
     return (
       <div className="mx-auto max-w-6xl space-y-6">
         <DashboardHeader period={period} onPeriod={setPeriod} onExport={exportCsv} disabled />
+        {worldMapSection}
         <section className="ln-card rounded-xl border-white/5 p-8 text-center">
           <Info className="mx-auto size-9 text-gold/60" aria-hidden />
           <h2 className="mt-4 font-display text-xl font-semibold text-ink">
@@ -433,6 +466,7 @@ export function StatsDashboard() {
     return (
       <div className="mx-auto max-w-6xl space-y-6">
         <DashboardHeader period={period} onPeriod={setPeriod} onExport={exportCsv} disabled />
+        {worldMapSection}
         <div className="ln-card flex flex-col items-center rounded-xl border-white/5 p-10 text-center">
           <BarChart3 className="size-10 text-gold/60" />
           <h2 className="mt-4 font-display text-xl font-semibold text-ink">
@@ -463,38 +497,15 @@ export function StatsDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      {/* ═══════════════════════════════════════════════════════════════
-        CARTE MONDIALE — première vue du dashboard, avec sélecteur.
-        ═══════════════════════════════════════════════════════════════ */}
-      <div className="flex flex-wrap gap-2">
-        {LANGUAGE_COUNTRIES_ENTRIES.map(({ code, label }) => (
-          <button
-            key={code}
-            type="button"
-            onClick={() => setSelectedLang(selectedLang === code ? null : code)}
-            className={`rounded-full border px-3 py-1 text-xs font-mono transition-colors ${
-              selectedLang === code
-                ? "border-gold bg-gold/15 text-gold"
-                : "border-white/10 text-ink-2 hover:border-gold/40"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>        <WorldMapLanguages
-          selectedLanguage={selectedLang}
-          languagesCountries={LANGUAGE_COUNTRIES}
-          className="w-full h-[400px]"
-        />
-        <p className="mt-2 font-mono text-[0.6875rem] text-ink-3">            {selectedLangHint}
-          </p>
-
       <DashboardHeader
         period={period}
         onPeriod={setPeriod}
         onExport={exportCsv}
         disabled={loading}
       />
+
+      {/* CARTE MONDIALE — toujours visible, même sans aucune donnée. */}
+      {worldMapSection}
 
       {/* ── 1. KPIs ─────────────────────────────────────────────────── */}
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
