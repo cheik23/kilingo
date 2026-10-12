@@ -33,6 +33,12 @@ const ALL_LANGS: readonly AnyLang[] = [...LANGUAGE_CODES, "fr" as const].filter(
   (code) => SEEDED_LANGS.has(code),
 );
 
+/* La MÊME question (« cette langue a-t-elle du contenu ? ») se pose côté
+   interface, pour les badges « Bientôt » : elle y est calculée AU BUILD sur
+   le même seed (`vite.config.ts` → `data/contentLanguages`), et non par une
+   requête — les fonctions Convex se déploient à la main, si bien qu'un badge
+   dépendant d'une fonction non encore poussée aurait disparu en silence. */
+
 /**
  * Clé dénormalisée du compteur global du catalogue, écrite par
  * `recomputeAggregates` et lue par `landingStats.getLandingNumbers`.

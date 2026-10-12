@@ -159,6 +159,14 @@ const fr = {
     pl: "Polonais",
     el: "Grec",
   },
+
+  /* Langue visible mais encore vide : on le DIT au lieu de laisser
+     l'utilisateur croire à un écran cassé (badge + bannière). */
+  soon: {
+    badge: "Bientôt",
+    title: "Le contenu de cette langue arrive bientôt",
+    body: "Tu peux déjà choisir {lang} : la carte, le drapeau et le focus fonctionnent. Les expressions arrivent dans une prochaine mise à jour.",
+  },
   mediaHub: {
     platforms: "Plateformes",
     openverse: "OpenVerse",
@@ -913,6 +921,14 @@ const en: Dict = {
     pl: "Polish",
     el: "Greek",
   },
+
+  /* Langue visible mais encore vide : on le DIT au lieu de laisser
+     l'utilisateur croire à un écran cassé (badge + bannière). */
+  soon: {
+    badge: "Soon",
+    title: "Content for this language is coming soon",
+    body: "You can already pick {lang}: the map, the flag and the focus work. Expressions arrive in an upcoming release.",
+  },
   mediaHub: {
     platforms: "Platforms",
     openverse: "OpenVerse",
@@ -1522,6 +1538,14 @@ const es: Dict = {
     pl: "Polaco",
     el: "Griego",
   },
+
+  /* Langue visible mais encore vide : on le DIT au lieu de laisser
+     l'utilisateur croire à un écran cassé (badge + bannière). */
+  soon: {
+    badge: "Pronto",
+    title: "El contenido de este idioma llegará pronto",
+    body: "Ya puedes elegir {lang}: el mapa, la bandera y el foco funcionan. Las expresiones llegarán en una próxima actualización.",
+  },
   mediaHub: {
     platforms: "Plataformas",
     openverse: "OpenVerse",
@@ -2114,6 +2138,14 @@ const zh: Dict = {
     pl: "波兰语",
     el: "希腊语",
   },
+
+  /* Langue visible mais encore vide : on le DIT au lieu de laisser
+     l'utilisateur croire à un écran cassé (badge + bannière). */
+  soon: {
+    badge: "即将推出",
+    title: "该语言的内容即将上线",
+    body: "你已经可以选择{lang}：地图、旗帜和专注功能都可用。词条将在后续更新中加入。",
+  },
   mediaHub: {
     platforms: "平台",
     openverse: "OpenVerse",
@@ -2705,6 +2737,14 @@ const ar: Dict = {
     pl: "البولندية",
     el: "اليونانية",
   },
+
+  /* Langue visible mais encore vide : on le DIT au lieu de laisser
+     l'utilisateur croire à un écran cassé (badge + bannière). */
+  soon: {
+    badge: "قريباً",
+    title: "محتوى هذه اللغة قادم قريباً",
+    body: "يمكنك بالفعل اختيار {lang}: الخريطة والعلم والتركيز تعمل. ستصل التعابير في تحديث قادم.",
+  },
   nav: {
     store: "المتجر",
     home: "الرئيسية",
@@ -3237,6 +3277,14 @@ const ru: Dict = {
     tl: "Тагальский",
     pl: "Польский",
     el: "Греческий",
+  },
+
+  /* Langue visible mais encore vide : on le DIT au lieu de laisser
+     l'utilisateur croire à un écran cassé (badge + bannière). */
+  soon: {
+    badge: "Скоро",
+    title: "Контент для этого языка скоро появится",
+    body: "Ты уже можешь выбрать {lang}: карта, флаг и фокус работают. Выражения появятся в ближайшем обновлении.",
   },
   nav: {
     store: "Магазин",

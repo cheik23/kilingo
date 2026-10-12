@@ -9,11 +9,13 @@ import {
 } from "@/convex/languages";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Brain, Globe, Heart, Search, Volume2, X, Filter, Shuffle } from "lucide-react";
+import { Brain, Globe, Heart, Info, Search, Volume2, X, Filter, Shuffle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SpeakButton } from "./SpeakButton";
 import { GoldBurst } from "@/components/fx/rewards";
 import { useI18n } from "@/lib/i18n";
+import { SoonBadge } from "@/components/ui/SoonBadge";
+import { languageIsComingSoon } from "@/data/contentLanguages";
 import { useSwipe, type SwipeDirection } from "@/hooks/useSwipe";
 
 const REGISTER_STYLES: Record<string, string> = {
@@ -128,11 +130,16 @@ function CardFaceInner({ item, revealLabel }: { item: Slang; revealLabel: string
 
 export function DiscoverView() {
   const { t } = useI18n();
+  // Une langue encore vide n'a rien à montrer : le filtre l'annonce, et
+  // l'état vide change de texte au lieu de laisser croire à un bug.
   const [langFilter, setLangFilter] = useState<LanguageCode | "all">("all");
   const [countryFilter, setCountryFilter] = useState<string | "all">("all");
   const [registerFilter, setRegisterFilter] = useState<string | "all">("all");
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"deck" | "database">("deck");
+  // Langue filtrée sans contenu : SERT à changer le texte de l'état vide.
+  const emptyLanguage =
+    langFilter !== "all" && languageIsComingSoon(langFilter) ? langFilter : null;
 
   /* ── Historique d'exposition (FIFO 300, rechargé au mount) ────────── */
   const [excludeList, setExcludeList] = useState<string[]>(() => [
@@ -348,13 +355,14 @@ export function DiscoverView() {
           <button
             key={l.code}
             onClick={() => setLang(l.code)}
-            className={`rounded-full border px-3 py-1 font-mono text-[0.6875rem] transition-colors ${
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-[0.6875rem] transition-colors ${
               langFilter === l.code
                 ? "border-gold/50 bg-gold/10 text-gold"
                 : "border-white/10 text-ink-3 hover:text-ink-2"
             }`}
           >
             {l.flag} {l.code.toUpperCase()}
+            {languageIsComingSoon(l.code) && <SoonBadge />}
           </button>
         ))}
       </div>
@@ -537,6 +545,25 @@ export function DiscoverView() {
             </div>
           ) : (
             <div className="max-w-sm py-16 text-center">
+              {/* Langue choisie mais pas encore remplie : on l'ÉCRIT, au lieu
+                  du « aucun résultat pour ces filtres » qui laissait croire
+                  que l'utilisateur s'était trompé de filtre. */}
+              {emptyLanguage && (
+                <div className="mb-8 rounded-2xl border border-gold/25 bg-gold/[0.07] px-5 py-6">
+                  <span className="flex items-center justify-center gap-2 text-gold">
+                    <Info className="size-4" aria-hidden />
+                    <SoonBadge className="border-gold/25 text-gold/80" />
+                  </span>
+                  <p className="mt-3 font-display text-xl font-semibold">
+                    {t("soon.title")}
+                  </p>
+                  <p className="mt-2 text-sm text-ink-2">
+                    {t("soon.body", {
+                      lang: t(`languages.${emptyLanguage}`),
+                    })}
+                  </p>
+                </div>
+              )}
               <p className="font-display text-2xl italic">
                 {filtersActive
                   ? t("discover.noMatchFilters")

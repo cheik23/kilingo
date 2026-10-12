@@ -31,6 +31,8 @@ import { MagneticButton, TiltCard } from "@/components/fx/interact";
 import { RevealTitle, ScrambleHeading, ShimmerTitle } from "@/components/fx/text";
 import { useAuth } from "@/hooks/use-auth";
 import { LANGUAGES, REGISTERS } from "@/convex/languages";
+import { languageIsComingSoon } from "@/data/contentLanguages";
+import { SoonBadge } from "@/components/ui/SoonBadge";
 import { PremiumCta } from "@/components/learner/PremiumCta";
 import { SubscriptionCard } from "@/components/learner/SubscriptionCard";
 import {
@@ -218,6 +220,9 @@ export default function Landing() {
   );
   const go = () => navigate(start);
   const { t, lang } = useI18n();
+  /* Badges « Bientôt » du mur des langues : la réponse est calculée AU BUILD
+     depuis les seeds (data/contentLanguages), jamais recopiée ici. Aucun
+     appel réseau : la page publique reste juste même si le backend dort. */
   // Compteur temps réel : preuve sociale vérifiable, pas une statistique
   // figée dans le texte. Les deux requêtes sont des lectures minuscules
   // (deux agrégats), elles ne bloquent donc pas le rendu.
@@ -666,9 +671,14 @@ export default function Landing() {
               {LANGUAGES.map((l, i) => (
                 <div
                   key={l.code}
-                  className="ln-card ln-stagger-item p-5 text-center"
+                  className="ln-card ln-stagger-item relative p-5 text-center"
                   style={{ ["--ln-i" as string]: i }}
                 >
+                  {/* La langue encore vide garde sa carte : la promesse est
+                      datée, pas cachée. La carte, elle, surligne déjà ses pays. */}
+                  {languageIsComingSoon(l.code) && (
+                    <SoonBadge className="absolute top-3 right-3" />
+                  )}
                   <span className="text-3xl">{l.flag}</span>
                   <p className="mt-3 font-display text-lg font-semibold">
                     {l.name}

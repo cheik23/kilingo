@@ -7,6 +7,7 @@ import {
   Clapperboard,
   Compass,
   Flame,
+  Info,
   Layers,
   MessagesSquare,
   Moon,
@@ -19,6 +20,7 @@ import { SpeakButton } from "./SpeakButton";
 import { useEffect, useRef, useState } from "react";
 import { DailyChallengeModal, type DailyChallenge } from "./DailyChallengeModal";
 import { useI18n } from "@/lib/i18n";
+import { languageIsComingSoon } from "@/data/contentLanguages";
 import { CountUp, GoldBurst } from "@/components/fx/rewards";
 import { HeroBackdrop } from "@/components/three/HeroBackdrop";
 import { Reveal } from "@/components/fx/Reveal";
@@ -38,6 +40,8 @@ import { MascotStage, useMascotSafe } from "@/components/three/MascotProvider";
 
 export function HomeView({ onNavigate }: { onNavigate: (v: string) => void }) {
   const { t, lang } = useI18n();
+  // Focus posé sur une langue encore vide : la carte de langue le DIT, plutôt
+  // que d'afficher « 0 cartes · 0 à revoir » sans explication.
   const [burst, setBurst] = useState(0);
   const [dailyChallenge, setDailyChallenge] = useState<DailyChallenge | null>(null);
   const [dailyOpen, setDailyOpen] = useState(false);
@@ -238,6 +242,15 @@ export function HomeView({ onNavigate }: { onNavigate: (v: string) => void }) {
                       <p className="mt-2 font-mono text-[0.625rem] text-ink-3">
                         {l.cards} cartes · {l.due} à revoir
                       </p>
+                      {languageIsComingSoon(l.language) && (
+                        <p className="mt-2 flex items-start gap-2 rounded-lg border border-gold/25 bg-gold/[0.07] px-2.5 py-2 text-[0.6875rem] leading-snug text-ink-2">
+                          <Info className="mt-0.5 size-3.5 shrink-0 text-gold" aria-hidden />
+                          {/* Une seule phrase : la carte est étroite, et le
+                              titre répéterait `soon.body`, qui nomme déjà la
+                              langue et dit ce qui marche déjà. */}
+                          <span>{t("soon.body", { lang: meta.name })}</span>
+                        </p>
+                      )}
                     </div>
                   );
                 })

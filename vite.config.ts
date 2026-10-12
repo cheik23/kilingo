@@ -4,9 +4,35 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig } from "vite";
 
+import { SLANG_SEED } from "./src/convex/slangSeed";
+
+/* ═══════════════════════════════════════════════════════════════════════
+   « CETTE LANGUE A-T-ELLE DU CONTENU ? » — dérivée des seeds AU BUILD.
+
+   C'est la question que posent les badges « Bientôt » (sélecteurs, mur de la
+   landing, bannière de langue vide). La réponse est écrite UNE fois, dans les
+   seeds, et calculée ici : aucune liste de langues recopiée à la main, donc
+   rien qui puisse diverger des expressions réellement présentes.
+
+   Pourquoi au build et pas via une requête Convex : les fonctions Convex se
+   poussent à la main, alors que le front part au push. Une requête aurait
+   laissé les badges INVISIBLES jusqu'à ce déploiement manuel, sans aucun
+   signe d'erreur — l'interface aurait semblé ignorer la consigne. Ici, un
+   ajout de contenu dans un seed suffit : le prochain build enlève les badges.
+   (Redémarrer le serveur de dev après un ajout : ce calcul tourne au
+   démarrage de Vite, pas à chaud.)
+
+   Le backend fait la MÊME dérivation à chaud (`convex/slang.ts`, ALL_LANGS),
+   à partir du même tableau : les deux ne peuvent pas se contredire.
+   ═══════════════════════════════════════════════════════════════════════ */
+const CONTENT_LANGUAGES = [...new Set<string>(SLANG_SEED.map((entry) => entry.language))];
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), vlyPlugin(), tailwindcss()],
+  define: {
+    __CONTENT_LANGUAGES__: JSON.stringify(CONTENT_LANGUAGES),
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

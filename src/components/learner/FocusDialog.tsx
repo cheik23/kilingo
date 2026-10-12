@@ -9,6 +9,8 @@ import {
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { LANGUAGES, type LanguageCode } from "@/convex/languages";
+import { SoonBadge } from "@/components/ui/SoonBadge";
+import { languageIsComingSoon } from "@/data/contentLanguages";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Flame, Moon } from "lucide-react";
@@ -48,6 +50,8 @@ export function FocusDialog({
   const switchFocus = useMutation(api.learning.switchFocus);
   const setFocus = useMutation(api.learning.setFocus);
   const [selected, setSelected] = useState<LanguageCode[]>([]);
+  // Les langues sans contenu restent sélectionnables et lisibles : le badge
+  // remplace la mauvaise surprise d'un focus vide, il ne cache rien.
   /** Plafond atteint : on montre l'invite, pas un toast d'erreur. */
   const [capBlocked, setCapBlocked] = useState(false);
 
@@ -143,7 +147,10 @@ export function FocusDialog({
               >
                 <FlagIcon languageCode={l.code} />
                 <div className="flex-1">
-                  <p className="text-sm font-medium">{l.name}</p>
+                  <p className="flex items-center gap-2 text-sm font-medium">
+                    {l.name}
+                    {languageIsComingSoon(l.code) && <SoonBadge />}
+                  </p>
                   <p className="font-mono text-[0.625rem] text-ink-3">
                     {l.countries}
                   </p>

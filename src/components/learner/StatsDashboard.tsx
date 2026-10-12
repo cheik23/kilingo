@@ -43,11 +43,13 @@ import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { LANGUAGES } from "@/convex/languages";
 import { FlagIcon } from "@/components/ui/FlagIcon";
+import { SoonBadge } from "@/components/ui/SoonBadge";
 import { StatCard } from "@/components/analytics/StatCard";
 import { ProgressRing } from "@/components/analytics/ProgressRing";
 import { TrendIndicator } from "@/components/analytics/TrendIndicator";
 import { useChartPalette } from "@/components/analytics/chartTheme";
 import { cn } from "@/lib/utils";
+import { languageIsComingSoon } from "@/data/contentLanguages";
 
 /* ═══════════════════════════════════════════════════════════════════════
    TABLEAU DE BORD — données réelles Convex (aucune constante de démo).
@@ -256,6 +258,9 @@ export function StatsDashboard() {
   const [period, setPeriod] = useState<PeriodKey>("7d");
   const [selectedLang, setSelectedLang] = useState<string | null>(null);
   const { t } = useI18n();
+  // Une langue sans expressions reste SURLIGNABLE (la géographie fonctionne) :
+  // on le dit au lieu de retirer la langue de la carte. Le prédicat vient du
+  // build (seeds) — aucun aller-retour réseau pour afficher ce badge.
 
   /* Le NOM vient de i18n (`languages.<code>`, présent dans les six dictionnaires)
      et la GÉOGRAPHIE de LANGUAGE_GEO : une seule source par information. Le
@@ -266,7 +271,9 @@ export function StatsDashboard() {
   const selectedLangHint = selectedLang
     ? `${languageLabel(selectedLang)} · ${
         LANGUAGE_COUNTRIES[selectedLang]?.length ?? 0
-      } pays pleins`
+      } pays pleins${
+        languageIsComingSoon(selectedLang) ? ` · ${t("soon.title")}` : ""
+      }`
     : "Sélectionne une langue pour voir sa couverture géographique";
 
   // Lecture TOLÉRANTE : ces deux fonctions sont récentes — un backend en
@@ -411,13 +418,15 @@ export function StatsDashboard() {
             key={code}
             type="button"
             onClick={() => setSelectedLang(selectedLang === code ? null : code)}
-            className={`rounded-full border px-3 py-1 text-xs font-mono transition-colors ${
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-mono transition-colors ${
               selectedLang === code
                 ? "border-gold bg-gold/15 text-gold"
                 : "border-white/10 text-ink-2 hover:border-gold/40"
             }`}
           >
             {languageLabel(code)}
+            {/* La langue reste dans le sélecteur ; seul son contenu manque. */}
+            {languageIsComingSoon(code) && <SoonBadge />}
           </button>
         ))}
       </div>

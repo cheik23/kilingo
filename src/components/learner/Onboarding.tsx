@@ -7,6 +7,8 @@ import { Check, ChevronRight, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MascotStage, useMascotSafe } from "@/components/three/MascotProvider";
 import { FlagIcon } from "@/components/ui/FlagIcon";
+import { SoonBadge } from "@/components/ui/SoonBadge";
+import { languageIsComingSoon } from "@/data/contentLanguages";
 import { LanguageCapModal } from "./LanguageCapModal";
 import { isLanguageCapError } from "@/lib/premiumLimits";
 import { useI18n } from "@/lib/i18n";
@@ -26,6 +28,8 @@ export function Onboarding() {
   const setFocus = useMutation(api.learning.setFocus);
   const [step, setStep] = useState(0);
   const [selected, setSelected] = useState<LanguageCode[]>([]);
+  // Une langue encore vide se choisit quand même : le badge l'annonce, la
+  // géographie et le focus fonctionnent dès maintenant.
   const [interests, setInterests] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const { t } = useI18n();
@@ -137,7 +141,10 @@ export function Onboarding() {
                   >
                     <FlagIcon languageCode={l.code} size="lg" />
                     <div className="flex-1">
-                      <p className="font-medium">{l.name}</p>
+                      <p className="flex items-center gap-2 font-medium">
+                        {l.name}
+                        {languageIsComingSoon(l.code) && <SoonBadge />}
+                      </p>
                       <p className="text-xs text-ink-3">{l.description}</p>
                     </div>
                     {isActive && (
