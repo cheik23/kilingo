@@ -396,7 +396,10 @@ export default function Landing() {
               <div className="mt-8 grid gap-4 sm:grid-cols-3">
                 {[
                   {
-                    value: String(numbers?.languages ?? 15),
+                    // Repli avant l'arrivée de la requête : la valeur réelle
+                    // vient de landingStats.getLandingNumbers (dérivée du seed,
+                    // comme contentLanguages et ALL_LANGS).
+                    value: String(numbers?.languages ?? 28),
                     label: t("landing.features.languagesLabel"),
                   },
                   {

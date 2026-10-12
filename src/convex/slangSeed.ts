@@ -1,5 +1,6 @@
 import { SLANG_SEED_AFRICA } from "./slangSeedAfrica";
 import { SLANG_SEED_2025 } from "./slangSeed2025";
+import { SLANG_SEED_LOT3 } from "./slangSeedLot3";
 import { SLANG_SEED_LOT2 } from "./slangSeedLot2";
 import { SLANG_SEED_LOT1 } from "./slangSeedLot1";
 
@@ -25,6 +26,16 @@ export type SlangSeed = {
     | "ja"
     | "tr"
     | "pl"
+    // Lot 3 (Phase 2) — langues servies par le batch slangSeedLot3.
+    | "hi"
+    | "bn"
+    | "ur"
+    | "id"
+    | "th"
+    | "vi"
+    | "fa"
+    | "tl"
+    | "el"
     | "fr";
   expression: string;
   literal: string;
@@ -618,6 +629,13 @@ export const SLANG_SEED: SlangSeed[] = [
   // à les inclure côté backend (ALL_LANGS, slang.ts) — une seule source, aucune
   // liste à tenir à la main.
   ...SLANG_SEED_LOT2,
+  // Lot 3 (Phase 2) — hindi, bengali, ourdou, indonésien, thaï, vietnamien,
+  // persan, tagalog, grec : 108 expressions pour 9 langues. Ajouter du contenu
+  // ici suffit à faire disparaître les badges « Bientôt » de hi, bn, ur, id,
+  // th, vi, fa, tl, el au prochain build (vite.config.ts) et à les inclure
+  // côté backend (ALL_LANGS, slang.ts) — une seule source, aucune liste à
+  // tenir à la main.
+  ...SLANG_SEED_LOT3,
 
   // ─── ANGLAIS (US/UK) — cœur éditorial ─────────────────────────────
   { language: "en", expression: "no cap", literal: "pas de casquette", meaning: "pour de vrai, sans mentir", context: "Sert à insister sur la véracité d'une affirmation, entre amis ou en ligne.", register: "street", region: "US", popularity: 96, mediaRefs: ["Song — « No Cap » (Future)", "TikTok — #NoCap 2B views"] },

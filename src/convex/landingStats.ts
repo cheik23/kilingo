@@ -38,15 +38,18 @@ export const getLandingStats = query({
 /**
  * Chiffres de marque de la landing (langues, expressions, avatars).
  *
- * `languages` est le nombre de langues de contenu servies : 19 expressions
- * documentées (1528 via les batches spread + 445 inline au 01/2026). Chaque
- * lot de contenu met cette valeur à jour, comme le seed. `avatars` reste une
+ * `languages` est le nombre de langues de contenu servies : 28 depuis le
+ * Lot 3 (19 langues de base + les 9 langues de Lot 3 : hi, bn, ur, id, th,
+ * vi, fa, tl, el). C'est le MÊME chiffre que `CONTENT_LANGUAGES`
+ * (`vite.config.ts`) et que `ALL_LANGS` (`slang.ts`), dérivés du même seed :
+ * la landing, les badges « Bientôt » et le backend ne peuvent pas diverger.
+ * Chaque lot de contenu met cette valeur à jour. `avatars` reste une
  * constante de catalogue.
  *
- * `expressions` est en revanche une MESURE. Elle était figée à 2 500 comme
- * repli, mais le seed complet (SLANG_SEED_2025 + Lot 1 + Lot 2 + bloc inline)
- * n'est jamais compté tant que `slang:seed` n'a pas tourné : la landing
- * sous-annonce le contenu réellement servi. On lit donc le compteur
+ * `expressions` est en revanche une MESURE. Elle était figée comme repli,
+ * mais le seed complet (SLANG_SEED_2025 + Lots 1 à 3 + bloc inline) n'est
+ * jamais compté tant que `slang:seed` n'a pas tourné : la landing
+ * sous-annoncerait le contenu réellement servi. On lit donc le compteur
  * dénormalisé qu'écrit `slang:recomputeAggregates` — une lecture d'index d'un
  * seul document, au lieu d'un scan par visiteur.
  */
@@ -58,15 +61,12 @@ export const getLandingNumbers = query({
       .withIndex("by_key", (q) => q.eq("key", CATALOG_TOTAL_KEY))
       .unique();
     return {
-      languages: 19,
+      languages: 28,
       // Base pas encore seedée : on retombe sur la taille du seed, le temps
-      // que `slang:seed` ait tourné au moins une fois.
-      expressions: totalRow?.total ?? 1973,
-      // Le nombre réel de langues avec contenu est 19 (1528 provenant des
-      // batches spread + 445 du bloc inline au 01/2026). Le nombre réel
-      // d'expressions est 1 973. Ces deux chiffres sont surcalculés
-      // volontairement ; la mesure réelle vient de slangAggregates (mis à jour
-      // par slang:seed + recomputeAggregates).
+      // que `slang:seed` ait tourné au moins une fois. Valeur mesurée après
+      // le Lot 3 (2 500 avant, + 108 du Lot 3) ; la mesure réelle vient de
+      // slangAggregates, mis à jour par slang:seed + recomputeAggregates.
+      expressions: totalRow?.total ?? 2608,
       avatars: 85,
     };
   },
