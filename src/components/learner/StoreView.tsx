@@ -130,8 +130,10 @@ export function StoreView() {
           // s'épaissit) vient de `.ln-card:hover`, l'unique définition dans
           // index.css. Aucune classe de survol ici — c'est précisément ce qui
           // évite qu'une vue réinvente l'effet et dérive de la charte.
+          // `ln-card-shop` porte le dégradé de surface (un utilitaire Tailwind
+          // `bg-gradient-to-br` serait écrasé par le raccourci `background`).
           return (
-            <div key={item.key} className="ln-card flex flex-col p-5">
+            <div key={item.key} className="ln-card ln-card-shop flex flex-col p-5">
               <span className="ln-medallion flex size-11 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
                 <Icon className="size-5 text-gold" />
               </span>
@@ -178,7 +180,7 @@ export function StoreView() {
         })}
 
         {/* ── Centre loot ─────────────────────────────────────────── */}
-        <div className="ln-card flex flex-col p-5">
+        <div className="ln-card ln-card-shop flex flex-col p-5">
           <span className="ln-medallion flex size-11 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
             <Gift className="size-5 text-gold" />
           </span>

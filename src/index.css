@@ -681,6 +681,23 @@ label {
     border-color var(--ln-dur) var(--ln-ease);
 }
 
+/* ── Carte de boutique : surface en dégradé diagonal ────────────────
+   ⚠ `.ln-card` pose `background: var(--card-bg)`, et ce raccourci remet
+   `background-image` à `none`. Un utilitaire Tailwind `bg-gradient-to-br`
+   posé sur une carte est donc SANS EFFET, silencieusement — vérifié au
+   navigateur sur `.ln-card` + `bg-gradient-to-br` : `background-image`
+   reste `none`. Le dégradé doit venir d'une règle non layerisée déclarée
+   APRÈS `.ln-card`, seule façon de l'emporter à spécificité égale.
+   `--gold-primary` change de valeur en thème clair : le dégradé suit. */
+.ln-card-shop {
+  background-image: linear-gradient(
+    to bottom right,
+    color-mix(in srgb, var(--gold-primary) 10%, transparent) 0%,
+    color-mix(in srgb, var(--gold-primary) 3%, transparent) 45%,
+    transparent 100%
+  );
+}
+
 /* ── SURVOL DE CARTE — UNE SEULE DÉFINITION POUR TOUTE L'APP ──────────
    La carte se soulève de 4 px, grossit de 2 %, et son ombre s'épaissit
    jusqu'à l'épaulement XL doublé d'un liseré or.
