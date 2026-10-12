@@ -267,12 +267,16 @@ export function StatsDashboard() {
   const [selectedLang, setSelectedLang] = useState<string | null>(null);
   const { t } = useI18n();
 
-  const activeLanguageLabel = selectedLang
-    ? t("lang." + selectedLang)
-    : t("lang.none");
+  /* Libellé repris de LANGUAGE_COUNTRIES_ENTRIES : les clés `lang.*` n'existent
+     pas dans le dictionnaire i18n, donc `t()` affichait la clé brute à l'écran
+     (« lang.fr », « lang.noneCountry »). Les pastilles de langue tirent déjà
+     leur libellé de ce tableau : une seule source de vérité. */
   const selectedLangHint = selectedLang
-    ? `${activeLanguageLabel} · ${LANGUAGE_COUNTRIES[selectedLang]?.length ?? 0} pays pleins`
-    : t("lang.noneCountry");
+    ? `${
+        LANGUAGE_COUNTRIES_ENTRIES.find((entry) => entry.code === selectedLang)?.label ??
+        selectedLang
+      } · ${LANGUAGE_COUNTRIES[selectedLang]?.length ?? 0} pays pleins`
+    : "Sélectionne une langue pour voir sa couverture géographique";
 
   // Lecture TOLÉRANTE : ces deux fonctions sont récentes — un backend en
   // retard (front déployé avant lui) doit dégrader proprement, jamais faire
