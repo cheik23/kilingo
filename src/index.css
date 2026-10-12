@@ -328,7 +328,7 @@ body,
 
 /* Cadre unifié : un seul or, une seule épaisseur, une seule teinte. */
 :root {
-  --border-subtle: 1px solid color-mix(in oklab, var(--gold-primary) 15%, transparent);
+  --border-subtle: 1px solid color-mix(in oklab, var(--gold-primary) 22%, transparent);
   --border-subtle-strong: 1px solid color-mix(in oklab, var(--gold-primary) 40%, transparent);
 }
 
@@ -690,8 +690,12 @@ label {
      `--ln-shadow-lg` et non `--ln-shadow-xl`, car l'échelle Kilingo est
      bien plus dense que celle de Tailwind (`shadow-2xl` est à 10 %
      d'opacité, `--ln-shadow-xl` à 80 %) : prendre le nom « xl » au pied de
-     la lettre donnerait ici une ombre plus FAIBLE qu'au survol. */
-  box-shadow: var(--ln-shadow-lg);
+     la lettre donnerait ici une ombre plus FAIBLE qu'au survol.
+     L'arête claire intérieure vient des références : un panneau y porte
+     toujours un liseré lumineux sur son bord haut, c'est le « glossy ». */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    var(--ln-shadow-lg);
   transition:
     background-color var(--ln-dur) var(--ln-ease),
     transform var(--ln-dur) var(--ln-ease),
@@ -710,32 +714,34 @@ label {
 .ln-card-shop,
 .card-game {
   background-image: linear-gradient(
-    to bottom right,
-    color-mix(in srgb, var(--gold-primary) 10%, transparent) 0%,
-    color-mix(in srgb, var(--gold-primary) 3%, transparent) 45%,
+    to bottom,
+    color-mix(in srgb, var(--gold-primary) 12%, transparent) 0%,
+    color-mix(in srgb, var(--gold-primary) 4%, transparent) 55%,
     transparent 100%
   );
 }
 
-/* ── SURVOL DE CARTE — UNE SEULE DÉFINITION POUR TOUTE L'APP ──────────
-   La carte se soulève de 8 px, grossit de 2 %, et son ombre s'épaissit
-   jusqu'à l'épaulement XL doublé d'un liseré or.
+/* ── SURVOL DE CARTE ──────────────────────────────────────────────
+   Les PANNEAUX ne bougent PAS. Les quatre références sont formelles : le
+   panneau « WIN », les panneaux SHOP/PAUSE/BACK, la grille de niveaux —
+   aucun ne se soulève ni ne grossit. Le vocabulaire animé y est réservé
+   aux boutons, tuiles et pastilles. Un panneau se signale donc uniquement
+   par son ombre et son liseré au survol (voir la règle suivante).
 
-   Le mouvement vit EXCLUSIVEMENT ici, jamais dans les classes Tailwind
-   d'une vue : une vue ne peut donc pas le réimplémenter autrement, ni
-   dériver de la charte. `transform` est déclaré une fois pour les deux
-   surfaces concernées — `.ln-card` (carte complète) et `.ln-lift`
-   (surface interactive qui n'est pas une carte, ex. ligne de langue) —
-   afin qu'elles ne puissent pas diverger. */
-.ln-card:hover,
-.card-game:hover,
+   Le déplacement reste donc porté par `.ln-lift` SEUL — surfaces qui ne
+   sont pas des panneaux (ligne de langue, tuile). C'était aussi la cause du
+   défaut signalé : les modales, qui sont des `.ln-card`, se soulevaient. */
 .ln-lift:hover {
   transform: translateY(-8px) scale(1.02);
 }
 
 .ln-card:hover,
 .card-game:hover {
+  /* L'arête claire est RE-précisée ici : `box-shadow` s'applique d'un bloc,
+     donc le survol effaçait sinon le liseré du bord haut et le panneau
+     perdait son « glossy » au moment où on le regarde de plus près. */
   box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
     var(--ln-shadow-xl),
     0 0 0 1px color-mix(in srgb, var(--gold-primary) 40%, transparent);
 }
@@ -818,7 +824,9 @@ label {
   .ln-card:hover,
   .card-game:hover {
     transform: none;
-    box-shadow: var(--ln-shadow-lg);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      var(--ln-shadow-lg);
   }
 
   .ln-lift:hover {
@@ -1582,12 +1590,28 @@ fieldset:disabled {
    sinon l'ombre de l'autre — la tranche 3D disparaissait au survol, ne
    laissant qu'un halo. Une seule règle élimine ce conflit par construction. */
 .ln-btn-3d,
-.btn-game {
-  --ln-btn-edge: var(--gold-deep);
-  --ln-btn-edge-y: 4px;
+.btn-game,
+.ln-btn-3d-magenta {
+  /* Tranche : plus SOMBRE que le bas de la face, sinon le bouton ne se lit
+     pas comme posé SUR la surface. Mélangée à du noir et non à `--noir`,
+     car `--noir` devient CRÈME en thème clair : la tranche s'éclaircirait
+     au lieu de s'assombrir.
+     `.ln-btn-3d-magenta` est dans ce groupe parce que `<Button
+     variant="secondary">` ne porte QUE cette classe : sans elle ici, le
+     bouton secondaire n'avait ni tranche, ni enfoncement, ni survol. */
+  --ln-btn-edge: color-mix(in srgb, var(--gold-deep) 68%, #000);
+  --ln-btn-edge-y: 6px;
+  /* Face : dégradé VERTICAL clair → foncé, comme les références — les kits
+     n'utilisent pas de diagonale sur un bouton. Déclaré ici, donc `<Button>`
+     (qui porte aussi `.ln-grad-gold`, déclaré plus haut) bascule sur la même
+     face sans qu'on touche au token décoratif `--gradient-gold`. */
+  --ln-btn-face: linear-gradient(to bottom, var(--gold-light), var(--gold-deep));
+  background-image: var(--ln-btn-face);
+  border: 1px solid color-mix(in srgb, var(--gold-deep) 55%, #000);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.32),
-    0 var(--ln-btn-edge-y) 0 var(--ln-btn-edge);
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 var(--ln-btn-edge-y) 0 var(--ln-btn-edge),
+    0 6px 12px rgba(0, 0, 0, 0.35);
   transform: translateY(0) scale(1);
   transition:
     transform var(--ln-dur-fast) var(--ln-ease),
@@ -1596,16 +1620,18 @@ fieldset:disabled {
 }
 
 .ln-btn-3d-magenta {
-  --ln-btn-edge: var(--accent-magenta-deep);
+  --ln-btn-edge: color-mix(in srgb, var(--accent-magenta-deep) 68%, #000);
+  --ln-btn-face: linear-gradient(to bottom, var(--accent-magenta), var(--accent-magenta-deep));
+  /* Le contour aussi, sinon le bouton secondaire gardait le liseré OR du
+     groupe partagé autour d'une face magenta — relevé à la mesure. */
+  border-color: color-mix(in srgb, var(--accent-magenta-deep) 55%, #000);
 }
 
-/* Surface publique du nom « jeu » : exactement ce que porte la variante
-   dorée de `<Button>` — dégradé or, aplat `gold-deep`, encre `noir`, rayon
-   `rounded-xl` (= `--ln-radius-md`). Le MOUVEMENT, lui, n'est pas recopié
-   ici : il vient des listes de sélecteurs de `.ln-btn-3d`. */
+/* Surface publique du nom « jeu » : rayon et encre de la variante dorée de
+   `<Button>`. La face, la tranche, le contour et le MOUVEMENT viennent de
+   `.ln-btn-3d` (listes de sélecteurs ci-dessus et ci-dessous) — rien n'est
+   recopié ici. */
 .btn-game {
-  background-image: var(--gradient-gold);
-  background-color: var(--gold-deep);
   color: var(--noir);
   border-radius: var(--ln-radius-md);
   font-weight: 600;
@@ -1613,23 +1639,26 @@ fieldset:disabled {
 
 .ln-btn-3d:hover:not(:disabled),
 .btn-game:hover:not(:disabled),
+.ln-btn-3d-magenta:hover:not(:disabled),
 .ln-cta:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.02);
   filter: brightness(1.06);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    0 calc(var(--ln-btn-edge-y, 4px) + 2px) 0 var(--ln-btn-edge, var(--gold-deep)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 calc(var(--ln-btn-edge-y, 6px) + 2px) 0 var(--ln-btn-edge, var(--gold-deep)),
+    0 10px 18px rgba(0, 0, 0, 0.4),
     0 0 12px color-mix(in srgb, var(--gold-primary) 30%, transparent);
 }
 
 .ln-btn-3d:active:not(:disabled),
 .btn-game:active:not(:disabled),
+.ln-btn-3d-magenta:active:not(:disabled),
 .ln-cta:active:not(:disabled) {
-  transform: translateY(2px) scale(1);
+  transform: translateY(4px) scale(1);
   filter: brightness(1);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 calc(var(--ln-btn-edge-y, 4px) - 2px) 0 var(--ln-btn-edge, var(--gold-deep));
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 calc(var(--ln-btn-edge-y, 6px) - 5px) 0 var(--ln-btn-edge, var(--gold-deep));
 }
 
 /* Le survol ne doit pas rester « collé » après un tap : sur tactile, les
@@ -1638,12 +1667,14 @@ fieldset:disabled {
 @media (hover: none) {
   .ln-btn-3d:hover:not(:disabled),
   .btn-game:hover:not(:disabled),
+  .ln-btn-3d-magenta:hover:not(:disabled),
   .ln-cta:hover:not(:disabled) {
     transform: translateY(0) scale(1);
     filter: none;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.32),
-      0 var(--ln-btn-edge-y, 4px) 0 var(--ln-btn-edge, var(--gold-deep));
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 var(--ln-btn-edge-y, 6px) 0 var(--ln-btn-edge, var(--gold-deep)),
+      0 6px 12px rgba(0, 0, 0, 0.35);
   }
 }
 
@@ -1793,12 +1824,17 @@ fieldset:disabled {
   opacity: 0.95;
 }
 
-/* CTA traditionnel : cadre or. Le survol et l'appui sont définis avec
-   `.ln-btn-3d` (voir plus haut) — jamais ici, pour qu'un bouton portant les
-   deux classes ne voie pas la tranche 3D de l'un écraser l'ombre de l'autre. */
+/* CTA traditionnel. Le survol et l'appui sont définis avec `.ln-btn-3d`
+   (voir plus haut) — jamais ici, pour qu'un bouton portant les deux classes
+   ne voie pas la tranche 3D de l'un écraser l'ombre de l'autre.
+   Le contour est SOMBRE et non or : c'est ce que montrent les références,
+   et un liseré or sur une face or se confond avec elle. Comme cette règle
+   est déclarée après `.ln-btn-3d`, c'est elle qui gagne sur `<Button>` :
+   la garder or aurait donné deux bordures différentes pour le même bouton
+   selon qu'il porte `.btn-game` ou les classes de `<Button>`. */
 .ln-cta {
   position: relative;
-  border: 2px solid var(--gold-primary);
+  border: 1px solid color-mix(in srgb, var(--gold-deep) 55%, #000);
   border-radius: 8px;
   transition:
     transform var(--ln-dur-fast) var(--ln-ease),
