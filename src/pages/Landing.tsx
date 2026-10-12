@@ -540,7 +540,10 @@ export default function Landing() {
             <SectionTitle
               eyebrow="Slang Engine"
               title="On ne traduit pas l'argot, on l'explique"
-              lead="Signification naturelle, traduction littérale, contexte, registre, variantes, exemples — et l'avertissement qui va avec. La base embarquée compte 974 expressions, du verlan au drill."
+              /* Le compteur est le MÊME que celui du hero (mesuré côté
+                 Convex, repli i18n) : écrit en dur, il avait dérivé de
+                 974 à 4 136 expressions sans que rien ne le signale. */
+              lead={`Signification naturelle, traduction littérale, contexte, registre, variantes, exemples — et l'avertissement qui va avec. La base embarquée compte ${expressionCount} expressions, du verlan au drill.`}
             />
 
             <div className="mt-12 grid gap-4 md:grid-cols-3">

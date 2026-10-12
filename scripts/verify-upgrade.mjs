@@ -326,9 +326,34 @@ if (CHARACTERS !== 8) {
   ok(`personnages: ${CHARACTERS} = aiCharacters.ts, et la copy le reprend`);
 }
 
-/* Le total d'expressions n'a PAS de source statique ici : il est calculé
-   par Convex (`landingStats.getLandingNumbers`) depuis la base. */
-skip("expressions: total calculé par Convex (landingStats), aucune source statique à confronter");
+/* Le total d'expressions n'a PAS de source statique ici : il est calculé par
+   Convex (`landingStats.getLandingNumbers`) depuis la base. Donc la copy ne
+   doit PAS en figer un — un compteur écrit en dur dérive en silence (la
+   section « Slang Engine » annonçait encore 974 expressions quand la base en
+   servait 4 136). On vérifie donc l'ABSENCE de chiffre figé devant
+   « expressions » dans la landing, sauf dans le dictionnaire i18n (repli
+   assumé, lu avant l'arrivée de la requête) et hors libellés de graphique. */
+{
+  // Commentaires retirés : ils documentent la valeur mesurée (« 974 → 4 136 »)
+  // sans être affichés — seuls les chiffres de la COPY comptent.
+  const landingCopy = landingSrc
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/^\s*\/\/.*$/gm, " ");
+  // Seuls des CHIFFRES littéraux peuvent figer un total : une copy qui
+  // interpole (`${expressionCount} expressions`) ne matche pas ici — et
+  // c'est précisément la forme attendue.
+  const frozen = [...landingCopy.matchAll(/\d[\d\s.,\u00a0]*\s*expressions/gi)].map((m) =>
+    m[0].trim(),
+  );
+  if (frozen.length > 0) {
+    fail(
+      `expressions: la copy fige un total (${frozen.join(", ")}) au lieu de lire ` +
+        "landingStats.getLandingNumbers",
+    );
+  } else {
+    ok("expressions: aucun total figé dans la landing — la copy lit la base");
+  }
+}
 
 /* ── 8 · ORDRE DU FUNNEL (src/pages/Landing.tsx) ────────────────────── */
 
