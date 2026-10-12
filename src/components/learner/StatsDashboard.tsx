@@ -4,18 +4,8 @@ import { useOptionalQuery } from "@/lib/optionalQuery";
 import {
   WorldMapLanguages,
 } from "./WorldMapLanguages";
-import { LANGUAGE_COUNTRIES } from "@/data/languages-geo";
+import { LANGUAGE_COUNTRIES, LANGUAGE_GEO } from "@/data/languages-geo";
 import { useI18n } from "@/lib/i18n";
-
-const LANGUAGE_COUNTRIES_ENTRIES = [
-  { code: "fr", label: "Français" },
-  { code: "wo", label: "Wolof" },
-  { code: "ln", label: "Lingala" },
-  { code: "sw", label: "Swahili" },
-  { code: "ha", label: "Haoussa" },
-  { code: "yo", label: "Yoruba" },
-  { code: "en", label: "Anglais" },
-] as const;
 
 import {
   Area,
@@ -267,15 +257,16 @@ export function StatsDashboard() {
   const [selectedLang, setSelectedLang] = useState<string | null>(null);
   const { t } = useI18n();
 
-  /* Libellé repris de LANGUAGE_COUNTRIES_ENTRIES : les clés `lang.*` n'existent
-     pas dans le dictionnaire i18n, donc `t()` affichait la clé brute à l'écran
-     (« lang.fr », « lang.noneCountry »). Les pastilles de langue tirent déjà
-     leur libellé de ce tableau : une seule source de vérité. */
+  /* Le NOM vient de i18n (`languages.<code>`, présent dans les six dictionnaires)
+     et la GÉOGRAPHIE de LANGUAGE_GEO : une seule source par information. Le
+     libellé français figé qui vivait ici avait déjà produit des clés brutes à
+     l'écran (« lang.fr »), puis un nom identique dans toutes les langues. */
+  const languageLabel = (code: string) => t(`languages.${code}`);
+
   const selectedLangHint = selectedLang
-    ? `${
-        LANGUAGE_COUNTRIES_ENTRIES.find((entry) => entry.code === selectedLang)?.label ??
-        selectedLang
-      } · ${LANGUAGE_COUNTRIES[selectedLang]?.length ?? 0} pays pleins`
+    ? `${languageLabel(selectedLang)} · ${
+        LANGUAGE_COUNTRIES[selectedLang]?.length ?? 0
+      } pays pleins`
     : "Sélectionne une langue pour voir sa couverture géographique";
 
   // Lecture TOLÉRANTE : ces deux fonctions sont récentes — un backend en
@@ -415,7 +406,7 @@ export function StatsDashboard() {
   const worldMapSection = (
     <>
       <div className="flex flex-wrap gap-2">
-        {LANGUAGE_COUNTRIES_ENTRIES.map(({ code, label }) => (
+        {LANGUAGE_GEO.map(({ code }) => (
           <button
             key={code}
             type="button"
@@ -426,7 +417,7 @@ export function StatsDashboard() {
                 : "border-white/10 text-ink-2 hover:border-gold/40"
             }`}
           >
-            {label}
+            {languageLabel(code)}
           </button>
         ))}
       </div>
