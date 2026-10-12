@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Eye, Layers } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { SpeakButton } from "./SpeakButton";
+import { AdultContentBadge } from "./AdultContentBadge";
 import { UnverifiedBadge } from "./UnverifiedBadge";
 import { GoldBurst } from "@/components/fx/rewards";
 import { useI18n } from "@/lib/i18n";
@@ -65,6 +66,8 @@ type QueueItem = {
     region: string;
     /** `false` = fiche à faire relire par un natif (voir UnverifiedBadge). */
     validated?: boolean;
+    /** `true` = registre sexuel ou très cru (voir AdultContentBadge). */
+    isAdult?: boolean;
   };
   assisted: boolean;
   status: string;
@@ -307,11 +310,13 @@ export function ReviewView() {
               {/* Réserve sur le contenu : visible pendant la révision, au même
                   titre que dans la Découverte. Rendu conditionnel plutôt que
                   laissé au badge seul, pour ne pas insérer de bloc vide. */}
-              {current!.slang.validated === false ? (
-                <div className="-mt-6 mb-6 flex justify-center">
+              {(current!.slang.validated === false ||
+                current!.slang.isAdult === true) && (
+                <div className="-mt-6 mb-6 flex flex-wrap justify-center gap-2">
                   <UnverifiedBadge validated={current!.slang.validated} />
+                  <AdultContentBadge isAdult={current!.slang.isAdult} />
                 </div>
-              ) : null}
+              )}
 
               {revealed ? (
                 <motion.div

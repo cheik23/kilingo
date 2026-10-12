@@ -24,6 +24,7 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LootBoxModal } from "./LootBoxModal";
+import { AdultContentBadge } from "./AdultContentBadge";
 import { UnverifiedBadge } from "./UnverifiedBadge";
 import { showAchievementFeedback } from "@/lib/achievementFeedback";
 import { soundEngine } from "@/lib/soundEngine";
@@ -51,6 +52,8 @@ type PublicQuestion = {
   meaning: string;
   /** `false` = fiche à faire relire par un natif (voir UnverifiedBadge). */
   validated?: boolean;
+  /** `true` = registre sexuel ou très cru (voir AdultContentBadge). */
+  isAdult?: boolean;
 };
 
 type GenerateResult = {
@@ -80,6 +83,8 @@ type SubmitResult = {
     correctOption: string;
     /** `false` = fiche à faire relire par un natif. */
     validated?: boolean;
+    /** `true` = registre sexuel ou très cru. */
+    isAdult?: boolean;
   }[];
 };
 
@@ -597,6 +602,7 @@ function QuizGame({
               <span className="font-medium text-ink">{q.expression}</span>
               {q.meaning ? ` — ${q.meaning}` : ""}
               <UnverifiedBadge validated={q.validated} />
+              <AdultContentBadge isAdult={q.isAdult} />
             </p>
             {q.example && (
               <p className="text-xs italic text-ink-2">« {q.example} »</p>
@@ -718,6 +724,7 @@ function QuizResults({
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-medium text-ink">{w.expression}</p>
                   <UnverifiedBadge validated={w.validated} />
+                  <AdultContentBadge isAdult={w.isAdult} />
                 </div>
                 <p className="text-xs text-ink-2">{w.meaning}</p>
                 <p className="mt-1 text-xs text-gold">

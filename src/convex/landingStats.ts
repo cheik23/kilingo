@@ -58,8 +58,8 @@ export const getLandingStats = query({
  * `avatars` reste une constante de catalogue.
  *
  * `expressions` est en revanche une MESURE. Elle était figée comme repli,
- * mais le seed complet (SLANG_SEED_2025 + Lots 1 à 4 + Vague 1 + bloc inline)
- * n'est jamais compté tant que `slang:seed` n'a pas tourné : la landing
+ * mais le seed complet (SLANG_SEED_2025 + Lots 1 à 4 + Vague 1 + lot allemand
+ * + bloc inline) n'est jamais compté tant que `slang:seed` n'a pas tourné : la landing
  * sous-annoncerait le contenu réellement servi. On lit donc le compteur
  * dénormalisé qu'écrit `slang:recomputeAggregates` — une lecture d'index d'un
  * seul document, au lieu d'un scan par visiteur.
@@ -74,12 +74,14 @@ export const getLandingNumbers = query({
     return {
       languages: 29,
       // Base pas encore seedée : on retombe sur la taille du seed, le temps
-      // que `slang:seed` ait tourné au moins une fois. Valeur mesurée après la
-      // Vague 1 d'enrichissement (2 631 après le Lot 4, + 1 505 : les 8 langues
-      // de, pt, it, ko, ja, tr, pl, el passent de 12 fiches à 200) ; la mesure
-      // réelle vient de slangAggregates, écrit par slang:recomputeAggregates
-      // (le pilote de semis l'appelle langue par langue après slang:seed).
-      expressions: totalRow?.total ?? 4136,
+      // que `slang:seed` ait tourné au moins une fois. Valeur mesurée après le
+      // lot allemand (4 136 après la Vague 1, + 99 : le lot allemand comptait
+      // 107 fiches, 8 étaient déjà en base) ; la mesure réelle vient de
+      // slangAggregates, écrit par slang:recomputeAggregates (le pilote de
+      // semis l'appelle langue par langue après slang:seed).
+      // ⚠️ Le compte PRODUIT peut différer d'une unité (une fiche `en`
+      // importée hors seed existe en production) : c'est la mesure qui fait foi.
+      expressions: totalRow?.total ?? 4235,
       avatars: 85,
     };
   },

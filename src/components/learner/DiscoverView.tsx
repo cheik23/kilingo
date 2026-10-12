@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import { Brain, Globe, Heart, Info, Search, Volume2, X, Filter, Shuffle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SpeakButton } from "./SpeakButton";
+import { AdultContentBadge } from "./AdultContentBadge";
 import { UnverifiedBadge } from "./UnverifiedBadge";
 import { GoldBurst } from "@/components/fx/rewards";
 import { useI18n } from "@/lib/i18n";
@@ -43,6 +44,8 @@ type Slang = {
   mediaRefs?: string[];
   /** `false` = fiche à faire relire par un natif (voir UnverifiedBadge). */
   validated?: boolean;
+  /** `true` = registre sexuel ou très cru (voir AdultContentBadge). */
+  isAdult?: boolean;
 };
 
 /* ── Historique d'exposition (localStorage, FIFO 300) ──────────────── */
@@ -82,6 +85,7 @@ function CardFaceInner({ item, revealLabel }: { item: Slang; revealLabel: string
             {lang?.flag} {item.region}
           </span>
           <UnverifiedBadge validated={item.validated} />
+          <AdultContentBadge isAdult={item.isAdult} />
         </div>
         <span className="font-mono text-[0.625rem] text-ink-3">
           ❤ {item.popularity}
@@ -651,6 +655,7 @@ export function DiscoverView() {
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     <p className="text-sm text-ink-2">{e.meaning}</p>
                     <UnverifiedBadge validated={e.validated} />
+                    <AdultContentBadge isAdult={e.isAdult} />
                   </div>
                   <p className="mt-2 line-clamp-2 text-xs text-ink-3">
                     {e.context}

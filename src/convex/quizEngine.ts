@@ -45,6 +45,8 @@ type SlangDoc = {
   register: string;
   /** `false` = fiche à faire relire par un natif (voir UnverifiedBadge). */
   validated?: boolean;
+  /** `true` = registre sexuel ou très cru (voir AdultContentBadge). */
+  isAdult?: boolean;
 };
 
 const LANG_NAMES: Record<string, string> = {
@@ -176,6 +178,8 @@ export const generateQuiz = mutation({
       meaning: string;
       /** Fiche à faire relire par un natif (`false`) — sinon absent. */
       validated?: boolean;
+      /** Contenu adulte (`true`) — sinon absent. */
+      isAdult?: boolean;
     };
     type StoredQuestion = PublicQuestion & { correctIndex: number };
 
@@ -225,8 +229,10 @@ export const generateQuiz = mutation({
         expression: target.expression,
         meaning: target.meaning,
         // Recopié pour que l'avertissement « à faire relire » s'affiche sur la
-        // question, pas seulement dans la Découverte.
+        // question, pas seulement dans la Découverte. Même raison pour le
+        // marquage « contenu adulte ».
         validated: target.validated,
+        isAdult: target.isAdult,
       };
       publicQuestions.push(question);
       storedQuestions.push({ ...question, correctIndex });
@@ -294,6 +300,8 @@ export const submitQuiz = mutation({
       correctOption: string;
       /** Fiche à faire relire par un natif (`false`) — sinon absent. */
       validated?: boolean;
+      /** Contenu adulte (`true`) — sinon absent. */
+      isAdult?: boolean;
     }[] = [];
     const questionTypes: string[] = [];
 
@@ -311,6 +319,7 @@ export const submitQuiz = mutation({
           // Le récapitulatif des erreurs doit porter le même avertissement que
           // la question : c'est là que l'apprenant relit ce qu'il a raté.
           validated: q.validated,
+          isAdult: q.isAdult,
         });
       }
     }

@@ -88,6 +88,9 @@ const slangPublicValidator = v.object({
   // que la file de révision puisse porter le même avertissement que la
   // Découverte. Absente (undefined) pour tout le contenu déjà validé.
   validated: v.optional(v.boolean()),
+  // Contenu adulte — même recopie, même raison : la révision doit pouvoir
+  // prévenir l'apprenant qui retombe sur « goonen ».
+  isAdult: v.optional(v.boolean()),
 });
 
 /** Card fields exposed to the client. */
@@ -433,6 +436,7 @@ export const reviewQueue = query({
             popularity: slang.popularity,
             mediaRefs: slang.mediaRefs,
             validated: slang.validated,
+            isAdult: slang.isAdult,
           },
           assisted: (card.consecutiveFails ?? 0) >= 3,
           status: statusOf(card),

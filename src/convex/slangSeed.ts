@@ -2,6 +2,7 @@ import { SLANG_SEED_AFRICA } from "./slangSeedAfrica";
 import { SLANG_SEED_2025 } from "./slangSeed2025";
 import { SLANG_SEED_LOT4 } from "./slangSeedLot4";
 import { SLANG_SEED_ENRICHMENT1 } from "./slangSeedEnrichment1";
+import { SLANG_SEED_ENRICHMENT_DE } from "./slangSeedEnrichmentDe";
 import { SLANG_SEED_LOT3 } from "./slangSeedLot3";
 import { SLANG_SEED_LOT2 } from "./slangSeedLot2";
 import { SLANG_SEED_LOT1 } from "./slangSeedLot1";
@@ -59,6 +60,16 @@ export type SlangSeed = {
    * signale que `validated === false`, jamais l'absence.
    */
   validated?: boolean;
+  /**
+   * Contenu adulte (aujourd'hui : « goonen », argot sexuel du lot allemand).
+   *
+   * OPTIONNEL, et « absent » ne vaut PAS « interdit » : l'absence veut dire
+   * « rien à signaler », exactement comme `validated`. Ne pas écrire
+   * `isAdult: false` partout — un défaut explicite obligerait à repasser sur
+   * les ~4 200 fiches existantes pour un simple drapeau d'affichage (c'est
+   * l'erreur qui avait été évitée de justesse pour `validated`).
+   */
+  isAdult?: boolean;
 };
 
 /** Batch-2 additions, spread into the main seed below. */
@@ -661,6 +672,11 @@ export const SLANG_SEED: SlangSeed[] = [
   // collision avec un lot précédent — garanti par `npm run verify:seeds`, qui
   // échoue (exit 1) au moindre slug en double.
   ...SLANG_SEED_ENRICHMENT1,
+  // Lot allemand — Jugendwort des Jahres 2025 + argot contemporain :
+  // 99 fiches, sur les 107 reçues (8 étaient déjà en base ; la liste est
+  // écrite dans l'en-tête de slangSeedEnrichmentDe.ts). L'allemand passe de
+  // 200 à 299 fiches. Une fiche porte `isAdult` (« goonen »).
+  ...SLANG_SEED_ENRICHMENT_DE,
 
   // ─── ANGLAIS (US/UK) — cœur éditorial ─────────────────────────────
   { language: "en", expression: "no cap", literal: "pas de casquette", meaning: "pour de vrai, sans mentir", context: "Sert à insister sur la véracité d'une affirmation, entre amis ou en ligne.", register: "street", region: "US", popularity: 96, mediaRefs: ["Song — « No Cap » (Future)", "TikTok — #NoCap 2B views"] },

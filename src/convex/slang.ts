@@ -309,6 +309,10 @@ const PUBLIC_FIELDS = {
   // `stripInternal` laisse passer tout le reste de la ligne → sans cette
   // ligne, chaque requête publique échouerait à la validation.
   validated: v.optional(v.boolean()),
+  // Contenu adulte (`true` seulement) — même contrainte que `validated` :
+  // sans cette ligne dans la projection, l'avertissement ne pourrait pas
+  // sortir du serveur du tout.
+  isAdult: v.optional(v.boolean()),
 };
 
 /**
@@ -402,8 +406,10 @@ export const seed = mutation({
           // Le drapeau « à faire relire » fait partie du contenu : le retirer
           // (retour à `undefined`) ou le poser doit rattraper les lignes
           // déjà en base au prochain seed, sans quoi une correction de
-          // validation resterait invisible pour toujours.
-          row.validated !== item.validated)
+          // validation resterait invisible pour toujours. Idem pour
+          // `isAdult` : un avertissement qu'on retire doit disparaître.
+          row.validated !== item.validated ||
+          row.isAdult !== item.isAdult)
       ) {
         await ctx.db.patch(found, {
           literal: item.literal,
@@ -420,6 +426,7 @@ export const seed = mutation({
           // sans ça, une fiche repassée en « non signalé » resterait marquée
           // `false` et serait re-patchée à chaque exécution du seed.
           validated: item.validated,
+          isAdult: item.isAdult,
         });
         updated += 1;
       } else {

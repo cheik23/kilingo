@@ -30,6 +30,7 @@ import { getUpgradeCopy } from "./i18n.upgrade";
 import { getSignsCopy } from "./i18n.signs";
 import { getFlowCopy } from "./i18n.flow";
 import { getValidationCopy } from "./i18n.validation";
+import { getAdultCopy } from "./i18n.adult";
 // Overlays are resolved after the base dictionaries so newly-added modules
 // remain localized without rewriting the large historical dictionary.
 
@@ -826,6 +827,9 @@ function applyDictionaryOverlays(): void {
     // fr/en/es/zh/ar/ru seulement, repli français pour les six autres
     // (voir l'en-tête de i18n.validation.ts).
     mergeInto(dict, getValidationCopy(lang));
+    // L'avertissement « contenu adulte » — même couverture (fr/en/es/zh/ar/ru),
+    // même repli français assumé (voir i18n.adult.ts).
+    mergeInto(dict, getAdultCopy(lang));
     for (const key of PRUNED_NAV_KEYS) {
       const nav = dict.nav;
       if (nav && typeof nav === "object") {

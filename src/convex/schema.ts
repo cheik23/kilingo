@@ -44,6 +44,9 @@ export const quizStoredQuestionValidator = v.object({
   // quiz tourne sur une session figée, la fiche peut disparaître ensuite et
   // l'avertissement « à faire relire » doit survivre au sessionnage.
   validated: v.optional(v.boolean()),
+  // Idem pour l'avertissement « contenu adulte » : une question peut porter
+  // une expression du lot allemand marquée `isAdult`.
+  isAdult: v.optional(v.boolean()),
   correctIndex: v.number(),
 });
 
@@ -146,6 +149,12 @@ const schema = defineSchema(
       // Interprétation unique, côté serveur comme côté UI : `validated === false`
       // ⇒ à faire relire. Toute autre valeur ⇒ rien à signaler.
       validated: v.optional(v.boolean()),
+      // Contenu adulte (aujourd'hui : une fiche, « goonen », argot sexuel du
+      // lot allemand). Même contrat d'optionalité que `validated` : seul
+      // `true` déclenche l'avertissement, et « absent » veut dire « rien à
+      // signaler » — jamais « interdit ». Le champ n'existe que pour être
+      // affiché : il ne masque ni l'expression ni l'exercice.
+      isAdult: v.optional(v.boolean()),
     })
       .index("by_language", ["language"])
       .index("by_language_popularity", ["language", "popularity"])
