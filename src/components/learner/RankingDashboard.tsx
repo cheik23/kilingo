@@ -90,7 +90,7 @@ function ChartCard({
   className?: string;
 }) {
   return (
-    <section className={cn("ln-card ln-card-static rounded-xl border-white/5 p-5", className)}>
+    <section className={cn("ln-card rounded-xl border-white/5 p-5", className)}>
       <h2 className="font-mono text-[0.6875rem] tracking-[0.2em] text-ink-3 uppercase">{title}</h2>
       {subtitle && <p className="mt-1 text-xs text-ink-3">{subtitle}</p>}
       <div className="mt-4">{children}</div>
@@ -250,7 +250,7 @@ export function RankingDashboard() {
           motif="kente"
           description="Global · par semaine, par mois ou depuis le début"
         />
-        <section className="ln-card ln-card-static rounded-xl border-white/5 p-8 text-center">
+        <section className="ln-card rounded-xl border-white/5 p-8 text-center">
           <Info className="mx-auto size-9 text-gold/60" aria-hidden />
           <h2 className="mt-4 font-display text-xl font-semibold text-ink">
             Classement indisponible pour le moment
@@ -348,7 +348,7 @@ export function RankingDashboard() {
       )}
 
       {/* ── Ma position ─────────────────────────────────────────────── */}
-      <section className="ln-card ln-card-static relative overflow-hidden rounded-xl border-gold/30 bg-gradient-to-br from-gold/[0.08] to-transparent p-5">
+      <section className="ln-card relative overflow-hidden rounded-xl border-gold/30 bg-gradient-to-br from-gold/[0.08] to-transparent p-5">
         <div className="flex flex-wrap items-center justify-between gap-5">
           <div className="flex items-center gap-4">
             <span className="flex size-14 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
@@ -412,7 +412,7 @@ export function RankingDashboard() {
         )}
       </section>
 
-      {/* ── Top 10 ──────────────────────────────────────────────────── */}        <section className="ln-card ln-card-static rounded-xl border-white/5 p-5">
+      {/* ── Top 10 ──────────────────────────────────────────────────── */}        <section className="ln-card rounded-xl border-white/5 p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <h2 className="flex items-center gap-2 font-mono text-[0.6875rem] tracking-[0.2em] text-ink-3 uppercase">
             <Award className="size-4 text-gold" aria-hidden />

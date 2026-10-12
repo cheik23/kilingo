@@ -126,12 +126,13 @@ export function StoreView() {
           const affordable = gems >= item.price;
           const missing = item.price - gems;
           const Icon = item.icon;
-          // Carte immobile : pas de tilt 3D, ni d'élévation ni d'ombre au
-          // survol. `ln-card-static` annule la règle globale `.ln-card:hover`,
-          // qui levait la carte de 4 px sans qu'aucune classe du JSX ne le dise.
+          // Carte vivante : le survol (soulèvement, léger zoom, ombre qui
+          // s'épaissit) vient de `.ln-card:hover`, l'unique définition dans
+          // index.css. Aucune classe de survol ici — c'est précisément ce qui
+          // évite qu'une vue réinvente l'effet et dérive de la charte.
           return (
-            <div key={item.key} className="ln-card ln-card-static flex flex-col p-5">
-              <span className="flex size-11 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
+            <div key={item.key} className="ln-card flex flex-col p-5">
+              <span className="ln-medallion flex size-11 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
                 <Icon className="size-5 text-gold" />
               </span>
               <h2 className="mt-3 font-display text-lg text-ink">
@@ -139,7 +140,7 @@ export function StoreView() {
               </h2>
               <p className="mt-1 flex-1 text-sm text-ink-2">{item.desc}</p>
               <div className="mt-4 flex items-center justify-between gap-3">
-                <span className="font-display text-lg font-semibold text-gold">
+                <span className="ln-chip-3d inline-flex items-center gap-1.5 rounded-lg border border-gold/25 bg-gold/5 px-2.5 py-1 font-display text-lg font-semibold text-gold">
                   <Gem className="size-5 text-gold" />
                   {item.price}
                 </span>
@@ -153,7 +154,10 @@ export function StoreView() {
                     disabled={loadingStats || !affordable || busy === item.key}
                     onClick={() => buy(item.key)}
                     className={cn(
-                      "rounded-lg px-4 py-2 text-sm font-semibold transition-all",
+                      // Pas de `transition` ici : `.ln-btn-3d` porte déjà la
+                      // sienne (transform, box-shadow, filter) et la règle CSS
+                      // non layerisée l'emporte de toute façon sur l'utilitaire.
+                      "rounded-lg px-4 py-2 text-sm font-semibold",
                       loadingStats
                         ? "cursor-wait border border-white/10 text-ink-3"
                         : affordable
@@ -174,8 +178,8 @@ export function StoreView() {
         })}
 
         {/* ── Centre loot ─────────────────────────────────────────── */}
-        <div className="ln-card ln-card-static flex flex-col p-5">
-          <span className="flex size-11 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
+        <div className="ln-card flex flex-col p-5">
+          <span className="ln-medallion flex size-11 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
             <Gift className="size-5 text-gold" />
           </span>
           <h2 className="mt-3 font-display text-lg text-ink">{t("store.lootTitle")}</h2>
@@ -210,7 +214,7 @@ export function StoreView() {
       </section>
 
       {/* ── Économie : quiz parfait, conversations réussies ───────── */}
-      <section className="ln-card ln-card-static p-5">
+      <section className="ln-card p-5">
         <h2 className="font-mono text-[0.6875rem] uppercase tracking-[0.2em] text-ink-3">
           {t("store.howTo")}
         </h2>

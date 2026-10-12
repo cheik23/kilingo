@@ -367,7 +367,7 @@ export function AchievementsView() {
                       className="ln-stagger-item"
                       style={{ ["--ln-i" as string]: i }}
                     >
-                      <div className="ln-card ln-card-static h-full">
+                      <div className="ln-card h-full">
                         <AchievementCard item={item} onOpen={() => setSelected(item)} />
                       </div>
                     </div>
@@ -403,7 +403,7 @@ export function AchievementsView() {
               className="ln-stagger-item"
               style={{ ["--ln-i" as string]: i }}
             >
-              <div className="ln-card ln-card-static h-full">
+              <div className="ln-card h-full">
                 <AchievementCard item={item} onOpen={() => setSelected(item)} />
               </div>
             </div>

@@ -681,25 +681,59 @@ label {
     border-color var(--ln-dur) var(--ln-ease);
 }
 
+/* ── SURVOL DE CARTE — UNE SEULE DÉFINITION POUR TOUTE L'APP ──────────
+   La carte se soulève de 4 px, grossit de 2 %, et son ombre s'épaissit
+   jusqu'à l'épaulement XL doublé d'un liseré or.
+
+   Le mouvement vit EXCLUSIVEMENT ici, jamais dans les classes Tailwind
+   d'une vue : une vue ne peut donc pas le réimplémenter autrement, ni
+   dériver de la charte. `transform` est déclaré une fois pour les deux
+   surfaces concernées — `.ln-card` (carte complète) et `.ln-lift`
+   (surface interactive qui n'est pas une carte, ex. ligne de langue) —
+   afin qu'elles ne puissent pas diverger. */
+.ln-card:hover,
+.ln-lift:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
 .ln-card:hover {
-  transform: translateY(-4px);
   box-shadow:
     var(--ln-shadow-xl),
     0 0 0 1px color-mix(in srgb, var(--gold-primary) 40%, transparent);
 }
 
-/* Carte volontairement immobile : aucun déplacement, aucune ombre qui bouge
-   au survol. Le mouvement vient d'ici — pas des classes du composant — donc
-   une grille ne peut devenir statique tant que cette règle s'applique. Sert
-   aux vues où le déplacement gêne la lecture (boutique, succès, classement). */
-.ln-card-static:hover {
-  transform: none;
-  box-shadow: var(--ln-shadow-sm);
+/* Surface interactive sans habillage de carte : reprend exactement le
+   mouvement ci-dessus, avec l'ombre des cartes plus discrètes. */
+.ln-lift {
+  transition:
+    transform var(--ln-dur) var(--ln-ease),
+    box-shadow var(--ln-dur) var(--ln-ease),
+    border-color var(--ln-dur) var(--ln-ease);
+}
+
+.ln-lift:hover {
+  box-shadow: var(--ln-shadow-lg);
 }
 
 /* Épaulements doux réutilisables par les cartes et panneaux. */
 .ln-shadow-sm {
   box-shadow: var(--ln-shadow-sm);
+}
+
+/* ── Pastille de prix et médaillon d'icône : le petit relief « jeu vidéo »
+   des cartes de boutique. Une arête claire en haut, une ombre courte en
+   bas : l'élément paraît posé SUR la carte, pas imprimé dedans. ── */
+.ln-chip-3d {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.ln-medallion {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 0 1px color-mix(in srgb, var(--gold-primary) 25%, transparent),
+    0 0 12px color-mix(in srgb, var(--gold-primary) 18%, transparent);
 }
 .ln-shadow-md {
   box-shadow: var(--ln-shadow-md);
@@ -738,7 +772,8 @@ label {
 
 /* Module D — pas de hover « collant » sur tactile. */
 @media (hover: none) {
-  .ln-card:hover {
+  .ln-card:hover,
+  .ln-lift:hover {
     transform: none;
     box-shadow: var(--ln-shadow-sm);
   }
@@ -1445,7 +1480,8 @@ fieldset:disabled {
 
   .ln-tilt,
   .ln-magnetic,
-  .ln-card {
+  .ln-card,
+  .ln-lift {
     transform: none !important;
   }
 
@@ -1483,40 +1519,67 @@ fieldset:disabled {
 }
 
 /* ── Boutons 3D : une vraie tranche d'ombre, pas un simple dégradé ──
-   Hover : la carte remonte et l'ombre s'épaissit (plus basse = plus loin
-   de la surface). Active : elle s'enfonce dans le bouton. */
+   `--ln-btn-edge` porte la COULEUR de la tranche et `--ln-btn-edge-y` son
+   ÉPAISSEUR. La variante magenta ne fait que redéfinir la couleur : le
+   mouvement est donc écrit une seule fois pour les deux.
+
+   Repos   : arête claire en haut (la brillance) + tranche franche.
+   Survol  : le bouton remonte, grossit de 2 % et s'éclaire — la tranche
+             s'épaissit, donc il paraît plus loin de la surface.
+   Appuyé  : il s'enfonce dans sa tranche (la brillance s'éteint).
+
+   `.ln-cta` est volontairement dans le MÊME groupe : les deux classes sont
+   toujours posées ensemble par `<Button>`, et la plus tardive écrasait
+   sinon l'ombre de l'autre — la tranche 3D disparaissait au survol, ne
+   laissant qu'un halo. Une seule règle élimine ce conflit par construction. */
 .ln-btn-3d {
-  box-shadow: 0 4px 0 var(--gold-deep);
-  transform: translateY(0);
+  --ln-btn-edge: var(--gold-deep);
+  --ln-btn-edge-y: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 var(--ln-btn-edge-y) 0 var(--ln-btn-edge);
+  transform: translateY(0) scale(1);
   transition:
     transform var(--ln-dur-fast) var(--ln-ease),
-    box-shadow var(--ln-dur-fast) var(--ln-ease);
-}
-
-.ln-btn-3d:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow:
-    0 6px 0 var(--gold-deep),
-    0 0 12px color-mix(in srgb, var(--gold-primary) 30%, transparent);
-}
-
-.ln-btn-3d:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 var(--gold-deep);
+    box-shadow var(--ln-dur-fast) var(--ln-ease),
+    filter var(--ln-dur-fast) var(--ln-ease);
 }
 
 .ln-btn-3d-magenta {
-  box-shadow: 0 4px 0 var(--accent-magenta-deep);
+  --ln-btn-edge: var(--accent-magenta-deep);
 }
 
-.ln-btn-3d-magenta:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 var(--accent-magenta-deep);
+.ln-btn-3d:hover:not(:disabled),
+.ln-cta:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 calc(var(--ln-btn-edge-y, 4px) + 2px) 0 var(--ln-btn-edge, var(--gold-deep)),
+    0 0 12px color-mix(in srgb, var(--gold-primary) 30%, transparent);
 }
 
-.ln-btn-3d-magenta:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 var(--accent-magenta-deep);
+.ln-btn-3d:active:not(:disabled),
+.ln-cta:active:not(:disabled) {
+  transform: translateY(2px) scale(1);
+  filter: brightness(1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 calc(var(--ln-btn-edge-y, 4px) - 2px) 0 var(--ln-btn-edge, var(--gold-deep));
+}
+
+/* Le survol ne doit pas rester « collé » après un tap : sur tactile, les
+   boutons 3D retrouvent leur position de repos. Placé APRÈS les règles de
+   survol — à spécificité égale, c'est l'ordre du fichier qui décide. */
+@media (hover: none) {
+  .ln-btn-3d:hover:not(:disabled),
+  .ln-cta:hover:not(:disabled) {
+    transform: translateY(0) scale(1);
+    filter: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.32),
+      0 var(--ln-btn-edge-y, 4px) 0 var(--ln-btn-edge, var(--gold-deep));
+  }
 }
 
 /* ── Icônes de navigation : rotation 3D au survol ──
@@ -1665,20 +1728,17 @@ fieldset:disabled {
   opacity: 0.95;
 }
 
-/* CTA traditionnel + glow or. */
+/* CTA traditionnel : cadre or. Le survol et l'appui sont définis avec
+   `.ln-btn-3d` (voir plus haut) — jamais ici, pour qu'un bouton portant les
+   deux classes ne voie pas la tranche 3D de l'un écraser l'ombre de l'autre. */
 .ln-cta {
   position: relative;
   border: 2px solid var(--gold-primary);
   border-radius: 8px;
   transition:
     transform var(--ln-dur-fast) var(--ln-ease),
-    box-shadow var(--ln-dur) var(--ln-ease);
-}
-.ln-cta:hover:not(:disabled) {
-  box-shadow: 0 0 12px color-mix(in srgb, var(--gold-primary) 30%, transparent);
-}
-.ln-cta:active:not(:disabled) {
-  transform: translateY(1px);
+    box-shadow var(--ln-dur) var(--ln-ease),
+    filter var(--ln-dur-fast) var(--ln-ease);
 }
 
 /* Kicker éditorial : symbole adinkra avant le texte. */

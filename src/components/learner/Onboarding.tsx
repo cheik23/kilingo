@@ -126,7 +126,10 @@ export function Onboarding() {
                     key={l.code}
                     type="button"
                     onClick={() => toggleLang(l.code)}
-                    className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all ${
+                    // `ln-lift` : même survol que les cartes (soulèvement +
+                    // zoom léger), partagé et non réécrit ici. Le `transition`
+                    // appartient aussi à la classe, pas à un utilitaire.
+                    className={`ln-lift flex w-full items-center gap-3 rounded-xl border p-4 text-left ${
                       isActive
                         ? "border-gold/50 bg-gold/10"
                         : "border-white/8 bg-noir-2/60 hover:border-white/20"

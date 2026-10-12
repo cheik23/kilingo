@@ -10,13 +10,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "ln-cta ln-grad-gold ln-btn-3d bg-gold-deep text-noir font-semibold hover:brightness-105",
+          // `hover:brightness-105` retiré : la luminosité au survol est portée
+          // par `.ln-btn-3d:hover` (une seule source pour le mouvement).
+          "ln-cta ln-grad-gold ln-btn-3d bg-gold-deep text-noir font-semibold",
         destructive:
           "bg-destructive text-[#ffffff] hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
           "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
-          "ln-grad-magenta ln-btn-3d-magenta bg-magenta-deep text-[#ffffff] font-semibold hover:brightness-105",
+          "ln-grad-magenta ln-btn-3d-magenta bg-magenta-deep text-[#ffffff] font-semibold",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
