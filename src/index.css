@@ -675,7 +675,13 @@ label {
   color: transparent;
 }
 
-.ln-card {
+/* `.card-game` (carte) et `.btn-game` (bouton) sont les NOMS PUBLICS des
+   deux composants « jeu ». Ce ne sont PAS des copies : chaque nom est ajouté
+   aux LISTES DE SÉLECTEURS existantes, donc une seule déclaration sert les
+   deux et une correction future ne peut pas n'en atteindre qu'un. Recopier
+   les valeurs aurait recréé deux vérités à maintenir en parallèle. */
+.ln-card,
+.card-game {
   background: var(--card-bg);
   border: var(--border-subtle);
   border-radius: var(--ln-radius-lg);
@@ -701,7 +707,8 @@ label {
    reste `none`. Le dégradé doit venir d'une règle non layerisée déclarée
    APRÈS `.ln-card`, seule façon de l'emporter à spécificité égale.
    `--gold-primary` change de valeur en thème clair : le dégradé suit. */
-.ln-card-shop {
+.ln-card-shop,
+.card-game {
   background-image: linear-gradient(
     to bottom right,
     color-mix(in srgb, var(--gold-primary) 10%, transparent) 0%,
@@ -721,11 +728,13 @@ label {
    (surface interactive qui n'est pas une carte, ex. ligne de langue) —
    afin qu'elles ne puissent pas diverger. */
 .ln-card:hover,
+.card-game:hover,
 .ln-lift:hover {
   transform: translateY(-8px) scale(1.02);
 }
 
-.ln-card:hover {
+.ln-card:hover,
+.card-game:hover {
   box-shadow:
     var(--ln-shadow-xl),
     0 0 0 1px color-mix(in srgb, var(--gold-primary) 40%, transparent);
@@ -806,7 +815,8 @@ label {
    La carte retourne à son ombre de REPOS (et non à l'ancienne ombre
    discrète, qui n'existe plus), la surface `.ln-lift` revient plate. */
 @media (hover: none) {
-  .ln-card:hover {
+  .ln-card:hover,
+  .card-game:hover {
     transform: none;
     box-shadow: var(--ln-shadow-lg);
   }
@@ -1519,6 +1529,7 @@ fieldset:disabled {
   .ln-tilt,
   .ln-magnetic,
   .ln-card,
+  .card-game,
   .ln-lift {
     transform: none !important;
   }
@@ -1570,7 +1581,8 @@ fieldset:disabled {
    toujours posées ensemble par `<Button>`, et la plus tardive écrasait
    sinon l'ombre de l'autre — la tranche 3D disparaissait au survol, ne
    laissant qu'un halo. Une seule règle élimine ce conflit par construction. */
-.ln-btn-3d {
+.ln-btn-3d,
+.btn-game {
   --ln-btn-edge: var(--gold-deep);
   --ln-btn-edge-y: 4px;
   box-shadow:
@@ -1587,7 +1599,20 @@ fieldset:disabled {
   --ln-btn-edge: var(--accent-magenta-deep);
 }
 
+/* Surface publique du nom « jeu » : exactement ce que porte la variante
+   dorée de `<Button>` — dégradé or, aplat `gold-deep`, encre `noir`, rayon
+   `rounded-xl` (= `--ln-radius-md`). Le MOUVEMENT, lui, n'est pas recopié
+   ici : il vient des listes de sélecteurs de `.ln-btn-3d`. */
+.btn-game {
+  background-image: var(--gradient-gold);
+  background-color: var(--gold-deep);
+  color: var(--noir);
+  border-radius: var(--ln-radius-md);
+  font-weight: 600;
+}
+
 .ln-btn-3d:hover:not(:disabled),
+.btn-game:hover:not(:disabled),
 .ln-cta:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.02);
   filter: brightness(1.06);
@@ -1598,6 +1623,7 @@ fieldset:disabled {
 }
 
 .ln-btn-3d:active:not(:disabled),
+.btn-game:active:not(:disabled),
 .ln-cta:active:not(:disabled) {
   transform: translateY(2px) scale(1);
   filter: brightness(1);
@@ -1611,6 +1637,7 @@ fieldset:disabled {
    survol — à spécificité égale, c'est l'ordre du fichier qui décide. */
 @media (hover: none) {
   .ln-btn-3d:hover:not(:disabled),
+  .btn-game:hover:not(:disabled),
   .ln-cta:hover:not(:disabled) {
     transform: translateY(0) scale(1);
     filter: none;
@@ -1849,6 +1876,9 @@ fieldset:disabled {
   .ln-btn-3d-magenta,
   .ln-btn-3d-magenta:hover,
   .ln-btn-3d-magenta:active,
+  .btn-game,
+  .btn-game:hover,
+  .btn-game:active,
   .ln-nav-flip,
   .ln-nav-flip:hover,
   .ln-nav-flip:active,
