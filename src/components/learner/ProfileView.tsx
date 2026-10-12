@@ -124,7 +124,7 @@ export function ProfileView() {
               {t("space.identity")}
             </p>
             <h1 className="mt-1 truncate font-display text-3xl font-semibold text-ink">
-              {user?.name ?? user?.email ?? "KILINGO"}
+              {user?.displayName ?? user?.name ?? user?.email ?? "KILINGO"}
             </h1>
 
             <p className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-mono text-[0.6875rem] text-ink-3 sm:justify-start">

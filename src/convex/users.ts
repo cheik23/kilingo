@@ -40,3 +40,29 @@ export const setDailyGoal = mutation({
     dailyGoalMinutes: v.number(),
   }),
 });
+
+/**
+ * Met à jour l’affichage public du profil (pseudo visible dans le header,
+ * le classement et les succès). Validation côté serveur uniquement :
+ * 3 à 20 caractères non vides après trimming.
+ */
+export const updateDisplayName = mutation({
+  args: { displayName: v.string() },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not signed in");
+    }
+    const trimmed = args.displayName.trim();
+    if (trimmed.length < 3 || trimmed.length > 20) {
+      throw new Error("display_name_invalid");
+    }
+    await ctx.db.patch(userId, { displayName: trimmed });
+    return { ok: true as const, displayName: trimmed };
+  },
+  returns: v.object({
+    ok: v.literal(true),
+    displayName: v.string(),
+  }),
+});
+

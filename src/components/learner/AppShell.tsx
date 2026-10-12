@@ -55,6 +55,7 @@ import { LastChanceModal } from "./LastChanceModal";
 import { StreakBanner } from "./StreakBanner";
 import { NotificationsBell } from "./NotificationsBell";
 import { useUnopenedLootCount } from "./LootBoxModal";
+import { FirstTimeNicknameModal } from "./FirstTimeNicknameModal";
 import { Button } from "@/components/ui/button";
 import { FlagIcon } from "@/components/ui/FlagIcon";
 import {
@@ -67,6 +68,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 import { UI_LANGS, uiLangMeta, useI18n, type UiLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { soundEngine } from "@/lib/soundEngine";
+import { useAuth } from "@/hooks/use-auth";
 
 /* ═══════════════════════════════════════════════════════════════════
    KILINGO — coquille authentifiée.
@@ -305,6 +307,10 @@ function AppShellInner() {
   // Le rôle vient du backend : l'interface ne fait que s'y conformer.
   const access = useQuery(api.ovAdmin.amIAdmin);
   const isAdmin = access?.admin === true;
+  const { user } = useAuth();
+  // MOD 4 — pseudo obligatoire à la première connexion. On attend que le doc
+  // user soit chargé (user non nul) pour éviter un flash sur l'écran de login.
+  const needsNickname = user != null && !user.displayName;
 
   // MOD 2 — économie : compteur gems (header) + badge Double XP animé.
   const doubleXp = useQuery(api.gamification.hasDoubleXp);
@@ -520,6 +526,7 @@ function AppShellInner() {
           open={lastChanceOpen}
           onClose={() => setLastChanceOpen(false)}
         />
+        <FirstTimeNicknameModal open={needsNickname} />
 
         <main className="flex-1 px-4 pt-6 pb-24 lg:px-8 lg:pt-8 lg:pb-12">
           {/* Module 2 — transition de page : fondu 150 ms + translateY 8px,

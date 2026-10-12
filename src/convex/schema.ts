@@ -72,6 +72,7 @@ const schema = defineSchema(
        * ferait planter `Intl`) et retombe sur UTC s'il est inconnu.
        */
       timezone: v.optional(v.string()),
+      displayName: v.optional(v.string()),
     }).index("email", ["email"]), // index for the email. do not remove or modify
 
     // add other tables here
