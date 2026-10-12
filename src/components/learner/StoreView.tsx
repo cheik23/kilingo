@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { CountUp } from "@/components/fx/rewards";
 import { PlaceHeader } from "@/components/fx/PlaceHeader";
 import { LootBoxModal } from "./LootBoxModal";
-import { Card3D } from "@/components/fx/Card3D";
 
 /* ═══════════════════════════════════════════════════════════════════
    BOUTIQUE (MOD 2 — C) — /app/store, thème or/noir exclusivement.
@@ -127,23 +126,20 @@ export function StoreView() {
           const affordable = gems >= item.price;
           const missing = item.price - gems;
           const Icon = item.icon;
+          // Carte immobile : pas de tilt 3D, ni d'élévation ni d'ombre au
+          // survol. `ln-card-static` annule la règle globale `.ln-card:hover`,
+          // qui levait la carte de 4 px sans qu'aucune classe du JSX ne le dise.
           return (
-            <Card3D key={item.key} className="ln-card flex flex-col p-5">
-              <span
-                data-card3d-depth="50"
-                className="flex size-11 items-center justify-center rounded-full border border-gold/40 bg-gold/10"
-              >
+            <div key={item.key} className="ln-card ln-card-static flex flex-col p-5">
+              <span className="flex size-11 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
                 <Icon className="size-5 text-gold" />
               </span>
-              <h2 data-card3d-depth="20" className="mt-3 font-display text-lg text-ink">
+              <h2 className="mt-3 font-display text-lg text-ink">
                 {item.title}
               </h2>
               <p className="mt-1 flex-1 text-sm text-ink-2">{item.desc}</p>
               <div className="mt-4 flex items-center justify-between gap-3">
-                <span
-                  data-card3d-depth="25"
-                  className="font-display text-lg font-semibold text-gold"
-                >
+                <span className="font-display text-lg font-semibold text-gold">
                   <Gem className="size-5 text-gold" />
                   {item.price}
                 </span>
@@ -173,12 +169,12 @@ export function StoreView() {
                   </button>
                 </span>
               </div>
-            </Card3D>
+            </div>
           );
         })}
 
         {/* ── Centre loot ─────────────────────────────────────────── */}
-        <div className="ln-card flex flex-col p-5">
+        <div className="ln-card ln-card-static flex flex-col p-5">
           <span className="flex size-11 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
             <Gift className="size-5 text-gold" />
           </span>
@@ -193,7 +189,10 @@ export function StoreView() {
                     onClick={() => setOpenLootId(b._id)}
                     className="flex w-full items-center justify-between rounded-lg border border-gold/30 bg-gold/5 px-3 py-2 text-xs text-ink transition-colors hover:bg-gold/10"
                   >
-                    <span>🎁 {t(`loot.tier_${b.tier}`)}</span>
+                    <span className="flex items-center gap-1.5">
+                      <Gift className="size-4 text-gold" aria-hidden />
+                      {t(`loot.tier_${b.tier}`)}
+                    </span>
                     <span className="text-gold">{t("loot.open")}</span>
                   </button>
                 </li>
@@ -211,14 +210,14 @@ export function StoreView() {
       </section>
 
       {/* ── Économie : quiz parfait, conversations réussies ───────── */}
-      <section className="ln-card p-5">
+      <section className="ln-card ln-card-static p-5">
         <h2 className="font-mono text-[0.6875rem] uppercase tracking-[0.2em] text-ink-3">
           {t("store.howTo")}
         </h2>
         <ul className="mt-3 grid gap-2 text-sm text-ink-2 sm:grid-cols-3">
-          <li className="transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20"><Trophy className="size-4 text-yellow-400 shrink-0" /> {t("store.howQuiz")}</li>
-          <li className="transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20"><MessageSquare className="size-4 text-ink-2 shrink-0" /> {t("store.howConv")}</li>
-          <li className="transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20"><Flame className="size-4 text-orange-500 shrink-0" /> {t("store.howStreak")}</li>
+          <li><Trophy className="size-4 text-yellow-400 shrink-0" /> {t("store.howQuiz")}</li>
+          <li><MessageSquare className="size-4 text-ink-2 shrink-0" /> {t("store.howConv")}</li>
+          <li><Flame className="size-4 text-orange-500 shrink-0" /> {t("store.howStreak")}</li>
         </ul>
         <div className="mt-4 flex gap-3">
           <Link

@@ -688,6 +688,15 @@ label {
     0 0 0 1px color-mix(in srgb, var(--gold-primary) 40%, transparent);
 }
 
+/* Carte volontairement immobile : aucun déplacement, aucune ombre qui bouge
+   au survol. Le mouvement vient d'ici — pas des classes du composant — donc
+   une grille ne peut devenir statique tant que cette règle s'applique. Sert
+   aux vues où le déplacement gêne la lecture (boutique, succès, classement). */
+.ln-card-static:hover {
+  transform: none;
+  box-shadow: var(--ln-shadow-sm);
+}
+
 /* Épaulements doux réutilisables par les cartes et panneaux. */
 .ln-shadow-sm {
   box-shadow: var(--ln-shadow-sm);

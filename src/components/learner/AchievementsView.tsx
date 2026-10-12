@@ -3,6 +3,7 @@ import { useQuery } from "convex/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Award,
+  Brain,
   Check,
   ChevronRight,
   Compass,
@@ -13,6 +14,7 @@ import {
   Lock,
   MessagesSquare,
   Sparkles,
+  Theater,
   Trophy,
   X,
 } from "lucide-react";
@@ -27,7 +29,6 @@ import { Share2 } from "lucide-react";
 import { Confetti, CountUp } from "@/components/fx/rewards";
 import { coinTrailFrom } from "@/components/fx/coinTrail";
 import { PlaceHeader } from "@/components/fx/PlaceHeader";
-import { Card3D } from "@/components/fx/Card3D";
 import { ProgressRing } from "@/components/analytics/ProgressRing";
 
 /* MODULE 4 — la scène 3D du déblocage vit dans un chunk séparé : three.js
@@ -103,7 +104,7 @@ function CompletionModal({ title, body, onClose }: { title: string; body: string
         {!reduced && (
           <motion.div aria-hidden initial={{ opacity: 0 }} animate={{ opacity: [0, 0.5, 0] }} transition={{ duration: 0.3, times: [0, 0.35, 1], ease: "easeOut" }} className="pointer-events-none absolute inset-0 bg-gradient-to-b from-gold/45 via-gold/15 to-transparent" />
         )}
-        <motion.div ref={cardRef} initial={reduced ? { opacity: 0 } : { rotateY: 180, opacity: 0 }} animate={reduced ? { opacity: 1 } : { rotateY: 0, opacity: 1 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} style={{ transformPerspective: 1400 }} className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-gold/35 bg-noir-2 p-8 text-center shadow-[0_0_90px_rgba(212,165,116,0.2)] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20">
+        <motion.div ref={cardRef} initial={reduced ? { opacity: 0 } : { rotateY: 180, opacity: 0 }} animate={reduced ? { opacity: 1 } : { rotateY: 0, opacity: 1 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} style={{ transformPerspective: 1400 }} className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-gold/35 bg-noir-2 p-8 text-center shadow-[0_0_90px_rgba(212,165,116,0.2)]">
           {/* LOT H — 80 confettis or/noir à l'ouverture du succès. */}
           <Confetti pieces={80} />
           <button type="button" onClick={onClose} aria-label="Fermer" className="absolute end-4 top-4 p-1 text-ink-3 hover:text-ink"><X className="size-4" /></button>
@@ -140,7 +141,7 @@ function CompletionModal({ title, body, onClose }: { title: string; body: string
           </div>
           <h2 className="mt-2 font-display text-2xl font-bold text-ink">{title}</h2>
           <p className="mt-2 text-sm text-ink-2">{body}</p>
-          <button type="button" onClick={onClose} className="mt-6 w-full rounded-xl bg-gradient-to-r from-gold-strong to-gold py-3 font-semibold text-noir transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20">Continuer</button>
+          <button type="button" onClick={onClose} className="mt-6 w-full rounded-xl bg-gradient-to-r from-gold-strong to-gold py-3 font-semibold text-noir">Continuer</button>
         </motion.div>
       </motion.div>
     </AnimatePresence>
@@ -366,9 +367,9 @@ export function AchievementsView() {
                       className="ln-stagger-item"
                       style={{ ["--ln-i" as string]: i }}
                     >
-                      <Card3D className="ln-card h-full">
+                      <div className="ln-card ln-card-static h-full">
                         <AchievementCard item={item} onOpen={() => setSelected(item)} />
-                      </Card3D>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -402,9 +403,9 @@ export function AchievementsView() {
               className="ln-stagger-item"
               style={{ ["--ln-i" as string]: i }}
             >
-              <Card3D className="ln-card h-full">
+              <div className="ln-card ln-card-static h-full">
                 <AchievementCard item={item} onOpen={() => setSelected(item)} />
-              </Card3D>
+              </div>
             </div>
           ))}
         </div>
@@ -415,8 +416,22 @@ export function AchievementsView() {
   );
 }
 
+/* Les icônes de succès arrivent du serveur sous forme d'emoji
+   (achievementCatalog.ts). Elles restent telles quelles pour le partage —
+   l'icône et l'avatar y sont dessinés sur un canvas, seul endroit où une
+   police d'emoji a du sens — mais l'interface les rend en Lucide. */
+const ACHIEVEMENT_ICONS: Record<string, typeof Trophy> = {
+  "🗣️": Languages,
+  "🔥": Flame,
+  "🧠": Brain,
+  "🎭": Theater,
+  "🧭": Compass,
+  "💎": Gem,
+};
+
 function AchievementCard({ item, onOpen }: { item: Item; onOpen: () => void }) {
   const { t } = useI18n();
+  const Icon = ACHIEVEMENT_ICONS[item.icon] ?? Trophy;
   const percent = Math.min(100, Math.round((item.progress / Math.max(1, item.target)) * 100));
   return (
     <article
@@ -437,16 +452,17 @@ function AchievementCard({ item, onOpen }: { item: Item; onOpen: () => void }) {
       {/* Le rang de rareté vit avec le compteur, pas en ligne avec le titre :
           sur une carte de 13rem il ne laissait au titre qu'une trentaine de
           pixels de large. */}
-      <div className="flex items-start gap-3"><span data-card3d-depth="30" className={cn("shrink-0 text-3xl transition-transform group-hover:scale-[1.06]", !item.completed && "grayscale opacity-55")}>{item.icon}</span><div className="min-w-0 flex-1"><h2 title={item.title} className="truncate font-display text-lg font-semibold text-ink">{item.title}</h2><p title={item.description} className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-3">{item.description}</p></div></div>
+      <div className="flex items-start gap-3"><span className={cn("shrink-0", !item.completed && "grayscale opacity-55")}><Icon className="size-7 text-gold" aria-hidden /></span><div className="min-w-0 flex-1"><h2 title={item.title} className="truncate font-display text-lg font-semibold text-ink">{item.title}</h2><p title={item.description} className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-3">{item.description}</p></div></div>
       <div className="mt-5 flex items-center justify-between gap-2 font-mono text-[0.625rem] text-ink-3"><span className="flex min-w-0 items-center gap-2"><span className={cn("shrink-0 rounded-full border px-1.5 py-0.5 text-[0.5rem] uppercase", item.tier === "gold" ? "border-gold/40 text-gold" : item.tier === "silver" ? "border-slate-300/35 text-slate-200" : "border-orange-400/35 text-orange-300")}>{item.tier}</span><span className="truncate">{item.progress}/{item.target}</span></span><span className="shrink-0">{item.completed ? t("achievements.completed") : item.progress === 0 ? t("achievements.notStarted") : `${percent}%`}</span></div>
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/8"><motion.div initial={{ width: 0 }} animate={{ width: `${percent}%` }} transition={{ duration: 0.6 }} className="h-full rounded-full bg-gradient-to-r from-gold-strong to-gold" /></div>
-      <div className="mt-4 flex items-center justify-between border-t border-white/6 pt-3 text-[0.6875rem] text-ink-3"><span className="flex items-center gap-1"><Award className="size-3.5 text-gold" /> +{item.reward.xp} XP · +{item.reward.gems} gems</span>{item.completed && <span className="flex items-center gap-1 text-gold">✓ {t("achievements.rewardClaimed")} <ChevronRight className="size-3" /></span>}</div>
+      <div className="mt-4 flex items-center justify-between border-t border-white/6 pt-3 text-[0.6875rem] text-ink-3"><span className="flex items-center gap-1"><Award className="size-3.5 text-gold" /> +{item.reward.xp} XP · +{item.reward.gems} gems</span>{item.completed && <span className="flex items-center gap-1 text-gold"><Check className="size-3.5" aria-hidden /> {t("achievements.rewardClaimed")} <ChevronRight className="size-3" /></span>}</div>
     </article>
   );
 }
 
 function AchievementDetail({ item, onClose, onShare }: { item: Item; onClose: () => void; onShare: () => void }) {
   const { t } = useI18n();
+  const Icon = ACHIEVEMENT_ICONS[item.icon] ?? Trophy;
   const percent = Math.min(100, Math.round((item.progress / Math.max(1, item.target)) * 100));
   return (
     <AnimatePresence>
@@ -454,7 +470,7 @@ function AchievementDetail({ item, onClose, onShare }: { item: Item; onClose: ()
         <motion.article initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-md rounded-3xl border border-gold/35 bg-noir-2 p-7 shadow-[0_0_90px_rgba(212,165,116,0.2)]" onClick={(event) => event.stopPropagation()}>
           <button type="button" onClick={onClose} aria-label="Fermer" className="absolute end-4 top-4 p-1 text-ink-3 hover:text-ink"><X className="size-4" /></button>
           <div className="flex items-start gap-4">
-            <span className={cn("text-5xl", !item.completed && "grayscale opacity-60")}>{item.icon}</span>
+            <span className={cn("shrink-0", !item.completed && "grayscale opacity-60")}><Icon className="size-11 text-gold" aria-hidden /></span>
             <div>
               <p className="font-mono text-[0.5625rem] uppercase tracking-[0.22em] text-gold">{item.completed ? t("achievements.titles.completed") : t("achievements.titles.locked")}</p>
               <h2 className="mt-1 font-display text-2xl font-bold">{item.title}</h2>
