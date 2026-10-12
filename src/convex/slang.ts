@@ -29,16 +29,19 @@ const entryTable = "slangExpressions" as const;
    rien apporter. Ajouter du contenu pour une langue suffit à l'inclure ici.
    Le seul écrivain hors seed (`dynamicMemory`) écrit toujours `en`. */
 const SEEDED_LANGS = new Set<string>(SLANG_SEED.map((entry) => entry.language));
-// Vérification d'intégrité au démarrage : le seed doit couvrir toutes les
-// langues de contenu que le front attend (build `vite.config.ts`).
-if (import.meta.env && import.meta.env.DEV) {
-  const expected = new Set(["en","zh","es","ar","ru","sw","ln","ha","yo","zu","wo","de","pt","it","ko","ja","tr","pl","fr"]);
-  for (const code of expected) {
-    if (!SEEDED_LANGS.has(code)) {
-      console.warn(`[seed] langue attendue manquante dans SLANG_SEED : ${code}`);
+// Vérification d'intégrité au démarrage (dev only) : le seed doit couvrir
+// toutes les langues de contenu que le front attend (build `vite.config.ts`).
+// Escapée en try/catch pour les backends qui ne supportent pas import.meta.
+try {
+  if (import.meta.env && import.meta.env.DEV) {
+    const expected = new Set(["en","zh","es","ar","ru","sw","ln","ha","yo","zu","wo","de","pt","it","ko","ja","tr","pl","fr"]);
+    for (const code of expected) {
+      if (!SEEDED_LANGS.has(code)) {
+        console.warn(`[seed] langue attendue manquante dans SLANG_SEED : ${code}`);
+      }
     }
   }
-}
+} catch (_) { /* import.meta non supporté par ce runtime — silently skip */ }
 const ALL_LANGS: readonly AnyLang[] = [...LANGUAGE_CODES, "fr" as const].filter(
   (code) => SEEDED_LANGS.has(code),
 );
