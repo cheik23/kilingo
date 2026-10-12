@@ -179,8 +179,10 @@ dedupeEnvFile(envPath);
 
 // --- 4. Données --------------------------------------------------------
 step(5, 5, "Seeds d'argot");
-run(NPM, ["convex", "run", "slang:seed"]);
-run(NPM, ["convex", "run", "crossSeed:seedCrossConcepts"]);
+// Le catalogue dépasse la limite de lecture d'une transaction Convex : le
+// semis ET le recalcul d'agrégats se font langue par langue, enchaînés par
+// le pilote (qui imprime aussi le rapport par langue).
+run(process.execPath, ["scripts/seed-backend.mjs"], { noShell: true });
 
 console.log("\n✅ Backend prêt.");
 console.log(`   Convex   : ${CONVEX_URL}`);

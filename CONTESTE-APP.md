@@ -118,13 +118,21 @@ import { SLANG_SEED_2025 } from "./slangSeed2025";
 ### Remise en route de la base
 
 ```bash
-npx convex run slang:seed                     # ~2 364 entrées, idempotent
-npx convex run crossSeed:seedCrossConcepts    # ponts entre langues
+node scripts/seed-backend.mjs                 # semis + agrégats, langue par langue
+node scripts/seed-backend.mjs --prod          # idem, sur formal-vulture-518
 ```
 
 `slang:seed` déduplique par slug, rafraîchit les copies existantes seulement si elles
-ont dérivé, et relance `slang:recomputeAggregates` dans la même transaction. Il peut
-donc être relancé à tout moment sans risque.
+ont dérivé. Il peut donc être relancé à tout moment sans risque.
+
+⚠️ **Une langue par appel** : `slang:seed` exige `{"language":"de"}` et refuse de
+s'executer sans langue. Convex plafonne à **4 096 lectures par exécution** ; à 4 136
+fiches, un semis qui lisait tout le catalogue d'un coup (et recalculait les agrégats
+dans la même transaction) échouait — c'est arrivé à la vague 1 d'enrichissement. Le
+pilote `scripts/seed-backend.mjs` enchaîne donc les langues, puis
+`slang:recomputeAggregates` langue par langue (compteurs par langue + registres +
+`total:catalog`), puis `crossSeed:seedCrossConcepts`, et imprime le rapport par langue.
+`npm run verify:seeds` vérifie que le découpage tient (plus grosse partition vs limite).
 
 ---
 
@@ -214,8 +222,7 @@ docker compose exec backend ./generate_admin_key.sh   # → clé admin
 cd C:\Users\leanc\Downloads\kilingo
 # (clé admin dans .env.local : CONVEX_SELF_HOSTED_ADMIN_KEY)
 npx convex dev --once          # pousse le schéma + génère _generated
-npx convex run slang:seed      # 2 417 expressions (idempotent)
-npx convex run crossSeed:seedCrossConcepts
+node scripts/seed-backend.mjs  # 4 136 expressions (idempotent, langue par langue)
 
 # 3. L'app
 npm run dev                    # http://localhost:5173
@@ -306,7 +313,9 @@ indispensables ici : sans elles, `/app/dashboard` et `/app/ranking` retombent su
 
 ### Remise en route de la base de données
 Les tables se créent au démarrage du backend Convex d'après `schema.ts`. Les données
-d'argot se rejouent avec `slang:seed` et `crossSeed:seedCrossConcepts` (voir section 4).
+d'argot se rejouent avec `slang:seed` (langue par langue), `slang:recomputeAggregates`
+(idem) et `crossSeed:seedCrossConcepts` — enchaînés par `scripts/seed-backend.mjs`
+(voir section 4).
 
 **Le plus simple : double-clique sur `RESTAURER.cmd`** — il enchaîne dépendances,
 connexion Convex, création du déploiement, seeds et lancement de l'app.
@@ -388,8 +397,11 @@ scan par visiteur). Le compteur de la landing est formaté dans la locale de l'i
 *Vérifié : `landingStats:getLandingNumbers` → `{"expressions": 2417}` ; la carte affiche
 « 2 417 » en français.*
 
-> Après toute modification du seed, relancer `npx convex run slang:seed '{}'` : c'est lui
-> qui appelle `recomputeAggregates` et remet le compteur d'aplomb.
+> Après toute modification du seed, relancer `node scripts/seed-backend.mjs` (et
+> `--prod` pour la production) : c'est lui qui rejoue le semis par langue ET
+> `recomputeAggregates`, donc qui remet le compteur de la landing d'aplomb.
+> Le chiffre mesuré après la vague 1 : **4 136** en local, **4 137** en production
+> (une fiche `en` de plus, importée hors seed).
 
 ### ⏳ À corriger ensuite
 

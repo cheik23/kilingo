@@ -1,4 +1,3 @@
-import { api } from "./_generated/api";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
@@ -313,22 +312,58 @@ const PUBLIC_FIELDS = {
 };
 
 /**
+ * Plan de semis : les langues qui portent réellement du contenu, dérivées du
+ * seed. C'est la SEULE liste dont le pilote (`scripts/seed-backend.mjs`) a
+ * besoin — aucune liste parallèle à tenir à jour côté script.
+ */
+export const seedPlan = query({
+  args: {},
+  handler: async () => [...SEEDED_LANGS],
+  returns: v.array(v.string()),
+});
+
+/**
  * Idempotent seed, safe to re-run at any time: dedupes by slug (unknown
  * expressions are inserted, existing ones get their copy refreshed only when
  * it drifted, and duplicates within the batch are skipped). Returns
  * per-action counts for verification.
+ *
+ * ── POURQUOI UNE LANGUE PAR EXÉCUTION ─────────────────────────────────
+ * L'ancienne version lisait TOUT le catalogue en une transaction (un scan
+ * pour dédupliquer, un second pour le backfill, un troisième pour les
+ * agrégats). Convex plafonne à 4 096 lectures par exécution : le jour où le
+ * catalogue a franchi ce seuil (~4 100 fiches), le seed s'est mis à échouer
+ * — la limite était structurelle, pas accidentelle. Chaque exécution ne
+ * touche donc plus qu'UNE partition de langue (`by_language`) et n'écrit que
+ * ses fiches ; le pilote enchaîne les langues.
+ *
+ * Appelé SANS `language`, le seed échoue franchement (il ne sèmerait qu'une
+ * partie du catalogue — un demi-semis silencieux est pire qu'une erreur).
  */
 export const seed = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const existing = await ctx.db.query("slangExpressions").collect();
-    const bySlug = new Map<string, Id<"slangExpressions"> | "fresh">();
+  args: { language: v.optional(languageValidator) },
+  handler: async (ctx, args) => {
+    const lang = args.language;
+    if (!lang) {
+      throw new Error(
+        "slang:seed ne sème plus tout le catalogue en une seule exécution " +
+          "(limite Convex de 4096 lectures par transaction). Appelle-le langue " +
+          'par langue — npx convex run slang:seed \'{"language":"en"}\' — ou ' +
+          "utilise le pilote : node scripts/seed-backend.mjs.",
+      );
+    }
+    const batch = SLANG_SEED.filter((item) => item.language === lang);
+    // Une seule lecture d'index : la partition de CETTE langue.
+    const existing = await ctx.db
+      .query("slangExpressions")
+      .withIndex("by_language", (q) => q.eq("language", lang))
+      .collect();
+    const bySlug = new Map<string, Id<"slangExpressions">>();
     for (const row of existing) {
       bySlug.set(slangSlug(row.language, row.expression), row._id);
-    }
-    // Backfill anti-quota : colonnes indexées dénormalisées (idempotent —
-    // ne patche que les lignes pas encore à jour).
-    for (const row of existing) {
+      // Backfill anti-quota : colonnes indexées dénormalisées (idempotent —
+      // ne patche que les lignes pas encore à jour). Chaque langue étant
+      // visitée une fois, le backfill reste complet sur tout le catalogue.
       const normExpr = normKey(row.expression);
       const regionKey = normalizeRegion(row.region);
       if (row.normExpr !== normExpr || row.regionKey !== regionKey) {
@@ -338,21 +373,20 @@ export const seed = mutation({
     let inserted = 0;
     let updated = 0;
     let skipped = 0;
-    for (const item of SLANG_SEED) {
+    for (const item of batch) {
       const slug = slangSlug(item.language, item.expression);
       const found = bySlug.get(slug);
-      if (found === "fresh") {
-        // Duplicate within the seed batch itself — first occurrence wins.
-        skipped += 1;
-        continue;
-      }
       if (found === undefined) {
-        await ctx.db.insert("slangExpressions", {
+        const id = await ctx.db.insert("slangExpressions", {
           ...item,
           normExpr: normKey(item.expression),
           regionKey: normalizeRegion(item.region),
         });
-        bySlug.set(slug, "fresh");
+        // La fiche vient d'être écrite : une seconde occurrence du même slug
+        // dans le seed la retrouve ici et se contente de la comparer (même
+        // règle qu'avant : la première occurrence gagne, les suivantes sont
+        // comptées « skipped »).
+        bySlug.set(slug, id);
         inserted += 1;
         continue;
       }
@@ -392,40 +426,115 @@ export const seed = mutation({
         skipped += 1;
       }
     }
-    // Agrégats pré-calculés : maintenus dans la même transaction que le
-    // seed (idempotent) — les dashboards n'ont plus jamais à balayer la table.
-    await ctx.runMutation(api.slang.recomputeAggregates, {});
-    return { inserted, updated, skipped, total: inserted + updated + skipped };
+    // Les agrégats ne sont PLUS recalculés ici : leur recalcul lit une
+    // partition entière, ce qui doublait le coût de lecture de la
+    // transaction. Le pilote appelle `recomputeAggregates` langue par langue
+    // juste après (voir scripts/seed-backend.mjs).
+    return {
+      language: lang,
+      inserted,
+      updated,
+      skipped,
+      total: inserted + updated + skipped,
+      seeded: batch.length,
+    };
   },
 });
 
 /**
- * Agrégats pré-calculés (anti-quota R6) : compte les expressions par
- * registre sur les 5 langues d'apprentissage (« fr » exclu — simple cible
- * de traduction) et synchronise la petite table `slangAggregates`.
- * Coût : un passage indexé par langue (~les partitions) UNE fois par
- * exécution, au lieu d'un scan par CHARGEMENT de dashboard côté client.
- * Idempotent : upsert des comptes, purge des registres disparus.
+ * Agrégats pré-calculés (anti-quota R6), PAR LANGUE.
+ *
+ * Le recalcul global historique lisait tout le catalogue en une seule
+ * transaction : passé ~2 600 fiches il frisait la limite, à ~4 100 il la
+ * dépassait (4 096 lectures). Il est découpé en deux temps, tous deux bornés :
+ *   1. la partition de la langue demandée (~300 lignes) → écrit
+ *      `lang:<code>` (compteur de la langue, « fr » compris) et
+ *      `langreg:<code>:<registre>` (ventilation par registre) ;
+ *   2. un roll-up sur les SEULES petites lignes d'agrégats (~150 lignes) →
+ *      réécrit les totaux globaux `register:<registre>` (lus par les
+ *      dashboards) et `total:catalog` (lu par la landing).
+ * Les totaux globaux sont donc exacts dès que chaque langue a été recalculée
+ * une fois — c'est exactement ce que fait le pilote de semis.
+ * Idempotent : upsert des comptes, purge des registres et langues disparus.
  */
 export const recomputeAggregates = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const totals = new Map<string, number>();
-    // Grand total du catalogue, toutes langues confondues : c'est lui que
-    // la landing publique affiche (autrement elle mentait de 54 entrées, le
-    // seed SLANG_SEED_2025 n'ayant jamais été compté). On le dénormalise ici
-    // pour que la page la plus consultée ne fasse pas un scan par visiteur.
-    let grandTotal = 0;
-    for (const lang of ALL_LANGS) {
-      const rows = await ctx.db
-        .query("slangExpressions")
-        .withIndex("by_language_popularity", (q) => q.eq("language", lang))
-        .collect();
-      grandTotal += rows.length;
-      if (!(LANGUAGE_CODES as readonly string[]).includes(lang)) continue;
-      for (const r of rows) {
-        totals.set(r.register, (totals.get(r.register) ?? 0) + 1);
+  args: { language: languageValidator },
+  handler: async (ctx, args) => {
+    const lang = args.language;
+    const rows = await ctx.db
+      .query("slangExpressions")
+      .withIndex("by_language", (q) => q.eq("language", lang))
+      .collect();
+
+    // 1. Compteur de la langue (toutes langues, « fr » compris) — lu par
+    //    `slang:stats`.
+    const langKey = `lang:${lang}`;
+    const langRow = await ctx.db
+      .query("slangAggregates")
+      .withIndex("by_key", (q) => q.eq("key", langKey))
+      .unique();
+    if (rows.length === 0) {
+      if (langRow) await ctx.db.delete(langRow._id);
+    } else if (langRow) {
+      if (langRow.total !== rows.length) {
+        await ctx.db.patch(langRow._id, { total: rows.length });
       }
+    } else {
+      await ctx.db.insert("slangAggregates", { key: langKey, total: rows.length });
+    }
+
+    // 2. Ventilation par registre de CETTE langue. La clé porte le code de
+    //    langue : c'est ce préfixe qui rend le recalcul possible une langue à
+    //    la fois (et le roll-up possible depuis des lignes minuscules).
+    const perRegister = new Map<string, number>();
+    for (const r of rows) {
+      perRegister.set(r.register, (perRegister.get(r.register) ?? 0) + 1);
+    }
+    const prefix = `langreg:${lang}:`;
+    const slice = await ctx.db
+      .query("slangAggregates")
+      .withIndex("by_key", (q) => q.gte("key", prefix).lt("key", `langreg:${lang};`))
+      .collect();
+    const live = new Set<string>();
+    for (const [register, total] of perRegister) {
+      const key = `${prefix}${register}`;
+      live.add(key);
+      const found = slice.find((r) => r.key === key);
+      if (found) {
+        if (found.total !== total) await ctx.db.patch(found._id, { total });
+      } else {
+        await ctx.db.insert("slangAggregates", { key, total });
+      }
+    }
+    for (const row of slice) {
+      if (!live.has(row.key)) await ctx.db.delete(row._id);
+    }
+
+    // 3. Roll-up global. Plages disjointes par construction :
+    //    « lang: » < « langreg: » < « lang; » < « register: » < « register; ».
+    const langRows = await ctx.db
+      .query("slangAggregates")
+      .withIndex("by_key", (q) => q.gte("key", "lang:").lt("key", "lang;"))
+      .collect();
+    let grandTotal = 0;
+    for (const r of langRows) grandTotal += r.total;
+
+    const regRows = await ctx.db
+      .query("slangAggregates")
+      .withIndex("by_key", (q) => q.gte("key", "langreg:").lt("key", "langreg;"))
+      .collect();
+    const totals = new Map<string, number>();
+    for (const r of regRows) {
+      const parts = r.key.split(":");
+      const code = parts[1];
+      const register = parts[2];
+      if (!code || !register) continue;
+      // « fr » est du vocabulaire cible de traduction, pas une langue
+      // d'apprentissage : il ne compte pas dans les totales par registre
+      // (même règle qu'avant le découpage).
+      if (code === "fr") continue;
+      if (!(LANGUAGE_CODES as readonly string[]).includes(code)) continue;
+      totals.set(register, (totals.get(register) ?? 0) + r.total);
     }
     const existing = await ctx.db
       .query("slangAggregates")
@@ -457,6 +566,8 @@ export const recomputeAggregates = mutation({
       await ctx.db.insert("slangAggregates", { key: CATALOG_TOTAL_KEY, total: grandTotal });
     }
     return {
+      language: lang,
+      inLanguage: rows.length,
       registers: totals.size,
       total: [...totals.values()].reduce((a, b) => a + b, 0),
       catalogTotal: grandTotal,
@@ -938,16 +1049,28 @@ export const trending = query({
   ),
 });
 
-/** Database stats for the landing page. */
+/**
+ * Database stats for the landing page. Lues sur les agrégats dénormalisés
+ * (`lang:` ≈ une ligne par langue) et non plus en relisant le catalogue : à
+ * 4 136 fiches, l'ancien scan dépassait la limite de lecture par exécution et
+ * cette requête est appelée par QuizRoom / LastChanceModal à chaque écran.
+ * Si une langue affiche 0 alors qu'elle a du contenu, c'est que
+ * `recomputeAggregates` n'a pas encore été rejoué pour elle (le pilote de
+ * semis s'en charge) — la mesure directe reste `recomputeAggregates`.
+ */
 export const stats = query({
   args: {},
   handler: async (ctx) => {
-    const rows = await rowsForLanguages(ctx.db, ALL_LANGS);
+    const rows = await ctx.db
+      .query("slangAggregates")
+      .withIndex("by_key", (q) => q.gte("key", "lang:").lt("key", "lang;"))
+      .collect();
     const byLanguage: Record<string, number> = {};
     let total = 0;
     for (const r of rows) {
-      byLanguage[r.language] = (byLanguage[r.language] ?? 0) + 1;
-      total += 1;
+      const code = r.key.slice("lang:".length);
+      byLanguage[code] = r.total;
+      total += r.total;
     }
     return { total, byLanguage };
   },

@@ -1,6 +1,7 @@
 import { SLANG_SEED_AFRICA } from "./slangSeedAfrica";
 import { SLANG_SEED_2025 } from "./slangSeed2025";
 import { SLANG_SEED_LOT4 } from "./slangSeedLot4";
+import { SLANG_SEED_ENRICHMENT1 } from "./slangSeedEnrichment1";
 import { SLANG_SEED_LOT3 } from "./slangSeedLot3";
 import { SLANG_SEED_LOT2 } from "./slangSeedLot2";
 import { SLANG_SEED_LOT1 } from "./slangSeedLot1";
@@ -655,6 +656,11 @@ export const SLANG_SEED: SlangSeed[] = [
   // ⚠️ Contenu amharique/igbo à faire relire par un natif avant exploitation
   // commerciale (voir l'en-tête de slangSeedLot4.ts).
   ...SLANG_SEED_LOT4,
+  // Vague 1 d'enrichissement — 1 505 expressions pour 8 langues (de, pt, it,
+  // ko, ja, tr, pl, el) : chacune passe de 12 fiches à 200. Aucune n'entre en
+  // collision avec un lot précédent — garanti par `npm run verify:seeds`, qui
+  // échoue (exit 1) au moindre slug en double.
+  ...SLANG_SEED_ENRICHMENT1,
 
   // ─── ANGLAIS (US/UK) — cœur éditorial ─────────────────────────────
   { language: "en", expression: "no cap", literal: "pas de casquette", meaning: "pour de vrai, sans mentir", context: "Sert à insister sur la véracité d'une affirmation, entre amis ou en ligne.", register: "street", region: "US", popularity: 96, mediaRefs: ["Song — « No Cap » (Future)", "TikTok — #NoCap 2B views"] },

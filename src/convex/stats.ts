@@ -451,18 +451,24 @@ export const getMasteryData = query({
     }
 
     if (aggregates.length === 0) {
-      // Filet de sécurité : agrégats pas encore calculés (premier déploiement).
-      // Un seul scan par langue, le temps que slang:recomputeAggregates passe —
-      // ensuite ce chemin n'est plus jamais pris.
+      // Filet de sécurité : totaux globaux pas encore calculés (déploiement
+      // frais, avant le premier semis). On les reconstruit depuis les
+      // ventilations PAR LANGUE (~150 lignes) — jamais en relisant les
+      // partitions du catalogue : à 4 136 fiches, ce scan dépassait la limite
+      // de lecture d'une exécution.
       totals = new Map<string, number>();
-      for (const lang of LANGUAGE_CODES) {
-        const found = await ctx.db
-          .query("slangExpressions")
-          .withIndex("by_language_popularity", (q) => q.eq("language", lang))
-          .collect();
-        for (const r of found) {
-          totals.set(r.register, (totals.get(r.register) ?? 0) + 1);
-        }
+      const perLang = await ctx.db
+        .query("slangAggregates")
+        .withIndex("by_key", (q) =>
+          q.gte("key", "langreg:").lt("key", "langreg;"),
+        )
+        .collect();
+      for (const a of perLang) {
+        const [prefix, code, register] = a.key.split(":");
+        if (prefix !== "langreg" || !code || !register) continue;
+        if (code === "fr") continue;
+        if (!(LANGUAGE_CODES as readonly string[]).includes(code)) continue;
+        totals.set(register, (totals.get(register) ?? 0) + a.total);
       }
     }
 

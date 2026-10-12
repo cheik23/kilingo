@@ -154,7 +154,8 @@ const schema = defineSchema(
 
     /* Agrégats pré-calculés (anti-quota R6) — une ligne par registre :
        « register:<id> » → nombre d'expressions d'apprentissage (hors « fr »).
-       Recalculés par slang:recomputeAggregates (et slang:seed) — les
+       Recalculés par slang:recomputeAggregates, une langue par appel
+       (enchaînés par scripts/seed-backend.mjs) — les
        dashboards lisent ~6 lignes au lieu de balayer slangExpressions. */
     slangAggregates: defineTable({
       key: v.string(), // "register:street" | "register:casual" | …
