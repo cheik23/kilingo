@@ -76,12 +76,13 @@ export const getLandingNumbers = query({
       // Base pas encore seedée : on retombe sur la taille du seed, le temps
       // que `slang:seed` ait tourné au moins une fois. Valeur mesurée après le
       // lot italien 2 (4 235 après le lot allemand, + 100 : l'italien passe de
-      // 200 à 300 fiches) ; la mesure réelle vient de
+      // 200 à 300 fiches), puis 4 435 après le lot portugais-brésilien 2
+      // (+ 100 : le pt passe de 200 à 300 fiches) ; la mesure réelle vient de
       // slangAggregates, écrit par slang:recomputeAggregates (le pilote de
       // semis l'appelle langue par langue après slang:seed).
       // ⚠️ Le compte PRODUIT peut différer d'une unité (une fiche `en`
       // importée hors seed existe en production) : c'est la mesure qui fait foi.
-      expressions: totalRow?.total ?? 4335,
+      expressions: totalRow?.total ?? 4435,
       avatars: 85,
     };
   },
