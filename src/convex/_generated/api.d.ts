@@ -105,6 +105,7 @@ import type * as slangSeedEnrichmentDe from "../slangSeedEnrichmentDe.js";
 import type * as slangSeedEnrichmentEs from "../slangSeedEnrichmentEs.js";
 import type * as slangSeedEnrichmentIt from "../slangSeedEnrichmentIt.js";
 import type * as slangSeedEnrichmentPt from "../slangSeedEnrichmentPt.js";
+import type * as slangSeedEnrichmentRu from "../slangSeedEnrichmentRu.js";
 import type * as slangSeedLot1 from "../slangSeedLot1.js";
 import type * as slangSeedLot2 from "../slangSeedLot2.js";
 import type * as slangSeedLot3 from "../slangSeedLot3.js";
@@ -220,6 +221,7 @@ declare const fullApi: ApiFromModules<{
   slangSeedEnrichmentEs: typeof slangSeedEnrichmentEs;
   slangSeedEnrichmentIt: typeof slangSeedEnrichmentIt;
   slangSeedEnrichmentPt: typeof slangSeedEnrichmentPt;
+  slangSeedEnrichmentRu: typeof slangSeedEnrichmentRu;
   slangSeedLot1: typeof slangSeedLot1;
   slangSeedLot2: typeof slangSeedLot2;
   slangSeedLot3: typeof slangSeedLot3;
