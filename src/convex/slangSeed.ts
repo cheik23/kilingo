@@ -5,6 +5,7 @@ import { SLANG_SEED_ENRICHMENT1 } from "./slangSeedEnrichment1";
 import { SLANG_SEED_ENRICHMENT_DE } from "./slangSeedEnrichmentDe";
 import { SLANG_SEED_ENRICHMENT_IT } from "./slangSeedEnrichmentIt";
 import { SLANG_SEED_ENRICHMENT_PT } from "./slangSeedEnrichmentPt";
+import { SLANG_SEED_ENRICHMENT_ES } from "./slangSeedEnrichmentEs";
 import { SLANG_SEED_LOT3 } from "./slangSeedLot3";
 import { SLANG_SEED_LOT2 } from "./slangSeedLot2";
 import { SLANG_SEED_LOT1 } from "./slangSeedLot1";
@@ -691,6 +692,12 @@ export const SLANG_SEED: SlangSeed[] = [
   // en collision avec les 200 fiches pt déjà semées — garanti par
   // `npm run verify:seeds`, qui échoue (exit 1) au moindre slug en double.
   ...SLANG_SEED_ENRICHMENT_PT,
+  // Lot espagnol 2 — 122 fiches (Espagne 48, Mexique 38, Argentine 36),
+  // adossées au DLE (RAE), à FundéuRAE, au DEM (El Colegio de México), à
+  // l'AML et à l'ASALE. L'espagnol passe de 128 à 250 fiches. Aucune des 122
+  // n'entre en collision avec les 128 fiches es déjà semées — garanti par
+  // `npm run verify:seeds`, qui échoue (exit 1) au moindre slug en double.
+  ...SLANG_SEED_ENRICHMENT_ES,
 
   // ─── ANGLAIS (US/UK) — cœur éditorial ─────────────────────────────
   { language: "en", expression: "no cap", literal: "pas de casquette", meaning: "pour de vrai, sans mentir", context: "Sert à insister sur la véracité d'une affirmation, entre amis ou en ligne.", register: "street", region: "US", popularity: 96, mediaRefs: ["Song — « No Cap » (Future)", "TikTok — #NoCap 2B views"] },
