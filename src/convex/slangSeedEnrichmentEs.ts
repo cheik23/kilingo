@@ -27,9 +27,11 @@ import type { SlangSeed } from "./slangSeed";
      et AML (Academia Mexicana de la Lengua) ;
    • Argentine : ASALE, Diccionario de americanismos (che, boludo, quilombo,
      laburo, fiaca, bondi, chamuyar, trucho…).
-   Cinq fiches seulement n'ont aucune source trouvée et le disent :
-   `Qué fuerte`, `Ni ahí`, `Me chupa un huevo`. Elles portent
-   « COMMUNAUTAIRE ».
+   Trois fiches seulement n'ont aucune source trouvée et le disent :
+   `Qué fuerte`, `Ni ahí`, `Me chupa un huevo` ; une quatrième, `Fresa`,
+   porte « COMMUNAUTAIRE » parce que la page consultée atteste le mot sans
+   livrer l'acception argotique. Mesuré : 119 fiches sur 122 nomment une
+   source, 4 affichent le niveau « COMMUNAUTAIRE ».
 
    CE QUE LA VÉRIFICATION A CORRIGÉ (erreurs que la liste du brief aurait
    introduites) :
