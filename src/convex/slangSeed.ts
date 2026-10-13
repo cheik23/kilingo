@@ -3,6 +3,7 @@ import { SLANG_SEED_2025 } from "./slangSeed2025";
 import { SLANG_SEED_LOT4 } from "./slangSeedLot4";
 import { SLANG_SEED_ENRICHMENT1 } from "./slangSeedEnrichment1";
 import { SLANG_SEED_ENRICHMENT_DE } from "./slangSeedEnrichmentDe";
+import { SLANG_SEED_ENRICHMENT_IT } from "./slangSeedEnrichmentIt";
 import { SLANG_SEED_LOT3 } from "./slangSeedLot3";
 import { SLANG_SEED_LOT2 } from "./slangSeedLot2";
 import { SLANG_SEED_LOT1 } from "./slangSeedLot1";
@@ -677,6 +678,12 @@ export const SLANG_SEED: SlangSeed[] = [
   // écrite dans l'en-tête de slangSeedEnrichmentDe.ts). L'allemand passe de
   // 200 à 299 fiches. Une fiche porte `isAdult` (« goonen »).
   ...SLANG_SEED_ENRICHMENT_DE,
+  // Lot italien 2 — 100 fiches (vérifiées pour les vingt premières, marquées
+  // « statut : communautaire » pour les emprunts récents). L'italien atteint
+  // 300 expressions. Aucune des 100 n'entre en collision avec les 200 fiches
+  // italiennes déjà semées — garanti par `npm run verify:seeds`, qui échoue
+  // (exit 1) au moindre slug en double.
+  ...SLANG_SEED_ENRICHMENT_IT,
 
   // ─── ANGLAIS (US/UK) — cœur éditorial ─────────────────────────────
   { language: "en", expression: "no cap", literal: "pas de casquette", meaning: "pour de vrai, sans mentir", context: "Sert à insister sur la véracité d'une affirmation, entre amis ou en ligne.", register: "street", region: "US", popularity: 96, mediaRefs: ["Song — « No Cap » (Future)", "TikTok — #NoCap 2B views"] },
