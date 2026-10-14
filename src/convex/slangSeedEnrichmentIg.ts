@@ -1,0 +1,73 @@
+// ENRICHISSEMENT IGBO (ig) — LOT FINAL : +30 expressions, focus 2010-2026.
+//
+// L'IGBO A UNE CONVENTION PARTICULIÈRE (prolongée du Lot 4) : alphabet latin,
+// donc AUCUNE parenthèse dans l'expression — on écrit la forme juste telle
+// que publiée (diacritiques compris : ọ, ụ, arụ). Pareil du vi/id/tl.
+// Toutes ces fiches portent `validated: false` (base encore non relue par
+// un natif, même statut que le Lot 4 : le niveau et le champ
+// `validated` le signalent dans l'UI).
+//
+// SOURCES (contenus réellement extraits, pas de reprise à l'aveugle) :
+//   • BusinessDay, « 33 Nigerian slangs you must know to avoid being
+//     'old school' » (2024) —
+//     https://businessday.ng/bd-weekender/article/33-nigerian-slangs-you-must-know-to-avoid-being-old-school/
+//     → 16 entrées en usage national, datées 2024.
+//   • Naijalingo (dictionnaire communautaire nigérian) —
+//     http://naijalingo.com/words/gbedu et /words/gobe → 2 entrées.
+//   • Fil Nairaland « Igbo Slang » (2015), témoignages d'Enugu et d'Anambra —
+//     https://www.nairaland.com/2517993/igbo-slang/0 → 9 entrées
+//     (terme de rue, d'adresse, usage local).
+//   • Nkamigbo & Eme, « Igbo Slang in Otu-Onitsha » (2011), version texte
+//     https://www.scribd.com/document/499717530/72346-157948-1-PB
+//     → 7 entrées anciennes mais documentées (usage Onitsha encore vivant selon
+//     les témoignages de 2015). Pré-2010 dans le backlog précédent, elles sont
+//     toutes réutilisées ici comme usage vivant attesté en 2015+.
+//   • Chisom N. Okafor-Maduka, « Igbo Slang Expressions in Literature »
+//     (2024, Sokoto Road Onitsha + hip-hop igbo) —
+//     https://sshjournal.com/index.php/sshj/article/view/1544
+//     → l'entrée « Kpaa ife » et son exemple, extraits de son rapport.
+//
+// EXCLUSIONS ANTI-DISCRIMINATION / CONTROVERSÉES (attestées mais NOTEES et
+// NON INTÉGRÉES) :
+//   • ezi (« cochon » pour une femme — sexiste, étude 2011) ;
+//   • ị naghị ajọ njọ (même registre sexiste) ;
+//   • odieshi et anu nwelu obi (sens discuté et non tranché dans le fil) ;
+//   • kpaa imi / suo imi (« bouger le nez » = trahir) — sens plausible mais
+//     orthographe non validable sur la source consultable.
+// Aucune phrase-exemple inventée : quand la source n'en fournit pas, le// champ le dit explicitement.
+import type { SlangSeed } from "./slangSeed";
+
+export const SLANG_SEED_ENRICHMENT_IG: SlangSeed[] = [
+  // ─── Igbo vivant du Sud-Est (sourcés : étude 2011 + Nairaland 2015 + 2024) ───
+  { language: "ig", expression: "Wusa arụ", literal: "« garder le corps »", meaning: "se détendre, rester calme", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Usage (étude Otu-Onitsha 2011, corroborée par Nairaland 2015)] | [Ex: usage Onitsha classique ; « wusa » vaut « déposer » — phrase-exemple à rédiger par un natif] ", register: "casual", region: "Sud-Est du Nigeria", popularity: 64, validated: false },
+  { language: "ig", expression: "Ndi Eke", literal: "« les gens du python »", meaning: "la police, les flics", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Usage (Nairaland 2015, corroborée par l'étude Otu-Onitsha 2011 : « eke » = police)] | [Ex: à composer par un natif — le fil donne le sens sans phrase] ", register: "street", region: "Sud-Est du Nigeria", popularity: 62, validated: false },
+  { language: "ig", expression: "Owu ite", literal: "« fil du pot »", meaning: "être fauché, la pauvreté", context: "[Époque: 2010-2026] | [Niveau: À VALIDER NATIF] | [Source: Usage (étude Otu-Onitsha 2011)] | [Ex: phrase-exemple non fournie par la source ; à composer par un natif] ", register: "street", region: "Sud-Est du Nigeria", popularity: 60, validated: false },
+  { language: "ig", expression: "Mbada", literal: "(sans littéral dans la source)", meaning: "extrêmement cher, hors de prix", context: "[Époque: 2010-2026] | [Niveau: À VALIDER NATIF] | [Source: Usage (étude Otu-Onitsha 2011)] | [Ex: phrase-exemple non fournie par la source ; à composer par un natif] ", register: "casual", region: "Sud-Est du Nigeria", popularity: 58, validated: false },
+  { language: "ig", expression: "Gbawa door", literal: "« défoncer la porte »", meaning: "sors ! dégage !", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Usage (Nairaland 2015, argot d'Enugu)] | [Ex: usage rapporté du fil ; phrase-exemple à valider par un natif] ", register: "street", region: "Sud-Est du Nigeria", popularity: 62, validated: false },
+  { language: "ig", expression: "Ikpu Uzu", literal: "« le travail du forgeron »", meaning: "musculation, se forger des muscles", context: "[Époque: 2010-2026] | [Niveau: À VALIDER NATIF] | [Source: Usage (Nairaland 2015, cité comme argot du quartier d'Enugu)] | [Ex: la source rapporte le sens, pas de phrase ; à valider natif] ", register: "street", region: "Sud-Est du Nigeria", popularity: 58, validated: false },
+  { language: "ig", expression: "Ita mgbe", literal: "« le temps de manger »", meaning: "faire l'école buissonnière, sécher les cours", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Usage (Nairaland 2015, argot de lycée)] | [Ex: usage rapporté ; variante 'iñu mgbe' citée dans le fil] ", register: "casual", region: "Sud-Est du Nigeria", popularity: 60, validated: false },
+  { language: "ig", expression: "Alobam", literal: "(terme d'adresse, sans littéral dans la source)", meaning: "mon pote de confiance, mon camarade", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (Nairaland 2015, Anambra ; popularisé par Phyno)] | [Ex: terme d'adresse de la scène hiphop igbo, associé à Phyno ; à valider natif] ", register: "street", region: "Sud-Est du Nigeria", popularity: 70, validated: false },
+  { language: "ig", expression: "Oringo", literal: "(argot de rue, sans littéral)", meaning: "le fun, l'ambiance festive", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Usage (Nairaland 2015)] | [Ex: définition du fil ; le rapport discute aussi 'oyolima' (danser) comme cousin mais non équivalent] ", register: "street", region: "Sud-Est du Nigeria", popularity: 56, validated: false },
+  { language: "ig", expression: "Ọ gbakaa", literal: "(sans littéral dans la source)", meaning: "être aux anges, submergé par la joie", context: "[Époque: 2010-2026] | [Niveau: À VALIDER NATIF] | [Source: Usage (étude Otu-Onitsha 2011)] | [Ex: phrase-exemple non fournie ; à composer par un natif] ", register: "casual", region: "Sud-Est du Nigeria", popularity: 56, validated: false },
+  { language: "ig", expression: "Umu mma", literal: "« les enfants de la beauté »", meaning: "le groupe de canons, les beautés", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Usage (Nairaland 2015)] | [Ex: sens du fil ('bevy of beauties') ; phrase-exemple à valider natif] ", register: "street", region: "Sud-Est du Nigeria", popularity: 54, validated: false },
+  { language: "ig", expression: "Nkolo", literal: "(argot de rue, sans littéral dans la source)", meaning: "mon quartier, mon crew", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Usage (Nairaland 2015, Anambra)] | [Ex: sens rapporté ('my hood, or my end') ; à valider natif] ", register: "street", region: "Sud-Est du Nigeria", popularity: 56, validated: false },
+  { language: "ig", expression: "Arubam", literal: "(terme d'adresse, sans littéral dans la source)", meaning: "mon pote de rue, mon G", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Usage (Nairaland 2015, Anambra)] | [Ex: sens rapporté ('my G') ; à valider natif] ", register: "street", region: "Sud-Est du Nigeria", popularity: 58, validated: false },
+  { language: "ig", expression: "Kpaa ife", literal: "« déplacer quelque chose »", meaning: "baisser un peu le prix", context: "[Époque: 2010-2026] | [Niveau: À VALIDER NATIF] | [Source: Usage (étude 2024 de Onitsha, Sokoto Road)] | [Ex: 'Kpaara m akwa a ife' « Baisse-moi un peu le prix de ce vêtement » (exemple rapporté de l'étude, orthographe à vérifier sur le tableau complet)] ", register: "casual", region: "Sud-Est du Nigeria", popularity: 66, validated: false },
+  // ─── Naija national (presse 2024 + Naijalingo) ────────────────────────────
+  { language: "ig", expression: "Japa", literal: "« fuir » (d'origine yoruba, selon l'article)", meaning: "partir, surtout quitter le Nigeria pour l'étranger pour saisir une meilleure vie", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024, liste « 33 slangs »)] | [Ex: 'If I get visa today, na straight japa' « Visa aujourd'hui = je pars direct »] ", register: "internet", region: "Nigeria", popularity: 88, validated: false },
+  { language: "ig", expression: "Just dey play", literal: "« continue juste de jouer »", meaning: "tu perds ton temps, continue de rêvasser", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024)] | [Ex: 'Just dey play.' — reproche sarcastique adressé à qui ne prend pas la situation au sérieux] ", register: "internet", region: "Nigeria", popularity: 82, validated: false },
+  { language: "ig", expression: "Chop life", literal: "« manger la vie »", meaning: "profiter de la vie, se faire plaisir", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024)] | [Ex: 'Let's chop life this weekend!' « Profitons ce week-end ! »] ", register: "casual", region: "Nigeria", popularity: 80, validated: false },
+  { language: "ig", expression: "Soro soke", literal: "« parle plus fort »", meaning: "parle franchement, exprime-toi (slogan EndSARS 2020)", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024 ; origine mouvement EndSARS)] | [Ex: 'Soro soke.' — la parole du militant qui devient instruction amicale] ", register: "internet", region: "Nigeria", popularity: 84, validated: false },
+  { language: "ig", expression: "E Choke", literal: "(littéral non donné dans l'article)", meaning: "c'est trop ! émerveillement (popularisé par Davido)", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024)] | [Ex: 'E choke!' — l'exclamation émerveillée, rendue virale par Davido] ", register: "internet", region: "Nigeria", popularity: 78, validated: false },
+  { language: "ig", expression: "Sapa Nation", literal: "(« sapa » = le manque d'argent, traité comme un pays)", meaning: "le creux, être en manque d'argent (sérieusement, en humour)", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024)] | [Ex: 'citizens of Sapa Nation' — les citoyens du royaume du broke] ", register: "internet", region: "Nigeria", popularity: 78, validated: false },
+  { language: "ig", expression: "Shege Pro Max", literal: "« shege » = les malheurs, intensifié « Pro Max »", meaning: "la misère maximale", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024)] | [Ex: 'Fuel price increase don show us shege pro max!' « La hausse du carburant nous a fait la misère maximale »] ", register: "internet", region: "Nigeria", popularity: 76, validated: false },
+  { language: "ig", expression: "Las Las", literal: "(littéral non donné dans l'article)", meaning: "au final, à la fin des comptes", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024)] | [Ex: 'Las las, we go dey alright.' « Au bout du compte, on ira » — la résignation sereine] ", register: "casual", region: "Nigeria", popularity: 76, validated: false },
+  { language: "ig", expression: "Mafo", literal: "(littéral non donné dans l'article)", meaning: "n'aie pas peur, tiens bon", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024, « don't panic »)] | [Ex: usage courant sans exemple formulé dans l'article] ", register: "casual", region: "Nigeria", popularity: 66, validated: false },
+  { language: "ig", expression: "Para", literal: "(littéral non donné dans l'article)", meaning: "être à cran, péter un câble", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024)] | [Ex: 'pararing' décrit quelqu'un de visiblement contrarié ou prêt à des affrontements] ", register: "street", region: "Nigeria", popularity: 68, validated: false },
+  { language: "ig", expression: "Ginger", literal: "(littéral non donné dans l'article)", meaning: "donner de l'allure, mixer quelqu'un, le booster", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024)] | [Ex: 'Ginger yourself!' « Booste-toi ! »] ", register: "casual", region: "Nigeria", popularity: 66, validated: false },
+  { language: "ig", expression: "Gbas Gbos", literal: "(onomatopée du choc)", meaning: "les coups échangés, le clash vire-vire", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024)] | [Ex: 'The argument on Twitter was full of gbas gbos' la bagarre verbale des réseaux] ", register: "internet", region: "Nigeria", popularity: 72, validated: false },
+  { language: "ig", expression: "Wetin Dey Sup", literal: "« qu'est-ce qui se passe ? »", meaning: "quoi de neuf, quoi de bon ?", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024)] | [Ex: 'Wetin dey sup?' — la salutation décontractée du groupe] ", register: "casual", region: "Nigeria", popularity: 70, validated: false },
+  { language: "ig", expression: "Woto woto", literal: "(onomatopée du passage de coups)", meaning: "la raclée, se faire démolir", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024)] | [Ex: 'The defenders gave him woto woto.' « Les défenseurs l'ont littéralement démolie »] ", register: "street", region: "Nigeria", popularity: 70, validated: false },
+  { language: "ig", expression: "Hammer", literal: "(littéral non donné dans l'article)", meaning: "faire le jackpot, devenir riche d'un coup", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Culture pop (BusinessDay 2024)] | [Ex: 'He don hammer!' « Il a tapé le jackpot ! »] ", register: "street", region: "Nigeria", popularity: 70, validated: false },
+  { language: "ig", expression: "Gbedu", literal: "(littéral non donné dans la source)", meaning: "la fiesta, le son (musique)", context: "[Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Réseaux sociaux (Naijalingo)] | [Ex: 'GBEDU dey Hexagon hotel.' « Y a une fête au Hexagon Hotel »] ", register: "street", region: "Nigeria", popularity: 68, validated: false },
+];

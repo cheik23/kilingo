@@ -1,12 +1,23 @@
 import { SLANG_SEED_AFRICA } from "./slangSeedAfrica";
 import { SLANG_SEED_2025 } from "./slangSeed2025";
 import { SLANG_SEED_LOT4 } from "./slangSeedLot4";
+import { SLANG_SEED_ENRICHMENT_IG } from "./slangSeedEnrichmentIg";
+import { SLANG_SEED_ENRICHMENT_TL } from "./slangSeedEnrichmentTl";
 import { SLANG_SEED_ENRICHMENT1 } from "./slangSeedEnrichment1";
 import { SLANG_SEED_ENRICHMENT_DE } from "./slangSeedEnrichmentDe";
 import { SLANG_SEED_ENRICHMENT_IT } from "./slangSeedEnrichmentIt";
 import { SLANG_SEED_ENRICHMENT_PT } from "./slangSeedEnrichmentPt";
 import { SLANG_SEED_ENRICHMENT_ES } from "./slangSeedEnrichmentEs";
 import { SLANG_SEED_ENRICHMENT_RU } from "./slangSeedEnrichmentRu";
+import { SLANG_SEED_ENRICHMENT_AR } from "./slangSeedEnrichmentAr";
+import { SLANG_SEED_ENRICHMENT_ZH } from "./slangSeedEnrichmentZh";
+import { SLANG_SEED_ENRICHMENT_ID } from "./slangSeedEnrichmentId";
+import { SLANG_SEED_ENRICHMENT_VI } from "./slangSeedEnrichmentVi";
+import { SLANG_SEED_ENRICHMENT_HI } from "./slangSeedEnrichmentHi";
+import { SLANG_SEED_ENRICHMENT_TH } from "./slangSeedEnrichmentTh";
+import { SLANG_SEED_ENRICHMENT_FA } from "./slangSeedEnrichmentFa";
+import { SLANG_SEED_ENRICHMENT_BN } from "./slangSeedEnrichmentBn";
+import { SLANG_SEED_ENRICHMENT_UR } from "./slangSeedEnrichmentUr";
 import { SLANG_SEED_LOT3 } from "./slangSeedLot3";
 import { SLANG_SEED_LOT2 } from "./slangSeedLot2";
 import { SLANG_SEED_LOT1 } from "./slangSeedLot1";
@@ -671,6 +682,8 @@ export const SLANG_SEED: SlangSeed[] = [
   // ⚠️ Contenu amharique/igbo à faire relire par un natif avant exploitation
   // commerciale (voir l'en-tête de slangSeedLot4.ts).
   ...SLANG_SEED_LOT4,
+  ...SLANG_SEED_ENRICHMENT_IG,
+  ...SLANG_SEED_ENRICHMENT_TL,
   // Vague 1 d'enrichissement — 1 505 expressions pour 8 langues (de, pt, it,
   // ko, ja, tr, pl, el) : chacune passe de 12 fiches à 200. Aucune n'entre en
   // collision avec un lot précédent — garanti par `npm run verify:seeds`, qui
@@ -706,6 +719,15 @@ export const SLANG_SEED: SlangSeed[] = [
   // retrouvé ou réécrit — `npm run verify:seeds` échoue au moindre slug
   // en double.
   ...SLANG_SEED_ENRICHMENT_RU,
+  ...SLANG_SEED_ENRICHMENT_AR,
+  ...SLANG_SEED_ENRICHMENT_ZH,
+  ...SLANG_SEED_ENRICHMENT_ID,
+  ...SLANG_SEED_ENRICHMENT_VI,
+  ...SLANG_SEED_ENRICHMENT_HI,
+  ...SLANG_SEED_ENRICHMENT_TH,
+  ...SLANG_SEED_ENRICHMENT_FA,
+  ...SLANG_SEED_ENRICHMENT_BN,
+  ...SLANG_SEED_ENRICHMENT_UR,
 
   // ─── ANGLAIS (US/UK) — cœur éditorial ─────────────────────────────
   { language: "en", expression: "no cap", literal: "pas de casquette", meaning: "pour de vrai, sans mentir", context: "Sert à insister sur la véracité d'une affirmation, entre amis ou en ligne.", register: "street", region: "US", popularity: 96, mediaRefs: ["Song — « No Cap » (Future)", "TikTok — #NoCap 2B views"] },
