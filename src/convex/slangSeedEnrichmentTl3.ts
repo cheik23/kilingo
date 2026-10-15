@@ -7,9 +7,11 @@ import type { SlangSeed } from "./slangSeed";
 // Déduplication (slug-based) vis-à-vis de slangSeedEnrichmentTl.ts
 // et slangSeedEnrichmentTl2.ts.
 
+// Remarque de déduplication (2026-10-15, câblage agrégat) : fiches retirées
+// en doublon slug — premier déclarant conservé : tl:budol.
+
 export const SLANG_SEED_ENRICHMENT_TL3: SlangSeed[] = [
   // ─── Émotions & Comportements Spécifiques ────────────────────────────
-  { language: "tl", expression: "Budol", literal: "Budol", meaning: "Achat impulsif ou arnaque", context: "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet] | [Ex: 'Nabudol ako sa online sale' (Je me suis fait avoir par la vente en ligne)]", register: "internet", region: "Philippines", popularity: 90 },
   { language: "tl", expression: "Diskarte", literal: "Diskarte", meaning: "Stratégie, débrouillardise", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'May diskarte siya sa buhay' (Il a de la débrouillardise)]", register: "casual", region: "Philippines", popularity: 95 },
   { language: "tl", expression: "Tampo", literal: "Tampo", meaning: "Bouderie, traitement silencieux affectueux", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Nagtatampo siya ngayon' (Il/elle boude aujourd'hui)]", register: "casual", region: "Philippines", popularity: 90 },
   { language: "tl", expression: "Lambing", literal: "Lambing", meaning: "Douceur, affection, câlin", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Gusto ko ng lambing' (Je veux de l'affection)]", register: "casual", region: "Philippines", popularity: 90 },

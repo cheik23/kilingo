@@ -6,6 +6,9 @@ import type { SlangSeed } from "./slangSeed";
 // termes d'affection, politesse Taarof, argot de rue moderne.
 // Déduplication (slug-based) vis-à-vis de slangSeedEnrichmentFa.ts.
 
+// Remarque de déduplication (2026-10-15, câblage agrégat) : fiches retirées
+// en doublon slug — premier déclarant conservé : fa:an.
+
 export const SLANG_SEED_ENRICHMENT_FA2: SlangSeed[] = [
   // ─── Termes d'Affection & Romance ────────────────────────────────────
   { language: "fa", expression: "Delbar", literal: "Delbar", meaning: "Chéri(e), bien-aimé(e)", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Culture pop/Iran] | [Ex: 'Delbaret man' - Mon chéri]", register: "casual", region: "Iran", popularity: 95 },
@@ -41,7 +44,6 @@ export const SLANG_SEED_ENRICHMENT_FA2: SlangSeed[] = [
   { language: "fa", expression: "Zan", literal: "Zan", meaning: "Femme (argot)", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Usage] | [Ex: 'Zan' - La femme]", register: "street", region: "Iran", popularity: 91 },
   { language: "fa", expression: "Man", literal: "Man", meaning: "Moi (argot emphatique)", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Usage] | [Ex: 'Man mikonam' - Je le/la fais]", register: "street", region: "Iran", popularity: 94 },
   { language: "fa", expression: "To", literal: "To", meaning: "Toi (argot emphatique)", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Usage] | [Ex: 'To mikoni' - Tu le/la fais]", register: "street", region: "Iran", popularity: 92 },
-  { language: "fa", expression: "Án", literal: "Án", meaning: "Eux/eux-mêmes (argot)", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Usage] | [Ex: 'Án mikonan' - Ils se le/la font]", register: "street", region: "Iran", popularity: 86 },
   { language: "fa", expression: "Inja", literal: "Inja", meaning: "Ici (argot)", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Usage] | [Ex: 'Inja berim' - Viens ici]", register: "street", region: "Iran", popularity: 93 },
   { language: "fa", expression: "Ooon", literal: "Ooon", meaning: "Là-bas (argot)", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Usage] | [Ex: 'Ooon ast' - C'est là-bas]", register: "street", region: "Iran", popularity: 88 },
 

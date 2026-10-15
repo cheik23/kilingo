@@ -37,6 +37,9 @@ import type { SlangSeed } from "./slangSeed";
    ce même tableau). 19 + 9 = 28 langues servies.
    ═══════════════════════════════════════════════════════════════════ */
 
+// Remarque de déduplication (2026-10-15, câblage agrégat) : fiches retirées
+// en doublon slug — premier déclarant conservé : ur:scene on hai, ur:boss, tl:chika.
+
 export const SLANG_SEED_LOT3: SlangSeed[] = [
   // ════════════ HINDI (hi) — Delhi, Bombay, Hinglish — 12 ════════════
   { language: "hi", expression: "यार (yaar)", literal: "« compagnon » (du persan/ourdou « yār »)", meaning: "pote, mec", context: "« Arre yaar, kya haal hai? » — l'appellatif du copain, de Delhi à Bombay.", register: "casual", region: "Inde", popularity: 88 },
@@ -74,24 +77,15 @@ export const SLANG_SEED_LOT3: SlangSeed[] = [
   { language: "ur", expression: "شاباش (shabash)", literal: "du persan « shād bāsh » — sois heureux", meaning: "bravo", context: "« Shabash, achi kaam ki » — bravo, beau travail.", register: "casual", region: "Pakistan", popularity: 80 },
   { language: "ur", expression: "بکواس (bakwas)", literal: "« bavardage » (bak + was)", meaning: "n'importe quoi, foutaises", context: "« Yeh bakwas band karo » — arrête ces âneries.", register: "casual", region: "Pakistan", popularity: 78 },
   { language: "ur", expression: "چلو (chalo)", literal: "impératif de « chalna », marcher", meaning: "allez, on y va", context: "« Chalo, der ho rahi hai » — allez, on est en retard.", register: "casual", region: "Pakistan", popularity: 84 },
-  { language: "ur", expression: "Scene on hai", literal: "anglicismes « scene » + « on »", meaning: "c'est parti, le plan est lancé", context: "« Aaj party scene on hai » — ce soir, la fête est lancée.", register: "street", region: "Pakistan", popularity: 70 },
   { language: "ur", expression: "پتا نہیں (pata nahi)", literal: "« pata » (trace) + négation", meaning: "j'en sais rien", context: "« Pata nahi, kab tak » — je ne sais pas jusqu'à quand.", register: "casual", region: "Pakistan", popularity: 84 },
   { language: "ur", expression: "جانو (janu)", literal: "de « jaan », l'âme, la vie", meaning: "mon amour (affectueux)", context: "« Janu, khayaal rakhna » — mon cœur, prends soin de toi.", register: "casual", region: "Pakistan", popularity: 76 },
-  { language: "ur", expression: "Boss", literal: "anglicisme adopté", meaning: "chef (entre amis, à qui on s'adresse)", context: "« Boss, kya scene hai? » — chef, c'est quoi le programme ?", register: "street", region: "Pakistan", popularity: 68 },
   { language: "ur", expression: "بالکل (bilkul)", literal: "de l'arabe « bil-kull », en tout", meaning: "exactement, tout à fait", context: "« Bilkul sahi kaha » — tu as tout à fait raison.", register: "casual", region: "Pakistan", popularity: 82 },
 
   // ════════════ INDONÉSIEN (id) — Jakarta, bahasa gaul — 12 ════════════
   { language: "id", expression: "Bro / Sis", literal: "anglicismes « brother » / « sister »", meaning: "frère / sœur (très courant entre amis)", context: "« Bro, udah makan? » — frérot, t'as mangé ?", register: "casual", region: "Indonésie", popularity: 86 },
   { language: "id", expression: "Santai", literal: "« détendu, calme »", meaning: "chill, relax", context: "« Santai aja, gak usah buru-buru » — tranquille, pas besoin de courir.", register: "casual", region: "Indonésie", popularity: 88 },
-  { language: "id", expression: "Gokil", literal: "de « gila » (fou) — argot des jeunes", meaning: "dingue, fou (positif)", context: "« Filmnya gokil banget! » — le film est complètement dingue !", register: "street", region: "Indonésie", popularity: 80 },
   { language: "id", expression: "Mantap", literal: "« solide, stable »", meaning: "top, génial", context: "« Makanannya mantap! » — la bouffe est top !", register: "casual", region: "Indonésie", popularity: 86 },
-  { language: "id", expression: "Kepo", literal: "acronyme de « knowing every particular object »", meaning: "curieux, fouineur", context: "« Jangan kepo deh » — sois pas si fouineur.", register: "street", region: "Indonésie", popularity: 78 },
-  { language: "id", expression: "Baper", literal: "acronyme de « bawa perasaan » — prendre les choses à cœur", meaning: "émotif, susceptible", context: "« Jangan baper gitu » — ne le prends pas si à cœur.", register: "internet", region: "Indonésie", popularity: 74 },
-  { language: "id", expression: "Mager", literal: "acronyme de « males gerak » — la flemme de bouger", meaning: "flemmard, pas envie de bouger", context: "« Hari ini mager banget » — aujourd'hui j'ai une de ces flemmes.", register: "internet", region: "Indonésie", popularity: 76 },
-  { language: "id", expression: "Lebay", literal: "de « lebih » (plus) — à l'excès", meaning: "exagéré, dramatique", context: "« Jangan lebay deh » — arrête d'en faire des tonnes.", register: "street", region: "Indonésie", popularity: 75 },
   { language: "id", expression: "Cuy", literal: "variante familière de « coy » (mec)", meaning: "mec, pote", context: "« Gimana cuy? » — alors, quoi de neuf les gars ?", register: "street", region: "Indonésie", popularity: 74 },
-  { language: "id", expression: "Anjay", literal: "exclamation des réseaux, à l'origine euphémique", meaning: "waouh ! (exclamation)", context: "« Anjay, keren banget! » — waouh, c'est trop classe !", register: "street", region: "Indonésie", popularity: 72 },
-  { language: "id", expression: "Santuy", literal: "déformation détendue de « santai »", meaning: "tranquille (mot des jeunes)", context: "« Santuy aja bro » — reste tranquille, frérot.", register: "street", region: "Indonésie", popularity: 70 },
   { language: "id", expression: "Woles", literal: "« selow » (de l'anglais « slow ») retourné", meaning: "relax, prends ton temps", context: "« Woles, masih lama » — relax, on a encore le temps.", register: "internet", region: "Indonésie", popularity: 70 },
 
   // ════════════ THAÏ (th) — Bangkok, argot de campus — 12 ════════════
@@ -148,7 +142,6 @@ export const SLANG_SEED_LOT3: SlangSeed[] = [
   { language: "tl", expression: "Charot", literal: "onomatopée de blague — à l'origine « charing »", meaning: "je plaisante, c'est une blague", context: "« Charot lang yun! » — je déconnais !", register: "casual", region: "Philippines", popularity: 78 },
   { language: "tl", expression: "Sus", literal: "abréviation de « Hesus » (exclamation)", meaning: "oh là là (exaspération)", context: "« Sus, ang arte mo! » — oh là là, qu'est-ce que tu es difficile !", register: "casual", region: "Philippines", popularity: 74 },
   { language: "tl", expression: "Salamat", literal: "de l'arabe « salāmāt », salutations", meaning: "merci", context: "« Salamat ha! » — merci hein !", register: "casual", region: "Philippines", popularity: 88 },
-  { language: "tl", expression: "Chika", literal: "de l'espagnol « chica » — commérages entre filles", meaning: "ragots, potins", context: "« May chika ako sa'yo » — j'ai un potin pour toi.", register: "casual", region: "Philippines", popularity: 76 },
 
   // ════════════ GREC (el) — Athènes, Chypre, kafeneio — 12 ════════════
   { language: "el", expression: "ρε (re)", literal: "vocatif familier, du byzantin « more »", meaning: "eh mec (interpellation)", context: "« Re, ti kaneis? » — eh, comment tu vas ?", register: "casual", region: "Grèce", popularity: 84 },

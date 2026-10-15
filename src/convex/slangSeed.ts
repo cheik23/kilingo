@@ -21,6 +21,21 @@ import { SLANG_SEED_ENRICHMENT_TH2 } from "./slangSeedEnrichmentTh2";
 import { SLANG_SEED_ENRICHMENT_FA } from "./slangSeedEnrichmentFa";
 import { SLANG_SEED_ENRICHMENT_BN } from "./slangSeedEnrichmentBn";
 import { SLANG_SEED_ENRICHMENT_BN2 } from "./slangSeedEnrichmentBn2";
+import { SLANG_SEED_ENRICHMENT_FA2 } from "./slangSeedEnrichmentFa2";
+import { SLANG_SEED_ENRICHMENT_FA3 } from "./slangSeedEnrichmentFa3";
+import { SLANG_SEED_ENRICHMENT_FA4 } from "./slangSeedEnrichmentFa4";
+import { SLANG_SEED_ENRICHMENT_BN3 } from "./slangSeedEnrichmentBn3";
+import { SLANG_SEED_ENRICHMENT_BN4 } from "./slangSeedEnrichmentBn4";
+import { SLANG_SEED_ENRICHMENT_UR2 } from "./slangSeedEnrichmentUr2";
+import { SLANG_SEED_ENRICHMENT_UR3 } from "./slangSeedEnrichmentUr3";
+import { SLANG_SEED_ENRICHMENT_UR4 } from "./slangSeedEnrichmentUr4";
+import { SLANG_SEED_ENRICHMENT_TL3 } from "./slangSeedEnrichmentTl3";
+import { SLANG_SEED_ENRICHMENT_TL4 } from "./slangSeedEnrichmentTl4";
+import { SLANG_SEED_ENRICHMENT_TL5 } from "./slangSeedEnrichmentTl5";
+import { SLANG_SEED_ENRICHMENT_ID2 } from "./slangSeedEnrichmentId2";
+import { SLANG_SEED_ENRICHMENT_ZH2 } from "./slangSeedEnrichmentZh2";
+import { SLANG_SEED_ENRICHMENT_IG2 } from "./slangSeedEnrichmentIg2";
+import { SLANG_SEED_ENRICHMENT_AM } from "./slangSeedEnrichmentAm";
 import { SLANG_SEED_ENRICHMENT_UR } from "./slangSeedEnrichmentUr";
 import { SLANG_SEED_LOT3 } from "./slangSeedLot3";
 import { SLANG_SEED_LOT2 } from "./slangSeedLot2";
@@ -5646,6 +5661,26 @@ export const SLANG_SEED: SlangSeed[] = [
   ...SLANG_SEED_ENRICHMENT_BN,
   ...SLANG_SEED_ENRICHMENT_BN2,
   ...SLANG_SEED_ENRICHMENT_UR,
+  ...SLANG_SEED_ENRICHMENT_FA2,
+      ...SLANG_SEED_ENRICHMENT_FA3,
+      ...SLANG_SEED_ENRICHMENT_FA4,
+      ...SLANG_SEED_ENRICHMENT_BN3,
+      ...SLANG_SEED_ENRICHMENT_BN4,
+      ...SLANG_SEED_ENRICHMENT_UR2,
+      ...SLANG_SEED_ENRICHMENT_UR3,
+      ...SLANG_SEED_ENRICHMENT_UR4,
+      ...SLANG_SEED_ENRICHMENT_TL3,
+      ...SLANG_SEED_ENRICHMENT_TL4,
+      ...SLANG_SEED_ENRICHMENT_TL5,
+      ...SLANG_SEED_ENRICHMENT_ID2,
+      ...SLANG_SEED_ENRICHMENT_ZH2,
+      ...SLANG_SEED_ENRICHMENT_IG2,
+  // Lot amharique 1 — 24 fiches sourcées : l'amharique passe de 11 à 35
+  // expressions (tri du lot proposé et limites détaillés dans l'en-tête de
+  // slangSeedEnrichmentAm.ts). Les 24 fiches portent `validated: false` :
+  // aucune relecture native. `npm run verify:seeds` garantit l'absence de
+  // collision avec les 11 fiches am du Lot 4 et avec le reste du catalogue.
+      ...SLANG_SEED_ENRICHMENT_AM,
 
   // ─── ANGLAIS (US/UK) — cœur éditorial ─────────────────────────────
   {
@@ -8291,16 +8326,6 @@ export const SLANG_SEED: SlangSeed[] = [
     register: "casual",
     region: "Égypte",
     popularity: 72,
-  },
-  {
-    language: "ar",
-    expression: "أخويا (akhūya)",
-    literal: "mon frère",
-    meaning: "mon frère (pote)",
-    context: "« شو أخبارك أخويا » — quoi de neuf, frérot.",
-    register: "casual",
-    region: "Égypte",
-    popularity: 66,
   },
   {
     language: "ar",

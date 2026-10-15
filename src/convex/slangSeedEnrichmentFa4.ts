@@ -7,6 +7,9 @@ import type { SlangSeed } from "./slangSeed";
 // et slangSeedEnrichmentFa2.ts et slangSeedEnrichmentFa3.ts.
 // Contextes reformatés Phase 6 (Urban Dictionary Pro).
 
+// Remarque de déduplication (2026-10-15, câblage agrégat) : fiches retirées
+// en doublon slug — premier déclarant conservé : fa:dige, fa:ashegh.
+
 export const SLANG_SEED_ENRICHMENT_FA4: SlangSeed[] = [
 
   // ─── Culture du Taarof ────────────────────────────────────────────────
@@ -29,10 +32,8 @@ export const SLANG_SEED_ENRICHMENT_FA4: SlangSeed[] = [
 
   // ─── Argot de Rue Moderne ─────────────────────────────────────────────
   { language: "fa", expression: "Joon", literal: "Joon", meaning: "Vie, âme (usage informel)", context: "[Vie / âme] | Chaleur affective — s'ajoute aux prénoms et aux politesses comme un 'cher'. Ex: 'Joon gereftam' (Garder la vie). Note: À Téhéran, 'joon' suit les prénoms ('Ali-joon') et nourrit les politesses ('ghorboon-e shomâ beram !', littéralement 'que je brûle pour vous') — la manière la plus douce de tutoyer.", register: "street", region: "Iran", popularity: 95 },
-  { language: "fa", expression: "Dige", literal: "Dige", meaning: "Autre chose, autre chose (argot)", context: "[Enfin / à propos] | 'Déjà' — la charnière flexible de toutes les conversations persanes. Ex: 'Dige mitoonim' (On peut aussi). Note: L'outil le plus flexible du persan parlé : 'dige bâs' (maintenant c'est clair), 'dige chi?' (et alors ?) — aucun dialogue téhéranais ne passe sans lui.", register: "street", region: "Iran", popularity: 91 },
   { language: "fa", expression: "Beshaste", literal: "Beshaste", meaning: "Heureux, chanceux (argot)", context: "[Chanceux] | Heureux, chanceux — registre jeune de la cour de récré. Ex: 'Beshaste shode' (Est devenu chanceux). Note: Argot scolaire : le standard iranien dit 'khosh-bakht' — entendu surtout à l'école, dans les cours de récré.", register: "street", region: "Iran", popularity: 93 },
   { language: "fa", expression: "Setare", literal: "Setare", meaning: "Étoile (usage métaphorique en argot)", context: "[Étoile] | L'étoile — métaphore de la célébrité, de la notoriété. Ex: 'Setare shode' (Est devenu une étoile). Note: La culture pop persophone (réalité shows Instagram, pop de la diaspora) a transformé 'setâre' en vocabulaire central de la notoriété — ça passe autant pour un chanteur que pour un créateur TikTok.", register: "internet", region: "Iran", popularity: 90 },
-  { language: "fa", expression: "Ashegh", literal: "Ashegh", meaning: "Amoureux/amoureuse (argot moderne)", context: "[Amoureux] | Amoureux fou, éperdument. Ex: 'Ashegh shode' (Est tombé amoureux). Note: L'un des mots les plus porteurs de la pop iranienne — 'asheghame' (je suis follement amoureux) traverse les chansons récentes et les messages WhatsApp.", register: "street", region: "Iran", popularity: 96 },
   { language: "fa", expression: "Sokhan", literal: "Sokhan", meaning: "Parole, parole (usage courant)", context: "[Parole] | La parole, le discours — registre classique. Ex: 'Sokhan bezari' (Donner sa parole). Note: 'Sokhan' vient du grand classique persan — l'éloquence (sokhanvari) reste une vertu littéraire et scolaire, plus proche du poème que de l'oral de rue.", register: "casual", region: "Iran", popularity: 92 },
   { language: "fa", expression: "Ghalb", literal: "Ghalb", meaning: "Cœur (usage affectif)", context: "[Cœur] | Le cœur, centre des émotions et de l'affect. Ex: 'Ghalb mikonan' (On garde au cœur). Note: Couple classique du persan : les poètes chantent 'del' (mot persan natif), le quotidien dit 'ghalb' (d'ascendance arabe) — deux couches de la langue pour une même chose.", register: "casual", region: "Iran", popularity: 94 },
   { language: "fa", expression: "Daste", literal: "Daste", meaning: "Main (usage expressif 'daste shakastan')", context: "[Main] | La main — base d'une riche famille d'expressions. Ex: 'Daste shakastan' (Se démener, fournir un effort). Note: Alimente des dizaines d'idiomes, du plus économique ('dast-e khali', mains vides) au plus affectueux ('dast-am ra gereft', il m'a tenu la main).", register: "street", region: "Iran", popularity: 95 }

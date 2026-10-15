@@ -7,6 +7,9 @@ import type { SlangSeed } from "./slangSeed";
 // Déduplication (slug-based) vis-à-vis de slangSeedEnrichmentFa.ts
 // et slangSeedEnrichmentFa2.ts.
 
+// Remarque de déduplication (2026-10-15, câblage agrégat) : fiches retirées
+// en doublon slug — premier déclarant conservé : fa:ریپلای.
+
 export const SLANG_SEED_ENRICHMENT_FA3: SlangSeed[] = [
 
   // ─── Argot des Réseaux Sociaux (Instagram/Telegram) ─────────────────────
@@ -18,7 +21,6 @@ export const SLANG_SEED_ENRICHMENT_FA3: SlangSeed[] = [
   { language: "fa", expression: "لایک", literal: "Like", meaning: "J'aime (action sur les réseaux)", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux] | [Ex: 'No like dare']", register: "internet", region: "Iran", popularity: 97 },
   { language: "fa", expression: "لايك بزن", literal: "Like bazan", meaning: "Donner un like", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux] | [Ex: 'Like bezaram']", register: "internet", region: "Iran", popularity: 96 },
   { language: "fa", expression: "کامنت", literal: "Comment", meaning: "Commentaire", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux] | [Ex: 'Koment bezar']", register: "internet", region: "Iran", popularity: 94 },
-  { language: "fa", expression: "ریپلای", literal: "Reply", meaning: "Répondre à un message/commentaire", context: "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Telegram/Instagram] | [Ex: 'Reply bezaram']", register: "internet", region: "Iran", popularity: 90 },
   { language: "fa", expression: "دیreht", literal: "Direct", meaning: "Message direct (DM)", context: "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Instagram/Telegram] | [Ex: 'DiRECT bezaram']", register: "internet", region: "Iran", popularity: 93 },
 
   // ─── Vie Étudiante ──────────────────────────────────────────────────────

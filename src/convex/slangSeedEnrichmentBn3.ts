@@ -7,6 +7,9 @@ import type { SlangSeed } from "./slangSeed";
 // expressions cricket et quotidiennes. Déduplication (slug-based)
 // vis-à-vis de slangSeedEnrichmentBn.ts et slangSeedEnrichmentBn2.ts.
 
+// Remarque de déduplication (2026-10-15, câblage agrégat) : fiches retirées
+// en doublon slug — premier déclarant conservé : bn:reels, bn:omg (doublon interne), bn:watch party (doublon interne).
+
 export const SLANG_SEED_ENRICHMENT_BN3: SlangSeed[] = [
   // ─── Cricket & Sports ──────────────────────────────────────────────
   { language: "bn", expression: "Boundary", literal: "Limite", meaning: "Quatre, boundary (cricket)", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Cricket/Internet BD] | [Ex: 'Boundary giyeche!' - Le ball est passé la limite!]", register: "internet", region: "Bangladesh", popularity: 90 },
@@ -46,9 +49,6 @@ export const SLANG_SEED_ENRICHMENT_BN3: SlangSeed[] = [
 
   // ─── Modern Slang & Internet ───────────────────────────────────────
   { language: "bn", expression: "Lol", literal: "Lol", meaning: "Lol (rire)", context: "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet] | [Ex: 'Lol korte']", register: "internet", region: "Bangladesh", popularity: 88 },
-  { language: "bn", expression: "OMG", literal: "OMG", meaning: "OMG (Oh My God)", context: "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet] | [Ex: 'OMG korte']", register: "internet", region: "Bangladesh", popularity: 85 },
-  { language: "bn", expression: "OMG", literal: "OMG", meaning: "OMG (Oh My God)", context: "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet] | [Ex: 'OMG korte']", register: "internet", region: "Bangladesh", popularity: 85 },
-  { language: "bn", expression: "OMG", literal: "OMG", meaning: "OMG (Oh My God)", context: "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet] | [Ex: 'OMG korte']", register: "internet", region: "Bangladesh", popularity: 85 },
   { language: "bn", expression: "TBH", literal: "TBH", meaning: "TBH (To Be Honest)", context: "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet] | [Ex: 'TBH korte']", register: "internet", region: "Bangladesh", popularity: 78 },
   { language: "bn", expression: "IDK", literal: "IDK", meaning: "IDK (I Don't Know)", context: "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet] | [Ex: 'IDK korte']", register: "internet", region: "Bangladesh", popularity: 76 },
   { language: "bn", expression: "TBR", literal: "TBR", meaning: "TBR (To Be Released)", context: "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet] | [Ex: 'TBR korte']", register: "internet", region: "Bangladesh", popularity: 72 },
@@ -74,7 +74,6 @@ export const SLANG_SEED_ENRICHMENT_BN3: SlangSeed[] = [
   { language: "bn", expression: "Blue tick", literal: "Blue tick", meaning: "Blue tick (double marqueur lecture)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Blue tick mile']", register: "internet", region: "Bangladesh", popularity: 82 },
   { language: "bn", expression: "Green tick", literal: "Green tick", meaning: "Green tick (single marqueur lecture)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Green tick mile']", register: "internet", region: "Bangladesh", popularity: 80 },
   { language: "bn", expression: "Story", literal: "Story", meaning: "Story (Story Instagram/Snapchat)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Story dekhe']", register: "internet", region: "Bangladesh", popularity: 90 },
-  { language: "bn", expression: "Reels", literal: "Reels", meaning: "Reels (Instagram Reels)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Reels dekhe']", register: "internet", region: "Bangladesh", popularity: 92 },
   { language: "bn", expression: "Live", literal: "Live", meaning: "Live (diffusion en direct)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Live dekhe']", register: "internet", region: "Bangladesh", popularity: 88 },
   { language: "bn", expression: "Poll", literal: "Poll", meaning: "Poll (sonde Twitter/Instagram)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Poll khaite']", register: "internet", region: "Bangladesh", popularity: 80 },
   { language: "bn", expression: "Trending", literal: "Trending", meaning: "Trending (tendance)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Trending ache']", register: "internet", region: "Bangladesh", popularity: 94 },
@@ -99,10 +98,7 @@ export const SLANG_SEED_ENRICHMENT_BN3: SlangSeed[] = [
   { language: "bn", expression: "ASMR", literal: "ASMR", meaning: "ASMR (Réponse sensorielle méridienne autonome)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'ASMR dekhe']", register: "internet", region: "Bangladesh", popularity: 82 },
   { language: "bn", expression: "Podcast", literal: "Podcast", meaning: "Podcast (podcast)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Podcast suni']", register: "internet", region: "Bangladesh", popularity: 88 },
   { language: "bn", expression: "Live stream", literal: "Live stream", meaning: "Live stream (diffusion en direct)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Live stream dekhe']", register: "internet", region: "Bangladesh", popularity: 92 },
-  { language: "bn", expression: "Watch party", literal: "Watch party", meaning: "Watch party (soirée viewing)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Watch party korte']", register: "casual", region: "Bangladesh", popularity: 88 },
-  { language: "bn", expression: "Watch party", literal: "Watch party", meaning: "Watch party (soirée viewing)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Watch party korte']", register: "casual", region: "Bangladesh", popularity: 88 },
   { language: "bn", expression: "Q&A", literal: "Q&A", meaning: "Q&A (Questions and Answers)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Q&A dekhe']", register: "internet", region: "Bangladesh", popularity: 84 },
   { language: "bn", expression: "AMA", literal: "AMA", meaning: "AMA (Ask Me Anything)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'AMA korte']", register: "internet", region: "Bangladesh", popularity: 86 },
   { language: "bn", expression: "Live session", literal: "Live session", meaning: "Live session (session en direct)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Live session dekhe']", register: "internet", region: "Bangladesh", popularity: 90 },
-  { language: "bn", expression: "Watch party", literal: "Watch party", meaning: "Watch party (soirée viewing)", context: "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Internet/Réseaux sociaux] | [Ex: 'Watch party korte']", register: "casual", region: "Bangladesh", popularity: 88 }
 ];

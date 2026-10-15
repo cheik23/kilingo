@@ -7,6 +7,9 @@ import type { SlangSeed } from "./slangSeed";
 // Déduplication (slug-based) vis-à-vis de slangSeedEnrichmentUr.ts
 // et slangSeedEnrichmentUr2.ts.
 
+// Remarque de déduplication (2026-10-15, câblage agrégat) : fiches retirées
+// en doublon slug — premier déclarant conservé : ur:bhai.
+
 export const SLANG_SEED_ENRICHMENT_UR3: SlangSeed[] = [
   // ─── Cricket Pakistanais ─────────────────────────────────────────────
   { language: "ur", expression: "Gully cricket", literal: "Gully cricket", meaning: "Cricket dans les ruelles", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Sport Pakistanais] | [Ex: 'Gully cricket match' - Match de cricket dans la ruelle]", register: "casual", region: "Pakistan", popularity: 95 },
@@ -38,7 +41,6 @@ export const SLANG_SEED_ENRICHMENT_UR3: SlangSeed[] = [
   { language: "ur", expression: "Miyan", literal: "Miyan", meaning: "Mari, époux/épouse", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Vie conjugale] | [Ex: 'Miyan biwi' - Mari et femme]", register: "casual", region: "Pakistan", popularity: 93 },
   { language: "ur", expression: "Salaar", literal: "Salaar", meaning: "Chef, leader, protecteur", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Termes affectueux/famille] | [Ex: 'Salaar bana' - Devenir chef/protecteur]", register: "casual", region: "Pakistan", popularity: 91 },
   { language: "ur", expression: "Behan", literal: "Behan", meaning: "Sœur", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Vie familiale] | [Ex: 'Behan meri' - Ma sœur]", register: "casual", region: "Pakistan", popularity: 94 },
-  { language: "ur", expression: "Bhai", literal: "Bhai", meaning: "Frère", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Vie familiale] | [Ex: 'Bhai mere' - Mon frère]", register: "casual", region: "Pakistan", popularity: 95 },
   { language: "ur", expression: "Beti", literal: "Beti", meaning: "Fille", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Vie familiale] | [Ex: 'Beti meri' - Ma fille]", register: "casual", region: "Pakistan", popularity: 93 },
   { language: "ur", expression: "Beta", literal: "Beta", meaning: "Fils", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Vie familiale] | [Ex: 'Beta mera' - Mon fils]", register: "casual", region: "Pakistan", popularity: 96 },
   { language: "ur", expression: "Abba", literal: "Abba", meaning: "Père (argot familial)", context: "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Termes familiaux] | [Ex: 'Abba jee' - Père respecté]", register: "casual", region: "Pakistan", popularity: 90 },
