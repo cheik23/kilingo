@@ -55,6 +55,56 @@ export const UI_LANGS = [
 ] as const;
 export type UiLang = (typeof UI_LANGS)[number];
 
+/* ── Langues de contenu SANS traduction d'interface — PHASE 9 ------------
+   Ces 18 codes (les 30 du catalogue moins UI_LANGS) n'ont PAS leurs
+   libellés UI traduits : elles n'apparaissent donc JAMAIS dans UI_LANGS
+   (sélecteur d'interface). Elles ne servent qu'à l'affichage glacier/natatif
+   des chips de l'Atlas, des badges et des listes de contenu — d'où une méta
+   distincte, étanchée des 12 d'interface. Fa et Ourdou sont RTL.
+   Mêmes règles que UI_LANG_META : nom natif + drapeau, jamais inventé. */
+export const UI_LANG_EXTRA = [
+  "am",
+  "bn",
+  "de",
+  "el",
+  "fa",
+  "hi",
+  "id",
+  "ig",
+  "it",
+  "ja",
+  "ko",
+  "pl",
+  "pt",
+  "th",
+  "tl",
+  "tr",
+  "ur",
+  "vi",
+] as const;
+export type UiLangExtra = (typeof UI_LANG_EXTRA)[number];
+
+export const UI_LANG_EXTRA_META: Record<UiLangExtra, { native: string; flag: string; dir: "ltr" | "rtl" }> = {
+  am: { native: "አማርኛ", flag: "🇪🇹", dir: "ltr" },
+  bn: { native: "বাংলা", flag: "🇧🇩", dir: "ltr" },
+  de: { native: "Deutsch", flag: "🇩🇪", dir: "ltr" },
+  el: { native: "Ελληνικά", flag: "🇬🇷", dir: "ltr" },
+  fa: { native: "فارسی", flag: "🇮🇷", dir: "rtl" },
+  hi: { native: "हिन्दी", flag: "🇮🇳", dir: "ltr" },
+  id: { native: "Bahasa Indonesia", flag: "🇮🇩", dir: "ltr" },
+  ig: { native: "Asụsụ Igbo", flag: "🇳🇬", dir: "ltr" },
+  it: { native: "Italiano", flag: "🇮🇹", dir: "ltr" },
+  ja: { native: "日本語", flag: "🇯🇵", dir: "ltr" },
+  ko: { native: "한국어", flag: "🇰🇷", dir: "ltr" },
+  pl: { native: "Polski", flag: "🇵🇱", dir: "ltr" },
+  pt: { native: "Português", flag: "🇵🇹", dir: "ltr" },
+  th: { native: "ภาษาไทย", flag: "🇹🇭", dir: "ltr" },
+  tl: { native: "Tagalog", flag: "🇵🇭", dir: "ltr" },
+  tr: { native: "Türkçe", flag: "🇹🇷", dir: "ltr" },
+  ur: { native: "اردو", flag: "🇵🇰", dir: "rtl" },
+  vi: { native: "Tiếng Việt", flag: "🇻🇳", dir: "ltr" },
+};
+
 export const UI_LANG_META: Record<UiLang, { native: string; flag: string; dir: "ltr" | "rtl" }> = {
   fr: { native: "Français", flag: "🇫🇷", dir: "ltr" },
   en: { native: "English", flag: "🇬🇧", dir: "ltr" },
@@ -73,16 +123,21 @@ export const UI_LANG_META: Record<UiLang, { native: string; flag: string; dir: "
 const UI_LANG_KEY = "ui_lang"; // persisted UI language
 
 /** Meta de langue avec repli fr — aucune UI ne peut crasher sur une valeur
-    localStorage ancienne ou inconnue (métas garanties non-undefined). */
+    localStorage ancienne ou inconnue (métas garanties non-undefined).
+    PHASE 9 : consulte d'abord la méta d'interface (12 traduites), puis la
+    méta de contenu (18 affichage seul), puis replie sur fr. */
 export function uiLangMeta(lang: string): {
   native: string;
   flag: string;
   dir: "ltr" | "rtl";
 } {
-  const safe = (UI_LANGS as readonly string[]).includes(lang)
-    ? (lang as UiLang)
-    : "fr";
-  return UI_LANG_META[safe];
+  if ((UI_LANGS as readonly string[]).includes(lang)) {
+    return UI_LANG_META[lang as UiLang];
+  }
+  if ((UI_LANG_EXTRA as readonly string[]).includes(lang)) {
+    return UI_LANG_EXTRA_META[lang as UiLangExtra];
+  }
+  return UI_LANG_META.fr;
 }
 
 export function loadUiLang(): UiLang {
