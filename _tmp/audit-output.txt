@@ -1,0 +1,66 @@
+=== PER-FILE ENTRY COUNTS ===
+
+SLANG_SEED_EXTRA (inline): 0 entries
+  Languages: 
+
+SLANG_SEED_AFRICA: 1390 entries
+  Languages: ha, ln, sw, wo, yo, zu
+    ha: 228
+    ln: 231
+    sw: 243
+    wo: 239
+    yo: 222
+    zu: 227
+
+SLANG_SEED_2025: 55 entries
+  Languages: en, fr
+    en: 35
+    fr: 20
+
+SLANG_SEED_LOT1: 36 entries
+  Languages: de, it, pt
+    de: 12
+    it: 12
+    pt: 12
+
+SLANG_SEED_LOT2: 47 entries
+  Languages: ja, ko, pl, tr
+    ja: 12
+    ko: 11
+    pl: 12
+    tr: 12
+
+=== GRAND TOTAL (merged SLANG_SEED) ===
+Total entries: 1528
+Languages with content: 15
+Per-language breakdown (sorted):
+  de: 12
+  en: 35
+  fr: 20
+  ha: 228
+  it: 12
+  ja: 12
+  ko: 11
+  ln: 231
+  pl: 12
+  pt: 12
+  sw: 243
+  tr: 12
+  wo: 239
+  yo: 222
+  zu: 227
+
+=== LOT 1 (de/pt/it) verification ===
+  de: 12 entries ✓ PRESENT
+  pt: 12 entries ✓ PRESENT
+  it: 12 entries ✓ PRESENT
+
+=== LOT 2 (ko/ja/tr/pl) verification ===
+  ko: 11 entries ✓ PRESENT
+  ja: 12 entries ✓ PRESENT
+  tr: 12 entries ✓ PRESENT
+  pl: 12 entries ✓ PRESENT
+
+=== DUPLICATE CHECK ===
+Total entries checked: 1528
+Duplicates found: 0
