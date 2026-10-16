@@ -50,6 +50,12 @@ const AIConversationRoom = lazy(
 const Atlas = lazy(
   () => import("@/components/learner/Atlas").then((m) => ({ default: m.Atlas })),
 );
+const CultureView = lazy(
+  () => import("@/components/learner/CultureView").then((m) => ({ default: m.CultureView })),
+);
+const ConceptDetailView = lazy(
+  () => import("@/components/learner/ConceptDetailView").then((m) => ({ default: m.ConceptDetailView })),
+);
 const StoreView = lazy(
   () => import("@/components/learner/StoreView").then((m) => ({ default: m.StoreView })),
 );
@@ -285,6 +291,26 @@ createRoot(rootEl).render(
                     element={
                       <Suspense fallback={<RouteLoading />}>
                         <Atlas />
+                      </Suspense>
+                    }
+                  />
+                  {/* MODE CULTURE (PHASE 10-A) — socle des ponts culturels :
+                      20 concepts universels × 30 langues (crossSeed). */}
+                  <Route
+                    path="culture"
+                    element={
+                      <Suspense fallback={<RouteLoading />}>
+                        <CultureView />
+                      </Suspense>
+                    }
+                  />
+                  {/* MODE CULTURE — détail d'un concept (PHASE 10-B) :
+                      toutes les langues et expressions d'un concept. */}
+                  <Route
+                    path="culture/:slug"
+                    element={
+                      <Suspense fallback={<RouteLoading />}>
+                        <ConceptDetailView />
                       </Suspense>
                     }
                   />

@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import { Brain, Globe, Heart, Info, Search, Volume2, X, Filter, Shuffle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SpeakButton } from "./SpeakButton";
+import { ContextParser } from "./ContextParser";
 import { AdultContentBadge } from "./AdultContentBadge";
 import { UnverifiedBadge } from "./UnverifiedBadge";
 import { GoldBurst } from "@/components/fx/rewards";
@@ -113,9 +114,7 @@ function CardFaceInner({ item, revealLabel }: { item: Slang; revealLabel: string
           <p className="text-center text-lg font-medium text-gold">
             {item.meaning}
           </p>
-          <p className="text-center text-sm leading-relaxed text-ink-2">
-            {item.context}
-          </p>
+          <ContextParser context={item.context} className="text-center text-ink-2" />
           {item.mediaRefs && item.mediaRefs.length > 0 && (
             <div className="mt-4 border-t border-white/5 pt-3">
               {item.mediaRefs.map((r) => (

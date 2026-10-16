@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { LanguageCode } from "./languages";
 
 /* ═══════════════════════════════════════════════════════════════════
    PONTS CULTURELS (Phase 4/4) — seed verbatim + lecture publique.
@@ -811,6 +812,101 @@ export const getCrossConcepts = query({
       labelEn: v.string(),
       entries: v.array(
         v.object({ lang: v.string(), expr: v.string(), gloss: v.string() }),
+      ),
+    }),
+  ),
+});
+
+/** Un concept avec ses entrées enrichies (PHASE 10-B). */
+type ConceptDetailEntry = {
+  lang: string;
+  expr: string;
+  gloss: string;
+  /** Contexte enrichi (issu de slangExpressions) ou null — le composant
+   *  ContextParser gère le fallback brut. */
+  context: string | null;
+  literal: string | null;
+  register: string | null;
+  region: string | null;
+};
+
+/** Clé de jointure crossConcepts ↔ slangExpressions : on enlève la
+ *  translittération entre parenthèses (« 氪金玩家 (Kè jīn wán jiā) ») et on
+ *  normalise casse/espaces — les deux sources partagent la même chaîne dans
+ *  la grande majorité des cas, la variante décore seulement. */
+function joinKey(expr: string): string {
+  const base = expr.replace(/\s*\([^)]*\)\s*/g, " ").trim().toLowerCase();
+  return base.length > 0 ? base : expr.trim().toLowerCase();
+}
+
+/**
+ * Détail d'un concept (lecture publique) — toutes les langues.
+ * Enrichissement via la base slang : quand l'expression existe aussi dans
+ * `slangExpressions`, on ramène son `context` (souvent le format 4 parties
+ * rendu par <ContextParser/>) ainsi que registre et région. Rien n'est
+ * inventé à l'affichage : sans correspondance, `context` reste null.
+ */
+export const getConceptDetails = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const row = await ctx.db
+      .query("crossConcepts")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+    if (!row) return null;
+
+    // Un seul passage par langue présente dans le concept (index by_language,
+    // cap généreux : le seed fait ~85 fiches par langue en moyenne).
+    const langs = [...new Set(row.entries.map((e) => e.lang))];
+    const perLang = await Promise.all(
+      langs.map(async (lang) => {
+        const slang = await ctx.db
+          .query("slangExpressions")
+          // Le seed des ponts n'utilise que les codes du catalogue ; le
+          // cast raccorde la chaîne libre à l'union littérale du schéma.
+          .withIndex("by_language", (q) => q.eq("language", lang as LanguageCode))
+          .take(200);
+        const map = new Map<string, (typeof slang)[number]>();
+        for (const s of slang) map.set(joinKey(s.expression), s);
+        return [lang, map] as const;
+      }),
+    );
+    const byLang = new Map(perLang);
+
+    const entries: ConceptDetailEntry[] = row.entries.map((e) => {
+      const s = byLang.get(e.lang)?.get(joinKey(e.expr));
+      return {
+        lang: e.lang,
+        expr: e.expr,
+        gloss: e.gloss,
+        context: s?.context ?? null,
+        literal: s?.literal ?? null,
+        register: s?.register ?? null,
+        region: s?.region ?? null,
+      };
+    });
+    return {
+      slug: row.slug,
+      labelFr: row.labelFr,
+      labelEn: row.labelEn,
+      entries,
+    };
+  },
+  returns: v.nullable(
+    v.object({
+      slug: v.string(),
+      labelFr: v.string(),
+      labelEn: v.string(),
+      entries: v.array(
+        v.object({
+          lang: v.string(),
+          expr: v.string(),
+          gloss: v.string(),
+          context: v.union(v.string(), v.null()),
+          literal: v.union(v.string(), v.null()),
+          register: v.union(v.string(), v.null()),
+          region: v.union(v.string(), v.null()),
+        }),
       ),
     }),
   ),

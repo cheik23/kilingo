@@ -119,6 +119,7 @@ const MEDIA_NAV_HIDDEN: NavItem[] = [
 const MAIN_NAV: NavItem[] = [
   { key: "nav.home", to: "/app", icon: Home, end: true },
   { key: "nav.atlas", to: "/app/atlas", icon: MapIcon },
+  { key: "nav.culture", to: "/app/culture", icon: Globe2 },
   { key: "nav.library", to: "/app/library", icon: Library },
   { key: "nav.memory", to: "/app/memory", icon: Sparkles },
   { key: "nav.history", to: "/app/history", icon: History },
@@ -648,7 +649,10 @@ const ROUTE_LABEL: Record<string, string> = {
 
 function labelKey(pathname: string): string {
   const normalized = pathname.replace(/\/+$/, "") || "/app";
-  const known = ROUTE_LABEL[normalized];
+  // Mode culture : la vue détail du concept (« /app/culture/:slug »)
+  // garde le nom du module dans l'en-tête, comme les routes masquées.
+  const known = ROUTE_LABEL[normalized] ??
+    (normalized.startsWith("/app/culture") ? "nav.culture" : undefined);
   if (known) return known;
   // MEDIA_NAV_HIDDEN inclus : une route masquée garde son nom dans l'en-tête.
   const hit = [...MAIN_NAV, ...TOOL_NAV, ...MEDIA_NAV_HIDDEN].find(
