@@ -1,6 +1,6 @@
 import { Volume2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { speakText, speakableText } from "@/lib/speech";
+import { speakText, speakableText, isSpeechSupported } from "@/lib/speech";
 
 /**
  * Play the pronunciation of a slang expression with the native Web Speech
@@ -20,12 +20,18 @@ export function SpeakButton({
   const [playing, setPlaying] = useState(false);
 
   // Never leave speech running after the component unmounts.
+  // (Appelé inconditionnellement — Rules of Hooks — même si le bouton
+  // ne se rend pas ci-dessous faute d'API native.)
   useEffect(
     () => () => {
       window.speechSynthesis?.cancel();
     },
     [],
   );
+
+  // Règle stricte n°2 (Phase 10-C) : sans l'API native, le composant
+  // échoue silencieusement — pas de bouton, pas de crash, jamais.
+  if (!isSpeechSupported()) return null;
 
   const handleSpeak = () => {
     if (playing) return;
