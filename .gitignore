@@ -14,3 +14,7 @@ isolate/
 # Base Convex locale : elle vit normalement hors du projet, mais si quelqu'un
 # la recrée ici par erreur, elle contient la clé admin et les comptes.
 convex-local/
+
+# Doc de récupération : contenait un exemple de CONVEX_DEPLOY_KEY (nom de
+# déploiement réel) dans l'historique — hors suivi, jamais re-versionné.
+convex-daily-challenge-recovery.md
