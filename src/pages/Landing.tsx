@@ -212,10 +212,10 @@ export default function Landing() {
     };
   }, [hash, navKey]);
 
-  // Tous les CTA mènent au produit : /app pour les inscrits, l'auth sinon —
-  // avec le chemin demandé conservé dans returnTo.
+  // Tous les CTA mènent à la découverte : /discover pour les nouveaux
+  // visiteurs, /app/discover pour les inscrits.
   const start = useMemo(
-    () => (isAuthenticated ? "/app" : "/auth?returnTo=%2Fapp"),
+    () => (isAuthenticated ? "/app" : "/discover"),
     [isAuthenticated],
   );
   const go = () => navigate(start);
@@ -248,6 +248,9 @@ export default function Landing() {
           <BrandLink to="/" />
 
           <nav className="hidden flex-1 items-center justify-center gap-7 text-sm text-ink-2 lg:flex">
+            <a href="/culture" className="transition-colors hover:text-gold">
+              Culture
+            </a>
             <a href="#methode" className="transition-colors hover:text-gold">
               La méthode
             </a>
@@ -393,13 +396,13 @@ export default function Landing() {
               </h2>
               <p className="mt-3 max-w-lg text-ink-2">{t("landing.features.lead")}</p>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              <div className="mt-8 grid gap-4 sm:grid-cols-6">
                 {[
                   {
                     // Repli avant l'arrivée de la requête : la valeur réelle
                     // vient de landingStats.getLandingNumbers (dérivée du seed,
                     // comme contentLanguages et ALL_LANGS).
-                    value: String(numbers?.languages ?? 29),
+                    value: String(numbers?.languages ?? 30),
                     label: t("landing.features.languagesLabel"),
                   },
                   {
@@ -409,6 +412,18 @@ export default function Landing() {
                   {
                     value: t("landing.features.avatarValue"),
                     label: t("landing.features.avatarLabel"),
+                  },
+                  {
+                    value: t("landing.features.cultureValue"),
+                    label: t("landing.features.cultureLabel"),
+                  },
+                  {
+                    value: t("landing.features.pronunciationValue"),
+                    label: t("landing.features.pronunciationLabel"),
+                  },
+                  {
+                    value: t("landing.features.verifiedValue"),
+                    label: t("landing.features.verifiedLabel"),
                   },
                 ].map((f) => (
                   <div key={f.label} className="ln-card p-5">
