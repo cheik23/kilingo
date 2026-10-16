@@ -292,11 +292,11 @@ export function Atlas() {
     saveDefLang(l);
   }, []);
 
-  /* ── Ponts culturels : seed idempotent + lecture ─────────────────── */
-  const seedCross = useMutation(api.crossSeed.seedCrossConcepts);
-  useEffect(() => {
-    void seedCross({}).catch(() => undefined);
-  }, [seedCross]);
+  /* ── Ponts culturels : lecture seule côté client ────────────────────
+     PHASE 11 (C-3) — le seed n'est plus déclenché depuis l'interface :
+     `seedCrossConcepts` est passé en fonction interne (exploitation via
+     `npx convex run`). La donnée est déjà en base, la lecture suffit ;
+     l'Atlas affiche son état vide si le seed n'a pas encore tourné. */
   const recordActivity = useMutation(api.achievements.recordActivity);
   const crossConcepts = useQuery(api.crossSeed.getCrossConcepts, {});
   useEffect(() => {

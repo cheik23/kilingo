@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -155,7 +155,9 @@ export async function ensureCharactersFor(
   }
 }
 
-export const seedAiCharacters = mutation({
+// PHASE 11 (C-3) — fonction d'amorçage : plus appelée par le client, donc
+// INTERNE. Seuls les scripts d'exploitation (`npx convex run`) la déclenchent.
+export const seedAiCharacters = internalMutation({
   args: { language: v.string() },
   handler: async (ctx, args) => {
     await ensureCharactersFor(ctx, args.language);

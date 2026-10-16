@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, query } from "./_generated/server";
 import type { LanguageCode } from "./languages";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -912,8 +912,12 @@ export const getConceptDetails = query({
   ),
 });
 
-/** Seed idempotent : upsert par slug (mutation publique). */
-export const seedCrossConcepts = mutation({
+/** Seed idempotent : upsert par slug.
+ *  PHASE 11 (C-3) — INTERNE : l'appel venait du client (Atlas, à chaque
+ *  montage) ; l'écriture est désormais réservée à l'exploitation
+ *  (`npx convex run crossSeed:seedCrossConcepts`). Le seed reste idempotent,
+ *  donc rejouable à volonté. */
+export const seedCrossConcepts = internalMutation({
   args: {},
   handler: async (ctx) => {
     const parsed = parseCrossData(RAW);
