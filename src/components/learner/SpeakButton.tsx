@@ -51,7 +51,13 @@ export function SpeakButton({
       title="Écouter la prononciation"
       className={`flex ${dim} shrink-0 items-center justify-center rounded-full border border-gold/30 bg-gold/10 text-gold transition-all hover:scale-105 hover:bg-gold/20 disabled:opacity-60 ${className}`}
     >
-      <Volume2 className={`${icon} ${playing ? "animate-pulse" : ""}`} />
+      {/* L'icône est enveloppée : l'anneau (`.ln-speak-ring`) anime
+          `transform` + `box-shadow` sur le wrapper, ce qui laisse au bouton
+          son `hover:scale-105` intact et ne laisse AUCUN style résiduel
+          après la lecture. */}
+      <span className={`inline-flex ${playing ? "ln-speak-ring" : ""}`}>
+        <Volume2 className={icon} />
+      </span>
     </button>
   );
 }

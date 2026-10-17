@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useQuery } from "convex/react";
-import { Link, NavLink, Outlet, useLocation } from "react-router";
+import { Link, NavLink, useLocation, useOutlet } from "react-router";
 import {
   BarChart3,
   Award,
@@ -283,6 +283,62 @@ function UiLangSelect() {
 /** Mémorise l'échappatoire à l'onboarding le temps de la session onglet. */
 const SKIP_ONBOARDING_KEY = "kilingo.onboarding.skipped";
 
+/* ═══════════════════════════════════════════════════════════════════
+   TRANSITION DE PAGE — le geste commun à toutes les routes `/app`.
+
+   Un seul mouvement pour les trois régimes : la vue entrante monte de
+   12px, la sortante repart vers le haut, en `mode="wait"` pour que deux
+   pages ne se superposent jamais.
+
+     • normal  — 400 ms + `--ln-ease-out` (0.16, 1, 0.3, 1), les tokens
+       maison des arrivées : assez ample pour se lire comme un déplacement
+       et non comme un clignotement.
+     • lite    — watchdog FPS (`usePerfMode`) : 150 ms + `--ln-ease`, la
+       version courte, pour la machine qui rame.
+     • reduced — `prefers-reduced-motion` : AUCUN translate, un fondu seul.
+       Le bloc global de `index.css` ne coupe que les animations CSS
+       (`animation-duration: 0.01ms`) ; Framer Motion anime en JS et n'y
+       réagit pas — ce régime se décide donc ICI, sinon la page glisserait
+       400 ms pour exactement les gens qui ont demandé l'inverse.
+
+   La variante 3D (pivot `rotateY` + `translateZ` sous `perspective`) qui
+   occupait ce bloc a été retirée au profit de cette transition 2D ; elle
+   reste dans l'historique du fichier (`git log -p`).
+
+   Exporté : c'est ce composant — et pas une copie — qu'un banc d'essai
+   peut monter seul pour mesurer la durée et l'absence de chevauchement.
+   ═══════════════════════════════════════════════════════════════════ */
+export function RouteTransition() {
+  const { pathname } = useLocation();
+  // `useOutlet()` rend l'élément de LA route courante : le figer ici est ce
+  // qui laisse la page sortante rester la page sortante. Avec le composant
+  // `<Outlet />`, la copie que `AnimatePresence` conserve pendant la sortie
+  // relit le contexte du routeur et affiche DÉJÀ la nouvelle page — mesuré au
+  // banc d'essai : la page entrante apparaissait à pleine opacité, puis
+  // s'effaçait et revenait. Ici, la sortie anime l'ancienne page pour de bon.
+  const outlet = useOutlet();
+  const perfMode = usePerfMode();
+  const reducedMotion = supportsReducedMotion();
+  const fullMotion = perfMode === "full" && !reducedMotion;
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={pathname}
+        initial={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 12 }}
+        animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+        exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -12 }}
+        transition={
+          fullMotion
+            ? { duration: 0.4, ease: [0.16, 1, 0.3, 1] }
+            : { duration: 0.15, ease: [0.4, 0, 0.2, 1] }
+        }
+      >
+        {outlet}
+      </motion.div>    </AnimatePresence>
+  );
+}
+
 /** Jabari partage son humeur dans tout le shell : une seule source d'état. */
 export function AppShell() {
   return (
@@ -295,10 +351,6 @@ export function AppShell() {
 function AppShellInner() {
   const { t } = useI18n();
   const { pathname } = useLocation();
-  // MODULE 3 + 6 — la rotation 3D entre pages n'a de sens que si la
-  // machine suit ; le mode `lite` (watchdog FPS) retombe sur un fondu.
-  const perfMode = usePerfMode();
-  const page3D = perfMode === "full" && !supportsReducedMotion();
   useEffect(() => startFpsWatchdog(), []);
   // Le thème global est initialisé par ThemeRuntime à la racine.
   const [soundMuted, setSoundMuted] = useState(soundEngine.isMuted());
@@ -530,44 +582,9 @@ function AppShellInner() {
         <FirstTimeNicknameModal open={needsNickname} />
 
         <main className="flex-1 px-4 pt-6 pb-24 lg:px-8 lg:pt-8 lg:pb-12">
-          {/* Module 2 — transition de page : fondu 150 ms + translateY 8px,
-              mode="wait" pour que deux contenus ne se superposent jamais.
-              Reduced-motion : durée nulle (voir bloc global en CSS). */}
-          {/* MODULE 3 — transition de page en 3D : la vue arrive depuis
-              le fond (translateZ -200px) en pivotant de 15°, et repart vers
-              l'arrière en -15°. `easeInOut` assumé : un ressort serait
-              chaotique sur une page entière. Repli : simple fondu si la
-              machine ne suit pas (watchdog FPS) ou en reduced-motion. */}
-          <div style={{ perspective: 1500 }}>
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={pathname}
-                initial={
-                  page3D
-                    ? { opacity: 0, rotateY: 15, z: -200 }
-                    : { opacity: 0, y: 8 }
-                }
-                animate={
-                  page3D
-                    ? { opacity: 1, rotateY: 0, z: 0 }
-                    : { opacity: 1, y: 0 }
-                }
-                exit={
-                  page3D
-                    ? { opacity: 0, rotateY: -15, z: -200 }
-                    : { opacity: 0, y: -8 }
-                }
-                transition={
-                  page3D
-                    ? { duration: 0.4, ease: "easeInOut" }
-                    : { duration: 0.15, ease: [0.4, 0, 0.2, 1] }
-                }
-                style={{ transformStyle: "preserve-3d" }}
-              >
-                <Outlet />
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          {/* Transition de page : toute la mécanique — durées, régime
+              `lite`, garde reduced-motion — vit dans `RouteTransition`. */}
+          <RouteTransition />
         </main>
       </div>
 

@@ -18,6 +18,7 @@ import { UnverifiedBadge } from "./UnverifiedBadge";
 import { GoldBurst } from "@/components/fx/rewards";
 import { useI18n } from "@/lib/i18n";
 import { SoonBadge } from "@/components/ui/SoonBadge";
+import { supportsReducedMotion, usePerfMode } from "@/lib/perf";
 import { languageIsComingSoon } from "@/data/contentLanguages";
 import { useSwipe, type SwipeDirection } from "@/hooks/useSwipe";
 
@@ -139,6 +140,28 @@ function CardFaceInner({ item, revealLabel }: { item: Slang; revealLabel: string
 
 export function DiscoverView() {
   const { t } = useI18n();
+  const perf = usePerfMode();
+
+  /* Apparition « pop » des trois gestes : ressort 220/14 — la même intention
+     que LootBoxModal — décalée de 60 ms par bouton. Elle est coupée dès que
+     l'animation doit l'être : mode `lite` (watchdog FPS) OU
+     `prefers-reduced-motion`. `perf.ts` traite ces deux entrées séparément,
+     comme AppShell (`perfMode === "full" && !supportsReducedMotion()`) —
+     `usePerfMode` seul ne suffit donc PAS. En repli, les props sont absentes
+     et le rendu est directement à l'état final, toujours visible. */
+  const gesturePop = (i: number) =>
+    perf !== "full" || supportsReducedMotion()
+      ? {}
+      : {
+          initial: { scale: 0, opacity: 0 },
+          animate: { scale: 1, opacity: 1 },
+          transition: {
+            type: "spring" as const,
+            stiffness: 220,
+            damping: 14,
+            delay: 0.3 + i * 0.06,
+          },
+        };
   // Une langue encore vide n'a rien à montrer : le filtre l'annonce, et
   // l'état vide change de texte au lieu de laisser croire à un bug.
   const [langFilter, setLangFilter] = useState<LanguageCode | "all">("all");
@@ -501,45 +524,51 @@ export function DiscoverView() {
 
               {/* Trois gestes distincts : plus tard · favori · apprendre. */}
               <div className="mt-6 flex items-center justify-center gap-6">
-                <button
-                  onClick={() => swipe("left")}
-                  className="flex size-12 items-center justify-center rounded-full border border-white/15 text-ink-2 transition-transform hover:scale-[1.05] hover:border-white/30 hover:text-ink"
-                  title={t("discover.swipeLater")}
-                  aria-label={t("discover.swipeLater")}
-                >
-                  <X className="size-5" />
-                </button>
-                <button
-                  onClick={() => swipe("right")}
-                  aria-pressed={favorites.has(current._id)}
-                  className={`flex size-12 items-center justify-center rounded-full border transition-transform hover:scale-[1.05] ${
-                    favorites.has(current._id)
-                      ? "border-gold bg-gold text-noir shadow-lg shadow-gold/20"
-                      : "border-gold/40 bg-gold/10 text-gold"
-                  }`}
-                  title={
-                    favorites.has(current._id)
-                      ? t("discover.favoriteRemove")
-                      : t("discover.favoriteAdd")
-                  }
-                  aria-label={
-                    favorites.has(current._id)
-                      ? t("discover.favoriteRemove")
-                      : t("discover.favoriteAdd")
-                  }
-                >
-                  <Heart
-                    className={`size-5 ${favorites.has(current._id) ? "fill-current" : ""}`}
-                  />
-                </button>
-                <button
-                  onClick={learnCurrent}
-                  className="flex size-12 items-center justify-center rounded-full border border-white/15 text-ink-2 transition-transform hover:scale-[1.05] hover:border-gold/50 hover:text-gold"
-                  title={t("discover.addToSrs")}
-                  aria-label={t("discover.addToSrs")}
-                >
-                  <Brain className="size-5" />
-                </button>
+                <motion.span {...gesturePop(0)} className="inline-flex">
+                  <button
+                    onClick={() => swipe("left")}
+                    className="flex size-12 items-center justify-center rounded-full border border-white/15 text-ink-2 transition-transform hover:scale-[1.05] hover:border-white/30 hover:text-ink"
+                    title={t("discover.swipeLater")}
+                    aria-label={t("discover.swipeLater")}
+                  >
+                    <X className="size-5" />
+                  </button>
+                </motion.span>
+                <motion.span {...gesturePop(1)} className="inline-flex">
+                  <button
+                    onClick={() => swipe("right")}
+                    aria-pressed={favorites.has(current._id)}
+                    className={`flex size-12 items-center justify-center rounded-full border transition-transform hover:scale-[1.05] ${
+                      favorites.has(current._id)
+                        ? "border-gold bg-gold text-noir shadow-lg shadow-gold/20"
+                        : "border-gold/40 bg-gold/10 text-gold"
+                    }`}
+                    title={
+                      favorites.has(current._id)
+                        ? t("discover.favoriteRemove")
+                        : t("discover.favoriteAdd")
+                    }
+                    aria-label={
+                      favorites.has(current._id)
+                        ? t("discover.favoriteRemove")
+                        : t("discover.favoriteAdd")
+                    }
+                  >
+                    <Heart
+                      className={`size-5 ${favorites.has(current._id) ? "fill-current" : ""}`}
+                    />
+                  </button>
+                </motion.span>
+                <motion.span {...gesturePop(2)} className="inline-flex">
+                  <button
+                    onClick={learnCurrent}
+                    className="flex size-12 items-center justify-center rounded-full border border-white/15 text-ink-2 transition-transform hover:scale-[1.05] hover:border-gold/50 hover:text-gold"
+                    title={t("discover.addToSrs")}
+                    aria-label={t("discover.addToSrs")}
+                  >
+                    <Brain className="size-5" />
+                  </button>
+                </motion.span>
               </div>
 
               <p className="mt-4 text-center font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">

@@ -82,7 +82,7 @@ export const getLandingNumbers = query({
       // de semis l'appelle langue par langue après slang:seed).
       // ⚠️ Le compte PRODUIT peut différer d'une unité (une fiche `en`
       // importée hors seed existe en production) : c'est la mesure qui fait foi.
-      expressions: totalRow?.total ?? 5174,
+      expressions: totalRow?.total ?? 6600,
       avatars: 85,
     };
   },

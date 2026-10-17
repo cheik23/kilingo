@@ -438,7 +438,10 @@ export function UploadedPlayer({
             <div
               className={cn(
                 "flex size-16 items-center justify-center rounded-full border border-gold/30 bg-gold/10",
-                playing && "animate-pulse",
+                // Même anneau doré que le bouton de prononciation
+                // (`ln-speak-ring`, index.css) : un seul langage visuel pour
+                // « ce haut-parleur est en train de parler ».
+                playing && "ln-speak-ring",
               )}
             >
               <Volume2 className="size-7 text-gold" />

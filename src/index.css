@@ -167,12 +167,16 @@
      Il repart sur le magenta pour éviter un token mort. */
   --gradient-olive: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
 
-  /* Module D — rythme de mouvement : 3 durées + 2 courbes. */
+  /* Module D — rythme de mouvement : 3 durées + 3 courbes. */
   --ln-dur-fast: 150ms;
   --ln-dur: 250ms;
   --ln-dur-slow: 400ms;
   --ln-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ln-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Rebond (« back ») : léger dépassement, réservé aux micro-célébrations
+     (pulse de pièce, bounce unique). Tokenisé car la MÊME courbe était
+     écrite en dur à deux endroits — deux valeurs à tenir en parallèle. */
+  --ln-ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* ═══════════════════════════════════════════════════════════
      MODULE 0 — GRILLE D'HARMONIE
@@ -1195,7 +1199,7 @@ label {
 }
 
 .ln-coin-pulse {
-  animation: ln-coin-pulse 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 2;
+  animation: ln-coin-pulse 520ms var(--ln-ease-back) 2;
 }
 
 /* LOT H — ripple doré au clic sur les CTA : un disque qui s'ouvre et
@@ -1240,7 +1244,42 @@ label {
 }
 
 .ln-bounce-once {
-  animation: ln-bounce-once 430ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: ln-bounce-once 430ms var(--ln-ease-back);
+}
+
+/* Anneau de LECTURE (SpeakButton, gros haut-parleur du shadowing) : pendant
+   la prononciation, un halo doré s'ouvre puis se résorbe autour de l'icône,
+   en même temps qu'un léger grossissement. Aucun `box-shadow` au repos — il
+   n'existe QUE dans l'animation, donc rien ne reste une fois la lecture
+   finie. Coupé en `prefers-reduced-motion` (voir le bloc plus bas).
+
+   Le doré est écrit en rgba LITTÉRAL (#d4af37, la valeur de `--gold-deep`),
+   comme `ln-slang-pulse` juste au-dessus — et pour une raison mesurée, pas
+   par oubli : la même clé écrite avec `color-mix(in srgb, var(--gold-deep)
+   40%, transparent)` face à `transparent` n'est PAS interpolable par
+   Chromium, qui bascule alors d'une couleur à l'autre au lieu de fondre.
+   Le halo restait visible à `spread: 0` (donc caché derrière le bouton) et
+   transparent dès qu'il s'ouvrait : l'animation ne se voyait pas. Mêmes
+   rgba aux deux bouts → l'ouverture se fond réellement (vérifié : le spread
+   monte à 12px pendant que l'alpha descend de 0,4 à 0). */
+@keyframes ln-speak-ring {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 12px rgba(212, 175, 55, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+}
+
+.ln-speak-ring {
+  border-radius: 9999px;
+  animation: ln-speak-ring 1.2s ease-in-out infinite;
 }
 
 /* ── 7. Transitions de vue / onglets / listes (GPU-only) ─────────── */
@@ -1336,6 +1375,36 @@ label {
   animation: ln-slide-in-right 250ms ease-out both;
 }
 
+/* Notification de succès (Sonner) — « ✓ Expression ajoutée » : le toast
+   surgit, dépasse sa taille puis se pose (0,5 → 1,1 → 1), en 400 ms sur la
+   courbe rebondissante `--ln-ease-back`.
+
+   Le pop passe par la propriété autonome `scale`, PAS par `transform` :
+   Sonner fait glisser ses toasts avec `transform: var(--y)` et empile les
+   suivants avec des décalages calculés — écraser `transform` casserait
+   l'empilement et le glissement de rejet. `scale` se compose avec lui
+   (l'ordre est translate → rotate → scale → transform), donc l'animation
+   ci-dessous n'interfère avec rien de ce que Sonner pilote.
+
+   `prefers-reduced-motion` n'a rien à énumérer : la règle universelle plus
+   bas (`animation-duration: 0.01ms !important`) ramène déjà le pop à
+   zéro — le toast apparaît posé, sans rebond. */
+@keyframes ln-toast-pop {
+  0% {
+    scale: 0.5;
+  }
+  50% {
+    scale: 1.1;
+  }
+  100% {
+    scale: 1;
+  }
+}
+
+[data-sonner-toast][data-mounted="true"] {
+  animation: ln-toast-pop 400ms var(--ln-ease-back) both;
+}
+
 /* ── Reduced motion: kill every decorative animation ──────────────── */
 @media (prefers-reduced-motion: reduce) {
   .ln-halo-a,
@@ -1352,6 +1421,7 @@ label {
   .ln-coin-pulse,
   .ln-ripple-ink,
   .ln-bounce-once,
+  .ln-speak-ring,
   .ln-ink-title,
   .ln-view-in,
   .ln-tab-in,

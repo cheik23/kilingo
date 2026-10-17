@@ -7,10 +7,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { BackendDown } from "@/components/BackendDown";
 import { useAuth } from "@/hooks/use-auth";
+import { useConvexConnectionState } from "convex/react";
 import { Loader2, Lock } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router";
+
+/** Délai accordé au premier WebSocket avant de déclarer le backend absent. */
+const BACKEND_GRACE_MS = 4000;
 
 /**
  * Wraps a route that requires a signed-in user.
@@ -39,10 +44,36 @@ export function RequireAuth({
   const navigate = useNavigate();
   const location = useLocation();
 
+  /* Le chargement éternel a une cause fréquente en local : le backend Convex
+     n'est pas lancé. `useConvexAuth()` n'a alors jamais de réponse, et cette
+     page restait un fond vide avec un spinner seul — un écran blanc, pour qui
+     regarde. On laisse une poignée de secondes au premier WebSocket, puis on
+     nomme la panne au lieu de tourner indéfiniment. */
+  const connection = useConvexConnectionState();
+  const [gracePassed, setGracePassed] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setGracePassed(true), BACKEND_GRACE_MS);
+    return () => clearTimeout(id);
+  }, []);
+  const backendDown =
+    gracePassed && !connection.isWebSocketConnected && !connection.hasEverConnected;
+
   if (isLoading) {
+    if (backendDown) {
+      return (
+        <BackendDown
+          heading="Serveur injoignable"
+          message="KILINGO n'arrive pas à joindre son backend Convex. C'est le cas quand `npx convex dev` n'est pas lancé : sans lui, aucun compte, aucune progression et aucun contenu ne peuvent être chargés."
+          url={(import.meta.env.VITE_CONVEX_URL as string | undefined)?.trim()}
+        />
+      );
+    }
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        {/* Le texte n'est pas décoratif : sans lui, un chargement bloqué est
+            indiscernable d'une page cassée. */}
+        <p className="text-sm text-muted-foreground">Connexion au serveur…</p>
       </main>
     );
   }

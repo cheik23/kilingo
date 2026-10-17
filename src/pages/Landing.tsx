@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -15,6 +15,7 @@ import {
   Gauge,
   Headphones,
   Languages,
+  Menu,
   Mic,
   Music2,
   Repeat,
@@ -23,6 +24,7 @@ import {
   Sparkles,
   Subtitles,
   Waves,
+  X,
 } from "lucide-react";
 
 import { NoirAmbience } from "@/components/fx/NoirAmbience";
@@ -118,6 +120,17 @@ const MODULES = [
   },
 ];
 
+/** Liens de navigation de la landing — une source unique pour le nav desktop
+    et le panneau mobile : les deux ne peuvent plus dériver l'un de l'autre. */
+const NAV_LINKS = [
+  { href: "/culture", label: "Culture" },
+  { href: "#methode", label: "La méthode" },
+  { href: "#modules", label: "Modules" },
+  { href: "#argot", label: "Argot" },
+  { href: "#langues", label: "Langues" },
+  { href: "#pricing", label: "Tarifs" },
+];
+
 /** Trois entrées réelles de la base d'argot embarquée. */
 const SLANG_SAMPLES = [
   {
@@ -182,6 +195,9 @@ function SectionTitle({
 export default function Landing() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  /* État du menu hamburger mobile — inutile au-dessus de lg, où le nav
+     desktop reprend la main, mais un seul état évite toute divergence. */
+  const [menuOpen, setMenuOpen] = useState(false);
 
   /* ── L'ancre « /#pricing » doit vraiment sauter ────────────────────
      Les trois invites Premium mènent à `/#pricing`. React Router change
@@ -237,6 +253,14 @@ export default function Landing() {
     numbers === undefined
       ? t("landing.features.expressionsValue")
       : fmt(numbers.expressions);
+  /* Le nombre de langues suit EXACTEMENT la même règle que les expressions :
+     valeur live de landingStats, repli sur la copy i18n tant que la requête
+     n'est pas arrivée. Le titre de la section Langues et la carte de stats
+     lisent donc la MÊME source — plus de « 30 » en haut et « 29 » en bas. */
+  const languageCount =
+    numbers === undefined
+      ? t("landing.features.languagesValue")
+      : String(numbers.languages);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-noir text-ink">
@@ -247,25 +271,19 @@ export default function Landing() {
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-5 py-3.5">
           <BrandLink to="/" />
 
-          <nav className="hidden flex-1 items-center justify-center gap-7 text-sm text-ink-2 lg:flex">
-            <a href="/culture" className="transition-colors hover:text-gold">
-              Culture
-            </a>
-            <a href="#methode" className="transition-colors hover:text-gold">
-              La méthode
-            </a>
-            <a href="#modules" className="transition-colors hover:text-gold">
-              Modules
-            </a>
-            <a href="#argot" className="transition-colors hover:text-gold">
-              Argot
-            </a>
-            <a href="#langues" className="transition-colors hover:text-gold">
-              Langues
-            </a>
-            <a href="#pricing" className="transition-colors hover:text-gold">
-              Tarifs
-            </a>
+          {/* Liens — desktop uniquement (≥ lg, comme avant : en dessous, les
+              six liens + les boutons ne tiennent pas sans déborder). Ils
+              passent alors dans le panneau du menu hamburger. */}
+          <nav className="hidden flex-1 items-center justify-center gap-6 text-sm text-ink-2 lg:flex">
+            {NAV_LINKS.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                className="transition-colors hover:text-gold"
+              >
+                {l.label}
+              </a>
+            ))}
           </nav>
 
           <div className="flex-1 lg:hidden" />
@@ -281,7 +299,53 @@ export default function Landing() {
           >
             {isAuthenticated ? "Ouvrir" : "Commencer"}
           </MagneticButton>
+
+          {/* Bouton hamburger — mobile et tablette (< lg) uniquement. */}
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-expanded={menuOpen}
+            aria-controls="landing-mobile-nav"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full border border-white/10 text-ink-2 transition-colors hover:border-gold/40 hover:text-gold lg:hidden"
+          >
+            {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+          </button>
         </div>
+
+        {/* Panneau mobile : mêmes liens que le desktop (source unique),
+            chaque cible tactile faisant au moins 44 px (min-h-11). */}
+        {menuOpen && (
+          <nav
+            id="landing-mobile-nav"
+            className="border-t border-white/5 bg-noir/95 backdrop-blur-xl lg:hidden"
+          >
+            <ul className="mx-auto max-w-6xl px-3 py-2">
+              {NAV_LINKS.map((l) => (
+                <li key={l.href}>
+                  <a
+                    href={l.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex min-h-11 items-center rounded-lg px-3 text-sm text-ink-2 transition-colors hover:bg-gold/10 hover:text-gold"
+                  >
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+              {/* Le lien de connexion est masqué dans la barre sous sm : on
+                  le réexpose ici pour les écrans étroits. */}
+              <li className="mt-1 border-t border-white/5 pt-1 sm:hidden">
+                <Link
+                  to={isAuthenticated ? "/app" : "/auth"}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex min-h-11 items-center rounded-lg px-3 text-sm text-ink-2 transition-colors hover:bg-gold/10 hover:text-gold"
+                >
+                  {isAuthenticated ? "Mon espace" : "Se connecter"}
+                </Link>
+              </li>
+            </ul>
+          </nav>
+        )}
       </header>
 
       <main className="relative z-10">
@@ -293,7 +357,7 @@ export default function Landing() {
               {t("landing.badge")}
             </p>
 
-            <h1 className="mt-6 font-display text-4xl leading-[1.08] font-semibold sm:text-5xl lg:text-6xl">
+            <h1 className="mt-6 font-display text-3xl leading-[1.1] font-semibold sm:text-4xl md:text-5xl lg:text-6xl">
               <RevealTitle text={t("landing.title")} />
             </h1>
 
@@ -304,14 +368,14 @@ export default function Landing() {
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 to={start}
-                className="ln-glow inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-soft px-6 py-3.5 font-semibold text-noir transition-transform hover:-translate-y-0.5"
+                className="ln-glow w-full md:w-auto inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-soft px-5 py-3 md:px-6 font-semibold text-noir transition-transform hover:-translate-y-0.5"
               >
                 {t("landing.cta")}
                 <ArrowRight className="size-4" />
               </Link>
               <a
                 href="#modules"
-                className="rounded-xl border border-white/10 px-6 py-3.5 text-sm font-medium text-ink-2 transition-colors hover:border-gold/40 hover:text-gold"
+                className="inline-flex w-full items-center justify-center rounded-xl border border-white/10 px-6 py-3.5 text-sm font-medium text-ink-2 transition-colors hover:border-gold/40 hover:text-gold md:w-auto"
               >
                 {t("landing.ctaSecondary")}
               </a>
@@ -374,7 +438,7 @@ export default function Landing() {
             Le globe est chargé à la demande : three.js ne doit pas
             entrer dans le bundle qui définit le LCP de la landing. */}
         <section className="mx-auto max-w-6xl px-5 py-16">
-          <div className="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="relative order-2 lg:order-1">
               <div className="relative mx-auto aspect-square w-full max-w-sm">
                 <Suspense
@@ -391,18 +455,17 @@ export default function Landing() {
             </div>
 
             <div className="order-1 lg:order-2">
-              <h2 className="font-display text-3xl font-semibold sm:text-4xl">
+              <h2 className="font-display text-3xl font-semibold sm:text-4xl lg:text-5xl">
                 {t("landing.features.title")}
               </h2>
               <p className="mt-3 max-w-lg text-ink-2">{t("landing.features.lead")}</p>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-6">
+              <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {[
                   {
-                    // Repli avant l'arrivée de la requête : la valeur réelle
-                    // vient de landingStats.getLandingNumbers (dérivée du seed,
-                    // comme contentLanguages et ALL_LANGS).
-                    value: String(numbers?.languages ?? 30),
+                    // Même source que le titre de la section Langues :
+                    // `languageCount` (landingStats, repli copy i18n).
+                    value: languageCount,
                     label: t("landing.features.languagesLabel"),
                   },
                   {
@@ -425,16 +488,41 @@ export default function Landing() {
                     value: t("landing.features.verifiedValue"),
                     label: t("landing.features.verifiedLabel"),
                   },
-                ].map((f) => (
-                  <div key={f.label} className="ln-card p-5">
-                    <p className="font-display text-3xl font-bold text-gold">
-                      {f.value}
-                    </p>
-                    <p className="mt-2 text-xs leading-relaxed text-ink-3">
-                      {f.label}
-                    </p>
-                  </div>
-                ))}
+                ].map((f, i) => {
+                  /* Une valeur courte et numérique (« 29 », « 6 600+ »,
+                     « 3D », « 20 ») garde text-4xl : elle tient sur une ligne.
+                     Une valeur textuelle (« Audio native », « Base de données
+                     vérifiée ») descend à text-xl puis md:text-2xl : en 4xl,
+                     elle prenait 2 à 3 lignes sur mobile. Les 12 locales
+                     n'utilisent que des chiffres ASCII : tester le premier
+                     caractère suffit à trancher. */
+                  const numeric = /^\d/.test(f.value.trim());
+                  return (
+                    <div
+                      key={f.label}
+                      /* Même entrée en cascade que les modules, l'argot et les
+                         langues ci-dessous : ln-stagger-item + --ln-i, la
+                         mécanique maison (delay = i × 40 ms, coupée en
+                         reduced-motion). Pas de Framer Motion ici : la page
+                         n'en importe pas et trois grilles s'en passent. */
+                      className="ln-stagger-item flex flex-col items-center justify-center gap-2 rounded-xl bg-white/5 p-6 text-center"
+                      style={{ ["--ln-i" as string]: i }}
+                    >
+                      <span
+                        className={`font-bold text-gold ${
+                          numeric
+                            ? "text-4xl"
+                            : "text-xl leading-tight md:text-2xl"
+                        }`}
+                      >
+                        {f.value}
+                      </span>
+                      <span className="text-sm font-medium text-ink-2">
+                        {f.label}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Social proof — donnée live, pas une statistique figée. */}
@@ -531,7 +619,7 @@ export default function Landing() {
                 <p className="mt-2 text-sm leading-relaxed text-ink-2">
                   {m.text}
                 </p>
-                <div className="mt-4 flex flex-wrap gap-1.5">
+                <div className="mt-4 flex flex-wrap gap-1">
                   {m.tags.map((t) => (
                     <span
                       key={t}
@@ -603,7 +691,7 @@ export default function Landing() {
               Exemple de profil : chaque axe évolue séparément, pour savoir quoi
               travailler — et pas seulement « où tu en es ».
             </p>
-            <ul className="mt-6 space-y-3.5">
+            <ul className="mt-6 space-y-3">
               {DNA.map((d) => (
                 <li key={d.label}>
                   <div className="flex items-baseline justify-between text-xs">
@@ -640,7 +728,7 @@ export default function Landing() {
               <h3 className="mt-3 font-display text-2xl font-semibold">
                 Ta mission du jour
               </h3>
-              <ul className="mt-5 space-y-2.5 text-sm">
+              <ul className="mt-5 space-y-2 text-sm">
                 {[
                   { icon: Headphones, t: "10 minutes d'écoute active" },
                   { icon: Sparkles, t: "5 nouvelles expressions" },
@@ -685,7 +773,7 @@ export default function Landing() {
           <div className="mx-auto max-w-6xl px-5">
             <SectionTitle
               eyebrow="Langues"
-              title={`${LANGUAGES.length} langues d'apprentissage, une même exigence`}
+              title={`${languageCount} langues d'apprentissage, une même exigence`}
               lead="Interface disponible en douze langues, dont le français, l'anglais, l'espagnol, le mandarin, l'arabe (RTL) et le russe. D'autres s'ajoutent sans toucher au reste."
             />
             <div className="mt-12 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -766,14 +854,14 @@ export default function Landing() {
                   Pour toujours · aucune carte bancaire
                 </p>
 
-                <ul className="mt-5 flex-1 space-y-2.5 text-sm text-ink-2">
+                <ul className="mt-5 flex-1 space-y-2 text-sm text-ink-2">
                   {[
                     "Une langue active (elle ne disparaît jamais, même en changeant de focus)",
                     "5 analyses Shadow par jour, compteur visible et remise à zéro chez toi",
                     "Baba Street et Mama Wisdom, avec tous leurs scénarios",
                     "Argot, quiz, révisions, XP, badges et export Anki / CSV",
                   ].map((item) => (
-                    <li key={item} className="flex gap-2.5 leading-relaxed">
+                    <li key={item} className="flex gap-2 leading-relaxed">
                       <Check className="mt-0.5 size-4 shrink-0 text-gold" />
                       <span>{item}</span>
                     </li>
@@ -803,13 +891,13 @@ export default function Landing() {
                   </span>
                 </p>
 
-                <ul className="mt-5 space-y-2.5 text-sm text-ink-2">
+                <ul className="mt-5 space-y-2 text-sm text-ink-2">
                   {[
                     "Deux langues actives en parallèle, sans compteur ni plafond",
                     "Shadowing illimité : plus aucune analyse décomptée",
                     "Les 8 personnages IA, chacun avec sa voix et son registre",
                   ].map((item) => (
-                    <li key={item} className="flex gap-2.5 leading-relaxed">
+                    <li key={item} className="flex gap-2 leading-relaxed">
                       <Sparkles className="mt-0.5 size-4 shrink-0 text-gold" />
                       <span>{item}</span>
                     </li>
@@ -852,7 +940,7 @@ export default function Landing() {
         {/* ── CTA final ───────────────────────────────────────────── */}
         <section className="mx-auto max-w-3xl px-5 py-24 text-center">
           <Flame className="mx-auto size-8 text-gold" />
-          <h2 className="mt-5 font-display text-3xl font-semibold sm:text-4xl">
+          <h2 className="mt-5 font-display text-3xl font-semibold sm:text-4xl lg:text-5xl">
             <ShimmerTitle>Commence ton immersion.</ShimmerTitle>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-ink-2">

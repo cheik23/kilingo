@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
+import { BackendDown } from "@/components/BackendDown";
 import { RequireAuth } from "@/components/RequireAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LenisProvider } from "@/components/LenisProvider";
@@ -153,7 +154,34 @@ class RootErrorBoundary extends React.Component<
 // composant lit une clé encore vide.
 migrerPreferences();
 
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
+/* ── CLIENT CONVEX, ET SON ABSENCE ─────────────────────────────────────
+   `new ConvexReactClient(undefined)` lève (« No address provided ») AVANT
+   `createRoot(...).render(...)` : aucune frontière d'erreur n'est montée à
+   cet instant, React n'attrape donc rien — la page reste blanche, l'erreur
+   n'existant que dans la console. On décide ici, et on le dit à l'écran. */
+const CONVEX_URL = (import.meta.env.VITE_CONVEX_URL as string | undefined)?.trim();
+
+function buildConvexClient(): { client: ConvexReactClient | null; error: string | null } {
+  if (!CONVEX_URL) {
+    return {
+      client: null,
+      error:
+        "VITE_CONVEX_URL n'est pas défini dans ce projet. Copie `.env.example` en `.env.local`, puis lance `npx convex dev` : l'URL y est écrite automatiquement.",
+    };
+  }
+  try {
+    return { client: new ConvexReactClient(CONVEX_URL), error: null };
+  } catch (err) {
+    return {
+      client: null,
+      error: `VITE_CONVEX_URL (${CONVEX_URL}) est refusée par Convex : ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    };
+  }
+}
+
+const convexResult = buildConvexClient();
 
 
 
@@ -213,6 +241,7 @@ if (!rootEl) throw new Error("Élément #root introuvable — vérifie index.htm
 
 createRoot(rootEl).render(
   <StrictMode>
+    {convexResult.client ? (
     <RootErrorBoundary>
       {/* Capture TOUTE erreur runtime (rendu, promesse, événement global) :
           dialogue avec le message + la stack exacte — la cause racine devient
@@ -222,7 +251,7 @@ createRoot(rootEl).render(
       <ToolbarErrorBoundary>
         <VlyToolbar />
       </ToolbarErrorBoundary>
-      <ConvexAuthProvider client={convex}>
+      <ConvexAuthProvider client={convexResult.client}>
         <LanguageProvider>
           <ThemeRuntime />
           <PwaRuntime />
@@ -442,5 +471,12 @@ createRoot(rootEl).render(
       </ErrorBoundary>
       </InstrumentationProvider>
     </RootErrorBoundary>
+    ) : (
+      <BackendDown
+        heading="Backend injoignable"
+        message={convexResult.error ?? "Backend Convex injoignable."}
+        url={CONVEX_URL}
+      />
+    )}
   </StrictMode>,
 );
