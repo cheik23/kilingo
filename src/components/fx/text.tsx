@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 
 /* ═══════════════════════════════════════════════════════════════════
    Cinematic text FX — pure React, no dependencies, GPU-safe.
@@ -91,19 +91,41 @@ export function ShimmerTitle({
   );
 }
 
-/** Split text into letter spans for staggered reveals. */
+/** Split text into letter spans for staggered reveals.
+ *
+ *  Les lettres sont groupées PAR MOT (`ln-word`, `display: inline-block`).
+ *  Sans ce groupe, chaque lettre était une boîte inline-block et le
+ *  navigateur pouvait couper n'importe où : à 935 px, le titre du hero
+ *  s'affichait « Maîtrise l'argot a / fricain en 7 jours ». Un bloc-mot
+ *  se dimensionne en `max-content` : il reste d'un seul tenant tant qu'il
+ *  tient sur la ligne, et ne se coupe à l'intérieur que s'il est seul plus
+ *  large que la ligne (utile pour les titres zh / ja, sans espaces).
+ *  L'espace est rendu HORS du bloc : dedans, il serait rogné en fin de
+ *  ligne et deux mots se colleraient. */
 function Letters({ text }: { text: string }) {
+  const words = text.split(" ");
+  let index = 0;
   return (
     <>
-      {Array.from(text).map((ch, i) =>
-        ch === " " ? (
-          <span key={i}>&nbsp;</span>
-        ) : (
-          <span key={i} className="ln-letter" style={{ ["--ln-i" as string]: i }}>
-            {ch}
+      {words.map((word, w) => (
+        <Fragment key={w}>
+          <span className="ln-word">
+            {Array.from(word).map((ch) => {
+              const i = index++;
+              return (
+                <span
+                  key={i}
+                  className="ln-letter"
+                  style={{ ["--ln-i" as string]: i }}
+                >
+                  {ch}
+                </span>
+              );
+            })}
           </span>
-        ),
-      )}
+          {w < words.length - 1 ? " " : null}
+        </Fragment>
+      ))}
     </>
   );
 }

@@ -649,6 +649,200 @@ label {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   HERO PREMIUM — le vocabulaire de mouvement du haut de la landing.
+
+   Trois primitives, une seule grammaire :
+
+     · `.hero-anim`      socle d'animation (durée, courbe, `both`) ;
+     · `.hero-reveal`    titre : voile qui s'ouvre + montée ;
+     · `.hero-fade`      texte secondaire : fondu + montée courte ;
+     · `.ln-hero-layer`  parallaxe curseur (profondeur portée par
+                         `--ln-depth`, position par `--ln-mx` / `--ln-my`) ;
+     · `.ln-hero-halo`   / `.ln-hero-aura` : nappes dorées qui respirent.
+
+   Le décalage de chaque élément est posé en ligne (`animationDelay`)
+   depuis la landing : la cascade est lue à l'endroit où elle est
+   décidée, pas dans une variable CSS à retrouver.
+
+   Tout est `transform` / `opacity` / `translate` : aucun reflow, aucune
+   propriété de layout animée. `prefers-reduced-motion` ramène l'ensemble
+   à son état final (les classes sont nommées dans le bloc plus bas).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Entrée du hero ────────────────────────────────────────────────
+   La courbe expo-out rend le départ rapide et l'arrivée presque
+   immobile — c'est ce qui distingue une entrée premium d'un fade.
+
+   `hero-reveal` est un voile qui s'ouvre (clip-path horizontal, comme
+   `ln-ink-reveal`) doublé d'une montée : le titre se découvre au lieu
+   d'apparaître. Le sens suit la direction du texte (RTL : droite →
+   gauche) via la variable, une seule paire de keyframes suffit. */
+@keyframes hero-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+    clip-path: var(--hero-reveal-from, inset(0 100% 0 0));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+[dir="rtl"] .hero-reveal {
+  --hero-reveal-from: inset(0 0 0 100%);
+}
+
+/* Fondu + montée courte : pour tout ce qui accompagne le titre sans
+   devoir attirer l'œil autant que lui. */
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* La nappe respire lentement (22 s) : à cette échelle, le mouvement se
+   perçoit comme une lumière vivante, pas comme une animation. */
+@keyframes ln-hero-halo-drift {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate3d(-3%, 0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate3d(3%, -2%, 0) scale(1.07);
+  }
+}
+
+/* Aura de la carte : une rotation très lente d'un cône doré. Invisible
+   en tant que forme (flou généreux), elle donne au panneau une lumière
+   qui tourne autour de lui. */
+@keyframes ln-hero-aura-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Socle commun : chaque variante ci-dessous ne pose QUE `animation-name`
+   et, si besoin, sa durée — le reste vient d'ici. Le délai n'est pas
+   géré en CSS : il est posé en ligne par la landing
+   (`style={{ animationDelay: "0.3s" }}`), ce qui rend la cascade
+   lisible à l'endroit où elle est décidée. */
+.hero-anim {
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.hero-reveal {
+  animation-name: hero-reveal;
+  animation-duration: 1s;
+}
+
+.hero-fade {
+  animation-name: hero-fade;
+  animation-duration: 0.7s;
+}
+
+/* Parallaxe : portée par la propriété autonome `translate`, pas par
+   `transform`. Les entrées ci-dessus animent `transform` en
+   `fill-mode: both` — elles garderaient la main dessus après la fin de
+   l'animation et figeraient la parallaxe à zéro. `translate` se compose
+   avec `transform` (ordre : translate → rotate → scale → transform),
+   donc les deux mouvements s'additionnent au lieu de s'écraser.
+   Sans curseur, `--ln-mx` / `--ln-my` valent 0 : aucun déplacement. */
+.ln-hero-layer {
+  translate: calc(var(--ln-mx, 0) * var(--ln-depth, 8px))
+    calc(var(--ln-my, 0) * var(--ln-depth, 8px));
+}
+
+.ln-hero-halo {
+  position: absolute;
+  top: -22%;
+  left: 4%;
+  z-index: -1;
+  width: min(48rem, 130%);
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--gold-primary) 18%, transparent) 0%,
+    color-mix(in srgb, var(--gold-primary) 6%, transparent) 42%,
+    transparent 66%
+  );
+  filter: blur(48px);
+  pointer-events: none;
+  animation: ln-hero-halo-drift 22s ease-in-out infinite;
+}
+
+/* Halo qui suit le curseur : même nappe, plus petite et plus discrète,
+   décalée par la parallaxe (profondeur passée en style inline). */
+.ln-hero-cursor {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: 34rem;
+  height: 34rem;
+  margin: -17rem 0 0 -17rem;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--gold-primary) 10%, transparent) 0%,
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+/* Le globe 3D respire (10 s) : la page n'est jamais totalement figée,
+   même sans pointeur et sans défilement. `scale` seul — pas de blur, pas
+   d'ombre — donc une seule couche composée à animer. */
+@keyframes ln-globe-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.ln-globe-breathe {
+  animation: ln-globe-breathe 10s ease-in-out infinite;
+  will-change: transform;
+}
+
+.ln-hero-aura {
+  position: absolute;
+  inset: -30%;
+  z-index: 0;
+  border-radius: 9999px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    color-mix(in srgb, var(--gold-primary) 26%, transparent) 70deg,
+    transparent 150deg,
+    transparent 210deg,
+    color-mix(in srgb, var(--gold-primary) 18%, transparent) 280deg,
+    transparent 360deg
+  );
+  filter: blur(38px);
+  opacity: 0.5;
+  pointer-events: none;
+  animation: ln-hero-aura-spin 26s linear infinite;
+}
+
 .animate-fade-up {
   animation: ln-fade-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
@@ -750,6 +944,21 @@ label {
     0 0 0 1px color-mix(in srgb, var(--gold-primary) 40%, transparent);
 }
 
+/* ── Survol doré des cartes « fonctionnalités » ─────────────────────
+   ⚠ Même piège que `bg-gradient-to-br` documenté plus haut : les
+   utilitaires `hover:shadow-xl hover:shadow-gold/10` vivent dans
+   `@layer utilities`, alors que `.ln-card:hover` ci-dessus est une règle
+   NON layerisée — elle l'emporte, et la classe Tailwind ne change rien à
+   l'écran. L'intensification est donc portée ici, déclarée APRÈS
+   `.ln-card:hover` (à spécificité égale, c'est l'ordre qui tranche) :
+   l'ombre du panneau + une ombre large et légèrement dorée. */
+.ln-card-glow:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    var(--ln-shadow-xl),
+    0 18px 40px -14px color-mix(in srgb, var(--gold-primary) 28%, transparent);
+}
+
 /* Surface interactive sans habillage de carte (ligne de langue, pastille) :
    reprend exactement le mouvement ci-dessus. Elle n'a pas d'ombre au repos
    (elle est plate dans sa liste), donc le survol l'amène directement au
@@ -826,6 +1035,7 @@ label {
    discrète, qui n'existe plus), la surface `.ln-lift` revient plate. */
 @media (hover: none) {
   .ln-card:hover,
+  .ln-card-glow:hover,
   .card-game:hover {
     transform: none;
     box-shadow:
@@ -968,6 +1178,13 @@ label {
   }
 }
 
+/* Un mot = une boîte : le retour à la ligne ne peut plus tomber au milieu
+   d'un mot (« Maîtrise l'argot a / fricain »). Voir `Letters` dans
+   `components/fx/text.tsx`. */
+.ln-word {
+  display: inline-block;
+}
+
 .ln-letter {
   display: inline-block;
   transform-origin: bottom;
@@ -1036,10 +1253,17 @@ label {
 }
 
 .ln-tilt:hover .ln-shine,
-.ln-magnetic:hover .ln-shine {
+.ln-magnetic:hover .ln-shine,
+.ln-sheen:hover .ln-shine,
+.ln-sheen:focus-visible .ln-shine {
   animation: ln-shine-sweep 700ms ease-out;
   opacity: 1;
 }
+
+/* `.ln-sheen` : surfaces qui ne sont ni `.ln-tilt` ni `.ln-magnetic` —
+   les boutons-liens du hero. Le balayage reste le même `ln-shine-sweep`,
+   seule la condition de déclenchement change (une surface, pas un
+   composant d'interaction). */
 
 @keyframes ln-shine-sweep {
   from {
@@ -1429,7 +1653,11 @@ label {
   .ln-stagger-item,
   .ln-card-in,
   .ln-panel-in,
-  .ln-feedback-in {
+  .ln-feedback-in,
+  .hero-anim,
+  .ln-hero-halo,
+  .ln-hero-aura,
+  .ln-globe-breathe {
     animation: none !important;
   }
 
@@ -1437,6 +1665,12 @@ label {
   .ln-magnetic {
     transform: none !important;
     transition: none !important;
+  }
+
+  /* La parallaxe du hero est déjà coupée côté JS (aucun gestionnaire
+     n'est posé) ; ceci garantit l'immobilité même si une valeur traîne. */
+  .ln-hero-layer {
+    translate: none !important;
   }
 
   .ln-shimmer-text {

@@ -1,4 +1,13 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -168,6 +177,152 @@ const DNA = [
   { label: "Compréhension culturelle", value: 72 },
 ];
 
+/* ═══════════════════════════════════════════════════════════════════
+   APPARITION AU DÉFILEMENT — le vocabulaire des sections.
+
+   Framer Motion est déjà embarqué (TiltCard, MagneticButton), donc ces
+   variantes n'ajoutent aucun octet au bundle. Le langage est le même
+   que celui du hero : montée de 40 px, expo-out, 100 ms entre deux
+   tuiles — une seule grammaire de mouvement sur la page.
+
+   `once: true` : une section déjà vue ne rejoue pas — une animation qui
+   repart à chaque passage transforme la lecture en manège.
+   ═══════════════════════════════════════════════════════════════════ */
+const REVEAL_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+/** Marge de déclenchement : l'élément apparaît quand son haut entre à
+    100 px du bas de la fenêtre, pas quand il est déjà à l'écran. */
+const REVEAL_VIEWPORT = { once: true, margin: "-100px" } as const;
+
+/** Le conteneur ne bouge pas lui-même : il cadence ses enfants. */
+const revealGroup: Variants = {
+  hidden: {},
+  show: {
+    transition: {
+      duration: 0.6,
+      ease: REVEAL_EASE,
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+/** Chaque tuile / carte : fondu et montée de 40 px, 600 ms. */
+const revealItem: Variants = {
+  hidden: { opacity: 0, y: 40 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: REVEAL_EASE },
+  },
+};
+
+/* Le titre du hero est découpé en DEUX lignes pour l'impact : la coupure
+   tombe au plus près du milieu, sur une espace. Les langues sans espaces
+   (zh, ja) gardent une seule ligne — on ne coupe jamais un mot en deux.
+   Le calcul est fait ici, sur la chaîne réellement affichée : aucune
+   traduction n'a de « \n » à maintenir en parallèle. */
+function splitTitle(title: string): string[] {
+  const words = title.trim().split(" ");
+  if (words.length < 4) return [title];
+  const mid = title.trim().length / 2;
+  let best = 1;
+  let bestDelta = Number.POSITIVE_INFINITY;
+  let cursor = 0;
+  for (let i = 0; i < words.length - 1; i += 1) {
+    cursor += words[i].length + 1;
+    const delta = Math.abs(cursor - mid);
+    if (delta < bestDelta) {
+      bestDelta = delta;
+      best = i + 1;
+    }
+  }
+  return [words.slice(0, best).join(" "), words.slice(best).join(" ")];
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PARALLAXE DU HERO — une seule écoute du pointeur pour tous les
+   calques.
+
+   Le héros n'est pas une scène 3D : le curseur ne déplace que des
+   nappes (profondeurs de 4 à 26 px), jamais le texte au point de le
+   rendre illisible. Deux raisons de passer par rAF et des variables
+   CSS plutôt que par l'état React :
+
+     · aucun re-rendu pendant le mouvement — l'état ne change pas ;
+     · une seule boucle pour N calques, et elle S'ARRÊTE dès que la
+       valeur a rejoint la cible (pas de rAF qui tourne à vide).
+
+   Coupée sur tactile (il n'y a pas de curseur) et en reduced-motion.
+   ═══════════════════════════════════════════════════════════════════ */
+function useHeroParallax(ref: RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fine = window.matchMedia("(pointer: fine)");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (!fine.matches || reduced.matches) return;
+
+    let targetX = 0;
+    let targetY = 0;
+    let x = 0;
+    let y = 0;
+    let raf = 0;
+    let running = false;
+
+    const paint = () => {
+      x += (targetX - x) * 0.12;
+      y += (targetY - y) * 0.12;
+      /* Assez proche de la cible : on pose la valeur exacte et on rend
+         la main — la boucle repart au prochain `pointermove`. */
+      if (Math.abs(targetX - x) < 0.002 && Math.abs(targetY - y) < 0.002) {
+        x = targetX;
+        y = targetY;
+        running = false;
+      } else {
+        raf = requestAnimationFrame(paint);
+      }
+      el.style.setProperty("--ln-mx", x.toFixed(4));
+      el.style.setProperty("--ln-my", y.toFixed(4));
+    };
+
+    const start = () => {
+      if (running) return;
+      running = true;
+      raf = requestAnimationFrame(paint);
+    };
+
+    const onMove = (event: PointerEvent) => {
+      /* Le doigt ne pilote pas de parallaxe : sur mobile, la nappe
+         sauterait à chaque défilement. */
+      if (event.pointerType !== "mouse") return;
+      const rect = el.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const clamp = (n: number) => Math.max(-1, Math.min(1, n));
+      targetX = clamp(((event.clientX - rect.left) / rect.width - 0.5) * 2);
+      targetY = clamp(((event.clientY - rect.top) / rect.height - 0.5) * 2);
+      start();
+    };
+
+    /* Sortie du héros : tout revient au centre. Sans ça, les nappes
+       resteraient figées du côté où la souris est partie. */
+    const onLeave = () => {
+      targetX = 0;
+      targetY = 0;
+      start();
+    };
+
+    el.addEventListener("pointermove", onMove, { passive: true });
+    el.addEventListener("pointerleave", onLeave);
+    return () => {
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+      cancelAnimationFrame(raf);
+      el.style.removeProperty("--ln-mx");
+      el.style.removeProperty("--ln-my");
+    };
+  }, [ref]);
+}
+
 function SectionTitle({
   eyebrow,
   title,
@@ -198,6 +353,15 @@ export default function Landing() {
   /* État du menu hamburger mobile — inutile au-dessus de lg, où le nav
      desktop reprend la main, mais un seul état évite toute divergence. */
   const [menuOpen, setMenuOpen] = useState(false);
+  /* `prefers-reduced-motion` : dans ce cas on ne pose NI `initial`
+     (« hidden », donc opacity 0) NI `whileInView` — les éléments sont
+     rendus dans leur état final, sans mouvement et sans attendre le
+     défilement. */
+  const reducedMotion = useReducedMotion();
+  /* Référence du héros : la parallaxe écrit ses variables dessus, donc
+     tous les calques de la section partagent un seul gestionnaire. */
+  const heroRef = useRef<HTMLElement | null>(null);
+  useHeroParallax(heroRef);
 
   /* ── L'ancre « /#pricing » doit vraiment sauter ────────────────────
      Les trois invites Premium mènent à `/#pricing`. React Router change
@@ -242,6 +406,8 @@ export default function Landing() {
   // Compteur temps réel : preuve sociale vérifiable, pas une statistique
   // figée dans le texte. Les deux requêtes sont des lectures minuscules
   // (deux agrégats), elles ne bloquent donc pas le rendu.
+  /* Deux lignes, quel que soit le texte de la locale courante. */
+  const titleLines = splitTitle(t("landing.title"));
   const stats = useQuery(api.landingStats.getLandingStats, {});
   const numbers = useQuery(api.landingStats.getLandingNumbers, {});
   const learners = stats?.verifiedLearners ?? 0;
@@ -350,88 +516,144 @@ export default function Landing() {
 
       <main className="relative z-10">
         {/* ── Héro ────────────────────────────────────────────────── */}
-        <section className="mx-auto grid max-w-6xl items-center gap-12 px-5 pt-16 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:pt-24">
+        {/* Entrée en cascade (`.hero-anim` + `hero-reveal` / `hero-fade`,
+            délai posé en ligne) et parallaxe curseur (`.ln-hero-layer`,
+            profondeur `--ln-depth`). Aucune bibliothèque d'animation
+            n'entre ici : le mouvement est du CSS plus une seule boucle
+            rAF. Le héros porte le LCP de la page publique, il ne doit
+            pas payer du JS décoratif en plus de three.js. */}
+        <section
+          ref={heroRef}
+          className="relative isolate mx-auto grid max-w-6xl items-center gap-12 px-5 pt-16 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:pt-24"
+        >
+          {/* Décor : une nappe dorée qui respire (22 s) et un halo plus
+              petit qui suit le curseur. Purement visuels —
+              `pointer-events: none`, `aria-hidden`. */}
+          <span aria-hidden="true" className="ln-hero-halo" />
+          <span
+            aria-hidden="true"
+            className="ln-hero-cursor ln-hero-layer"
+            style={{ ["--ln-depth" as string]: "26px" }}
+          />
+
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-gold/25 bg-gold/[0.07] px-3.5 py-1.5 font-mono text-[0.625rem] tracking-[0.2em] text-gold uppercase">
+            <p
+              className="hero-anim hero-fade ln-hero-layer inline-flex items-center gap-2 rounded-full border border-gold/25 bg-gold/[0.07] px-3.5 py-1.5 font-mono text-[0.625rem] tracking-[0.2em] text-gold uppercase"
+              style={{
+                animationDelay: "0s",
+                ["--ln-depth" as string]: "4px",
+              }}
+            >
               <Waves className="size-3" />
               {t("landing.badge")}
             </p>
 
-            <h1 className="mt-6 font-display text-3xl leading-[1.1] font-semibold sm:text-4xl md:text-5xl lg:text-6xl">
-              <RevealTitle text={t("landing.title")} />
+            <h1
+              className="hero-anim hero-reveal mt-6 font-display text-3xl leading-[1.1] font-semibold sm:text-4xl md:text-5xl lg:text-6xl"
+              style={{ animationDelay: "0.1s" }}
+            >
+              {titleLines.map((line) => (
+                <span key={line} className="block">
+                  <RevealTitle text={line} />
+                </span>
+              ))}
             </h1>
 
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-ink-2">
+            <p
+              className="hero-anim hero-fade mt-6 max-w-xl text-base leading-relaxed text-ink-2"
+              style={{ animationDelay: "0.3s" }}
+            >
               {t("landing.subtitle")}
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 to={start}
-                className="ln-glow w-full md:w-auto inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-soft px-5 py-3 md:px-6 font-semibold text-noir transition-transform hover:-translate-y-0.5"
+                className="ln-glow ln-sheen hero-anim hero-fade relative inline-flex w-full items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-gold to-gold-soft px-5 py-3 font-semibold text-noir transition-all duration-300 hover:scale-[1.03] active:scale-95 md:w-auto md:px-6"
+                style={{ animationDelay: "0.5s" }}
               >
+                <span aria-hidden="true" className="ln-shine" />
                 {t("landing.cta")}
                 <ArrowRight className="size-4" />
               </Link>
+              {/* Le bouton secondaire suit la même entrée, juste après :
+                  sans ça, il apparaissait d'un coup à côté d'un CTA
+                  encore en train de se poser. */}
               <a
                 href="#modules"
-                className="inline-flex w-full items-center justify-center rounded-xl border border-white/10 px-6 py-3.5 text-sm font-medium text-ink-2 transition-colors hover:border-gold/40 hover:text-gold md:w-auto"
+                className="hero-anim hero-fade inline-flex w-full items-center justify-center rounded-xl border border-white/10 px-6 py-3.5 text-sm font-medium text-ink-2 transition-colors hover:border-gold/40 hover:text-gold md:w-auto"
+                style={{ animationDelay: "0.58s" }}
               >
                 {t("landing.ctaSecondary")}
               </a>
             </div>
 
-            <p className="mt-5 font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
+            <p
+              className="hero-anim hero-fade mt-5 font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase"
+              style={{ animationDelay: "0.7s" }}
+            >
               {t("landing.reassurance")}
             </p>
           </div>
 
-          {/* Context Card — la promesse du produit, rendue visible. */}
-          <TiltCard className="ln-card rounded-2xl p-5">
-            <p className="flex items-center justify-between font-mono text-[0.625rem] tracking-[0.2em] text-ink-3 uppercase">
-              Context Card
-              <span className="rounded-full border border-gold/25 bg-gold/10 px-2.5 py-1 text-gold">
-                street · US (AAVE)
-              </span>
-            </p>
-
-            <p className="mt-4 font-display text-3xl font-semibold text-gold">
-              finna
-            </p>
-            <p className="mt-1 text-sm text-ink-3">
-              sur le point de · littéralement « contraction de fixing to »
-            </p>
-
-            <div className="mt-5 space-y-3 text-sm">
-              <div>
-                <p className="font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
-                  Contexte
-                </p>
-                <p className="mt-1 text-ink-2">
-                  « I'm finna leave » — AAVE essentiel, compris partout.
-                </p>
-              </div>
-              <div>
-                <p className="font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
-                  Registre
-                </p>
-                <p className="mt-1 text-ink-2">
-                  familier → street · jamais en entretien d'embauche
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              {["COMPRENDRE", "POURQUOI ?", "JE VEUX APPRENDRE ÇA"].map((c) => (
-                <span
-                  key={c}
-                  className="rounded-full border border-white/10 px-3 py-1.5 font-mono text-[0.625rem] tracking-wide text-ink-2"
-                >
-                  {c}
+          {/* Context Card — la promesse du produit, rendue visible.
+              Une aura dorée tourne derrière la carte (26 s, floutée) :
+              elle donne au panneau une lumière qui ne s'arrête jamais,
+              sans ajouter une seule propriété animée de plus à la carte,
+              qui garde son inclinaison au curseur via `TiltCard`. */}
+          <div
+            className="hero-anim hero-reveal relative"
+            style={{ animationDelay: "0.35s" }}
+          >
+            <span aria-hidden="true" className="ln-hero-aura" />
+            <TiltCard className="ln-card relative rounded-2xl p-5">
+              <p className="flex items-center justify-between font-mono text-[0.625rem] tracking-[0.2em] text-ink-3 uppercase">
+                Context Card
+                <span className="rounded-full border border-gold/25 bg-gold/10 px-2.5 py-1 text-gold">
+                  street · US (AAVE)
                 </span>
-              ))}
-            </div>
-          </TiltCard>
+              </p>
+
+              <p className="mt-4 font-display text-3xl font-semibold text-gold">
+                finna
+              </p>
+              <p className="mt-1 text-sm text-ink-3">
+                sur le point de · littéralement « contraction de fixing to »
+              </p>
+
+              <div className="mt-5 space-y-3 text-sm">
+                <div>
+                  <p className="font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
+                    Contexte
+                  </p>
+                  <p className="mt-1 text-ink-2">
+                    « I'm finna leave » — AAVE essentiel, compris partout.
+                  </p>
+                </div>
+                <div>
+                  <p className="font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
+                    Registre
+                  </p>
+                  <p className="mt-1 text-ink-2">
+                    familier → street · jamais en entretien d'embauche
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                {["COMPRENDRE", "POURQUOI ?", "JE VEUX APPRENDRE ÇA"].map(
+                  (c) => (
+                    <span
+                      key={c}
+                      className="rounded-full border border-white/10 px-3 py-1.5 font-mono text-[0.625rem] tracking-wide text-ink-2"
+                    >
+                      {c}
+                    </span>
+                  ),
+                )}
+              </div>
+            </TiltCard>
+          </div>
         </section>
 
         {/* ── Globe + chiffres clés ───────────────────────────────
@@ -440,7 +662,7 @@ export default function Landing() {
         <section className="mx-auto max-w-6xl px-5 py-16">
           <div className="grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="relative order-2 lg:order-1">
-              <div className="relative mx-auto aspect-square w-full max-w-sm">
+              <div className="ln-globe-breathe relative mx-auto aspect-square w-full max-w-sm">
                 <Suspense
                   fallback={
                     <div className="size-full animate-pulse rounded-full border border-gold/20" />
@@ -460,7 +682,17 @@ export default function Landing() {
               </h2>
               <p className="mt-3 max-w-lg text-ink-2">{t("landing.features.lead")}</p>
 
-              <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {/* Les six tuiles apparaissent une à une à l'entrée dans le
+                  champ, une seule fois. Le conteneur cadence
+                  (`staggerChildren`), les tuiles ne portent que leur
+                  variante — aucun délai à maintenir à la main. */}
+              <motion.div
+                className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+                variants={revealGroup}
+                initial={reducedMotion ? false : "hidden"}
+                whileInView={reducedMotion ? undefined : "show"}
+                viewport={REVEAL_VIEWPORT}
+              >
                 {[
                   {
                     // Même source que le titre de la section Langues :
@@ -488,7 +720,7 @@ export default function Landing() {
                     value: t("landing.features.verifiedValue"),
                     label: t("landing.features.verifiedLabel"),
                   },
-                ].map((f, i) => {
+                ].map((f) => {
                   /* Une valeur courte et numérique (« 29 », « 6 600+ »,
                      « 3D », « 20 ») garde text-4xl : elle tient sur une ligne.
                      Une valeur textuelle (« Audio native », « Base de données
@@ -498,15 +730,10 @@ export default function Landing() {
                      caractère suffit à trancher. */
                   const numeric = /^\d/.test(f.value.trim());
                   return (
-                    <div
+                    <motion.div
                       key={f.label}
-                      /* Même entrée en cascade que les modules, l'argot et les
-                         langues ci-dessous : ln-stagger-item + --ln-i, la
-                         mécanique maison (delay = i × 40 ms, coupée en
-                         reduced-motion). Pas de Framer Motion ici : la page
-                         n'en importe pas et trois grilles s'en passent. */
-                      className="ln-stagger-item flex flex-col items-center justify-center gap-2 rounded-xl bg-white/5 p-6 text-center"
-                      style={{ ["--ln-i" as string]: i }}
+                      variants={revealItem}
+                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-white/5 p-6 text-center"
                     >
                       <span
                         className={`font-bold text-gold ${
@@ -520,10 +747,10 @@ export default function Landing() {
                       <span className="text-sm font-medium text-ink-2">
                         {f.label}
                       </span>
-                    </div>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
 
               {/* Social proof — donnée live, pas une statistique figée. */}
               <p className="mt-8 flex items-center gap-2 text-sm text-ink-2">
@@ -596,42 +823,69 @@ export default function Landing() {
             lead="Chaque module peut évoluer indépendamment. Tous alimentent la même mémoire et le même profil linguistique."
           />
 
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {MODULES.map((m, i) => (
-              <TiltCard
+          <motion.div
+            className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            variants={revealGroup}
+            initial={reducedMotion ? false : "hidden"}
+            whileInView={reducedMotion ? undefined : "show"}
+            viewport={REVEAL_VIEWPORT}
+          >
+            {MODULES.map((m) => (
+              /* Le wrapper est la tuile de la grille : il porte l'entrée
+                 au défilement ET la montée au survol. Le TiltCard à
+                 l'intérieur garde son inclinaison — les deux `transform`
+                 sont sur deux éléments distincts, donc ils se composent
+                 au lieu de s'écraser. `h-full` : sans lui, la carte
+                 cessait de remplir sa ligne et les cartes d'une même
+                 rangée n'avaient plus la même hauteur. */
+              <motion.div
                 key={m.name}
-                className="ln-card ln-stagger-item p-6"
+                variants={revealItem}
+                whileHover={
+                  reducedMotion
+                    ? undefined
+                    : {
+                        y: -8,
+                        transition: { duration: 0.3, ease: "easeOut" },
+                      }
+                }
+                className="h-full"
               >
-                <div
-                  className="flex items-start justify-between"
-                  style={{ ["--ln-i" as string]: i }}
-                >
-                  <span className="flex size-11 items-center justify-center rounded-xl border border-gold/20 bg-gold/10">
-                    <m.icon className="size-5 text-gold" />
-                  </span>
-                  <span className="font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
-                    {m.tag}
-                  </span>
-                </div>
-                <h3 className="mt-4 font-display text-lg font-semibold">
-                  {m.name}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-2">
-                  {m.text}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-1">
-                  {m.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-full border border-white/10 px-2.5 py-1 text-[0.625rem] text-ink-3"
-                    >
-                      {t}
+                {/* `hover:shadow-xl hover:shadow-gold/10` est la classe
+                    demandée ; elle est neutralisée à l'écran par
+                    `.ln-card:hover` (règle non layerisée, prioritaire sur
+                    `@layer utilities`). L'intensification réelle est donc
+                    portée par `.ln-card-glow`, déclarée après elle. Le
+                    détail est commenté dans `index.css`. */}
+                <TiltCard className="ln-card ln-card-glow hover:shadow-xl hover:shadow-gold/10 h-full p-6">
+                  <div className="flex items-start justify-between">
+                    <span className="flex size-11 items-center justify-center rounded-xl border border-gold/20 bg-gold/10">
+                      <m.icon className="size-5 text-gold" />
                     </span>
-                  ))}
-                </div>
-              </TiltCard>
+                    <span className="font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
+                      {m.tag}
+                    </span>
+                  </div>
+                  <h3 className="mt-4 font-display text-lg font-semibold">
+                    {m.name}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-2">
+                    {m.text}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-1">
+                    {m.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="rounded-full border border-white/10 px-2.5 py-1 text-[0.625rem] text-ink-3"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </TiltCard>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </section>
 
         {/* ── Argot ───────────────────────────────────────────────── */}
