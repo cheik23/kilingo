@@ -169,7 +169,19 @@ export function GlobeHero({ onDegrade }: { onDegrade?: () => void }) {
     onDegrade?.();
   };
 
-  if (failed) return null;
+  /* Repli GPU insuffisant : une image du globe (246 Ko, même identité
+     visuelle que la 3D) au lieu d'une zone vide. La landing garde son
+     héros sur les machines sans WebGL stable. */
+  if (failed) {
+    return (
+      <img
+        src="/fallback-globe.webp"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 size-full object-cover"
+      />
+    );
+  }
 
   return (
     <div ref={container} className="absolute inset-0" aria-hidden="true">

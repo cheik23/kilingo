@@ -1,1234 +1,926 @@
-import {
-  lazy,
-  Suspense,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type RefObject,
-} from "react";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
-import { Link, useLocation, useNavigate } from "react-router";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { useI18n } from "@/lib/i18n";
+import { useMemo, useRef, useState } from "react";
+import { Link } from "react-router";
+import { motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { useMutation } from "convex/react";
 import {
   ArrowRight,
   BookOpen,
-  Brain,
-  Captions,
-  Check,
-  Clapperboard,
-  Compass,
-  Flame,
-  Gauge,
-  Headphones,
-  Languages,
-  Menu,
+  Film,
+  Map,
   Mic,
-  Music2,
+  Music,
+  Podcast,
   Repeat,
-  Search,
-  ShieldCheck,
   Sparkles,
-  Subtitles,
-  Waves,
-  X,
 } from "lucide-react";
 
-import { NoirAmbience } from "@/components/fx/NoirAmbience";
-import { BrandLink } from "@/components/brand/Logo";
-import { MagneticButton, TiltCard } from "@/components/fx/interact";
-import { RevealTitle, ScrambleHeading, ShimmerTitle } from "@/components/fx/text";
+import { api } from "@/convex/_generated/api";
+import { LANGUAGES } from "@/convex/languages";
 import { useAuth } from "@/hooks/use-auth";
-import { LANGUAGES, REGISTERS } from "@/convex/languages";
-import { languageIsComingSoon } from "@/data/contentLanguages";
-import { SoonBadge } from "@/components/ui/SoonBadge";
+import { useI18n } from "@/lib/i18n";
+import { getLandingCopy, type LandingSections } from "@/lib/i18n.landing";
+import { formatEur, PREMIUM, premiumPerDayEur, premiumAnnualDiscountPct } from "@/lib/pricing";
+import { useOptionalQuery } from "@/lib/optionalQuery";
+import { MiniWorldHero } from "@/components/three/diorama/MiniWorldHero";
+import { WORLDS, WORLD_CODES, worldHasContent, type WorldCode } from "@/components/three/diorama/worlds";
+import { SpeakButton } from "@/components/learner/SpeakButton";
 import { PremiumCta } from "@/components/learner/PremiumCta";
 import { SubscriptionCard } from "@/components/learner/SubscriptionCard";
-import {
-  PREMIUM,
-  formatEur,
-  premiumAnnualDiscountPct,
-  premiumPerDayEur,
-} from "@/lib/pricing";
 
-/* Le globe 3D pèse plus d'un mégaoctet de three.js. Il ne doit PAS entrer
-   dans le bundle qui définit le LCP de la landing : on le charge à la
-   demande, une fois le hero visible. */
-const GlobeHero = lazy(() =>
-  import("@/components/three/GlobeHero").then((m) => ({ default: m.GlobeHero })),
-);
+/* ═══════════════════════════════════════════════════════════════════════
+   KILINGO — LANDING PUBLIQUE (refonte : atlas linguistique vivant)
 
-/* ═══════════════════════════════════════════════════════════════════
-   KILINGO — page publique.
+   Concept visuel : un monde tridimensionnel FIXE derrière le contenu —
+   un champ de caractères des langues réellement servies, des coques
+   concentriques (les « espaces » de la langue), des rubans phonétiques —
+   que le scroll TRAVERSE via une caméra pilotée par une ref partagée
+   (zéro re-render React par frame). Chaque scène du récit se joue
+   AU-DESSUS du monde, en HTML sémantique lisible.
 
-   « Don't study the culture. Live it. »
+   Honnêteté (scripts verify-*, non négociables) :
+   · chiffres = MESURES Convex (landingStats / slang.trending) ;
+   · aucun total d'expressions figé dans le source ;
+   · montants = formatEur(PREMIUM.*) / premiumPerDayEur() /
+     premiumAnnualDiscountPct() — jamais écrits en dur ;
+   · le bouton Premium et la carte d'abonnement sont montés UNE fois ;
+   · ancres funnel dans cet ordre : methode → modules → argot →
+     langues → pricing ; l'invite finale d'inscription vient APRÈS
+     le prix (jeton exact requis par le guard, posé dans le JSX).
+   · la copy reprend « 8 personnages » (table aiCharacters) ;
+   · showcase & quiz = requêtes PUBLIQUES réelles ; vivier vide ⇒
+     section absente, jamais une phrase inventée.
+   ═══════════════════════════════════════════════════════════════════════ */
 
-   Le produit n'est pas un manuel : c'est une plateforme d'immersion
-   culturelle qui transforme films, musiques, livres et podcasts en
-   contenu pédagogique (vocabulaire, argot, contexte culturel,
-   révisions).
+/* ── i18n : sections complètes (fr/en), repli fr pour les autres ───── */
 
-   Contenus : uniquement ce que la plateforme a le droit d'afficher,
-   d'intégrer ou d'analyser — plus les contenus importés par
-   l'utilisateur lui-même. Aucun contournement de DRM, aucun
-   téléchargement d'œuvre protégée.
-   ═══════════════════════════════════════════════════════════════════ */
-
-/* Le mur des langues ne RECOPIE plus la liste : il lit la source unique
-   `convex/languages`, celle des sélecteurs de l'onboarding, du changement de
-   focus et de la découverte. L'ancienne liste figée à cinq entrées annonçait
-   « Cinq langues » alors que l'application en proposait déjà onze, et elle ne
-   pouvait pas suivre le lot des 18 : deux vérités à maintenir en parallèle.
-   Drapeau et libellé viennent donc de la même source que l'application. */
-
-/** Modules d'immersion — un par type de contenu, plus les moteurs transverses. */
-const MODULES = [
-  {
-    icon: Clapperboard,
-    name: "ScreenShadow",
-    tag: "Films & vidéos",
-    text: "Sous-titres interactifs : clique un mot dans le dialogue et obtiens traduction, registre, prononciation et contexte — sans quitter le film.",
-    tags: ["Cinema Mode", "sous-titres .srt / .vtt"],
-  },
-  {
-    icon: Music2,
-    name: "MusicShadow",
-    tag: "Musiques",
-    text: "Décortique un morceau phrase par phrase : aperçus légaux, analyse linguistique, argot détecté, tout versé dans ta mémoire.",
-    tags: ["Lyrics Decoder", "aperçus 30 s"],
-  },
-  {
-    icon: BookOpen,
-    name: "BookShadow",
-    tag: "Livres",
-    text: "Lecteur avec dictionnaire inline : sélectionne un passage, traduis-le, garde-le. Auteurs, genres, niveaux de difficulté.",
-    tags: ["Dictionnaire inline", "TTS"],
-  },
-  {
-    icon: Mic,
-    name: "TalkShadow",
-    tag: "Podcasts & audio",
-    text: "Transcription horodatée, traduction, vocabulaire et argot extraits automatiquement. Écoute à vitesse réduite, phrase par phrase.",
-    tags: ["Transcription", "Timecodes"],
-  },
-  {
-    icon: Repeat,
-    name: "Shadowing",
-    tag: "Pratique orale",
-    text: "Écoute, répète, enregistre-toi, compare, corrige. Sur n'importe quel contenu, pas seulement dans des exercices.",
-    tags: ["Prononciation", "Comparaison"],
-  },
-  {
-    icon: Compass,
-    name: "Swipe Discovery",
-    tag: "Découverte",
-    text: "Un geste : à droite ce que tu veux apprendre, à gauche plus tard. Chaque carte devient une révision programmée.",
-    tags: ["Argot", "Expressions"],
-  },
-];
-
-/** Liens de navigation de la landing — une source unique pour le nav desktop
-    et le panneau mobile : les deux ne peuvent plus dériver l'un de l'autre. */
-const NAV_LINKS = [
-  { href: "/culture", label: "Culture" },
-  { href: "#methode", label: "La méthode" },
-  { href: "#modules", label: "Modules" },
-  { href: "#argot", label: "Argot" },
-  { href: "#langues", label: "Langues" },
-  { href: "#pricing", label: "Tarifs" },
-];
-
-/** Trois entrées réelles de la base d'argot embarquée. */
-const SLANG_SAMPLES = [
-  {
-    expr: "finna",
-    literal: "contraction de « fixing to »",
-    meaning: "sur le point de",
-    context: "« I'm finna leave » — AAVE essentiel, compris partout.",
-    register: "street",
-    region: "US (AAVE)",
-  },
-  {
-    expr: "bruh",
-    literal: "frère (élongation de bro)",
-    meaning: "bro ; exaspération",
-    context: "« Bruh. » — le soupir lexé ; réaction universelle au n'importe quoi.",
-    register: "internet",
-    region: "US",
-  },
-  {
-    expr: "spin the block",
-    literal: "reprendre le pâté de maisons",
-    meaning: "revenir, retenter (souvent un ex)",
-    context: "« He back? Spin the block » — la seconde chance sentimentale.",
-    register: "street",
-    region: "US",
-  },
-];
-
-/** Language DNA — le profil n'est pas un score unique. */
-const DNA = [
-  { label: "Compréhension orale", value: 78 },
-  { label: "Vocabulaire", value: 64 },
-  { label: "Argot & expressions", value: 86 },
-  { label: "Prononciation", value: 41 },
-  { label: "Compréhension culturelle", value: 72 },
-];
-
-/* ═══════════════════════════════════════════════════════════════════
-   APPARITION AU DÉFILEMENT — le vocabulaire des sections.
-
-   Framer Motion est déjà embarqué (TiltCard, MagneticButton), donc ces
-   variantes n'ajoutent aucun octet au bundle. Le langage est le même
-   que celui du hero : montée de 40 px, expo-out, 100 ms entre deux
-   tuiles — une seule grammaire de mouvement sur la page.
-
-   `once: true` : une section déjà vue ne rejoue pas — une animation qui
-   repart à chaque passage transforme la lecture en manège.
-   ═══════════════════════════════════════════════════════════════════ */
-const REVEAL_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
-
-/** Marge de déclenchement : l'élément apparaît quand son haut entre à
-    100 px du bas de la fenêtre, pas quand il est déjà à l'écran. */
-const REVEAL_VIEWPORT = { once: true, margin: "-100px" } as const;
-
-/** Le conteneur ne bouge pas lui-même : il cadence ses enfants. */
-const revealGroup: Variants = {
-  hidden: {},
-  show: {
-    transition: {
-      duration: 0.6,
-      ease: REVEAL_EASE,
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-/** Chaque tuile / carte : fondu et montée de 40 px, 600 ms. */
-const revealItem: Variants = {
-  hidden: { opacity: 0, y: 40 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: REVEAL_EASE },
-  },
-};
-
-/* Le titre du hero est découpé en DEUX lignes pour l'impact : la coupure
-   tombe au plus près du milieu, sur une espace. Les langues sans espaces
-   (zh, ja) gardent une seule ligne — on ne coupe jamais un mot en deux.
-   Le calcul est fait ici, sur la chaîne réellement affichée : aucune
-   traduction n'a de « \n » à maintenir en parallèle. */
-function splitTitle(title: string): string[] {
-  const words = title.trim().split(" ");
-  if (words.length < 4) return [title];
-  const mid = title.trim().length / 2;
-  let best = 1;
-  let bestDelta = Number.POSITIVE_INFINITY;
-  let cursor = 0;
-  for (let i = 0; i < words.length - 1; i += 1) {
-    cursor += words[i].length + 1;
-    const delta = Math.abs(cursor - mid);
-    if (delta < bestDelta) {
-      bestDelta = delta;
-      best = i + 1;
-    }
-  }
-  return [words.slice(0, best).join(" "), words.slice(best).join(" ")];
+function snapSections(lang: string): LandingSections {
+  const fromLang = getLandingCopy(lang) as
+    | { landing?: { sections?: LandingSections } }
+    | undefined;
+  if (fromLang?.landing?.sections) return fromLang.landing.sections;
+  const fr = getLandingCopy("fr") as
+    | { landing?: { sections?: LandingSections } }
+    | undefined;
+  return fr?.landing?.sections as LandingSections;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   PARALLAXE DU HERO — une seule écoute du pointeur pour tous les
-   calques.
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0 },
+} as const;
 
-   Le héros n'est pas une scène 3D : le curseur ne déplace que des
-   nappes (profondeurs de 4 à 26 px), jamais le texte au point de le
-   rendre illisible. Deux raisons de passer par rAF et des variables
-   CSS plutôt que par l'état React :
+const viewportOnce = { once: true, amount: 0.2 } as const;
 
-     · aucun re-rendu pendant le mouvement — l'état ne change pas ;
-     · une seule boucle pour N calques, et elle S'ARRÊTE dès que la
-       valeur a rejoint la cible (pas de rAF qui tourne à vide).
-
-   Coupée sur tactile (il n'y a pas de curseur) et en reduced-motion.
-   ═══════════════════════════════════════════════════════════════════ */
-function useHeroParallax(ref: RefObject<HTMLElement | null>) {
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const fine = window.matchMedia("(pointer: fine)");
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (!fine.matches || reduced.matches) return;
-
-    let targetX = 0;
-    let targetY = 0;
-    let x = 0;
-    let y = 0;
-    let raf = 0;
-    let running = false;
-
-    const paint = () => {
-      x += (targetX - x) * 0.12;
-      y += (targetY - y) * 0.12;
-      /* Assez proche de la cible : on pose la valeur exacte et on rend
-         la main — la boucle repart au prochain `pointermove`. */
-      if (Math.abs(targetX - x) < 0.002 && Math.abs(targetY - y) < 0.002) {
-        x = targetX;
-        y = targetY;
-        running = false;
-      } else {
-        raf = requestAnimationFrame(paint);
-      }
-      el.style.setProperty("--ln-mx", x.toFixed(4));
-      el.style.setProperty("--ln-my", y.toFixed(4));
-    };
-
-    const start = () => {
-      if (running) return;
-      running = true;
-      raf = requestAnimationFrame(paint);
-    };
-
-    const onMove = (event: PointerEvent) => {
-      /* Le doigt ne pilote pas de parallaxe : sur mobile, la nappe
-         sauterait à chaque défilement. */
-      if (event.pointerType !== "mouse") return;
-      const rect = el.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      const clamp = (n: number) => Math.max(-1, Math.min(1, n));
-      targetX = clamp(((event.clientX - rect.left) / rect.width - 0.5) * 2);
-      targetY = clamp(((event.clientY - rect.top) / rect.height - 0.5) * 2);
-      start();
-    };
-
-    /* Sortie du héros : tout revient au centre. Sans ça, les nappes
-       resteraient figées du côté où la souris est partie. */
-    const onLeave = () => {
-      targetX = 0;
-      targetY = 0;
-      start();
-    };
-
-    el.addEventListener("pointermove", onMove, { passive: true });
-    el.addEventListener("pointerleave", onLeave);
-    return () => {
-      el.removeEventListener("pointermove", onMove);
-      el.removeEventListener("pointerleave", onLeave);
-      cancelAnimationFrame(raf);
-      el.style.removeProperty("--ln-mx");
-      el.style.removeProperty("--ln-my");
-    };
-  }, [ref]);
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="font-mono text-[0.625rem] uppercase tracking-[0.3em] text-gold">
+      {children}
+    </p>
+  );
 }
 
-function SectionTitle({
-  eyebrow,
+function SceneHeader({
+  chapter,
   title,
   lead,
 }: {
-  eyebrow: string;
+  chapter: string;
   title: string;
   lead?: string;
 }) {
   return (
-    <header className="mx-auto max-w-2xl text-center">
-      <p className="font-mono text-[0.625rem] tracking-[0.3em] text-gold uppercase">
-        {eyebrow}
-      </p>
-      <h2 className="mt-3 font-display text-3xl font-semibold text-ink sm:text-4xl">
-        <ScrambleHeading text={title} />
-      </h2>
-      {lead && (
-        <p className="mt-3 text-sm leading-relaxed text-ink-2">{lead}</p>
+    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={viewportOnce} className="max-w-2xl">
+      <Eyebrow>{chapter}</Eyebrow>
+      <h2 className="mt-3 font-display text-3xl font-semibold text-ink sm:text-4xl">{title}</h2>
+      {lead ? <p className="mt-3 text-ink-2">{lead}</p> : null}
+    </motion.div>
+  );
+}
+
+/* ── Navigation ───────────────────────────────────────────────────── */
+
+function LandingNav({ authed, s }: { authed: boolean; s: LandingSections }) {
+  const [open, setOpen] = useState(false);
+  const links = [
+    { to: "#methode", label: s.nav.method },
+    { to: "#modules", label: s.nav.modules },
+    { to: "#argot", label: s.nav.showcase },
+    { to: "#langues", label: s.nav.languages },
+    { to: "#quiz", label: s.nav.quiz },
+    { to: "#pricing", label: s.nav.pricing },
+    { to: "#faq", label: s.nav.faq },
+  ];
+
+  return (
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-white/5 bg-noir/70 backdrop-blur-md">
+      <nav aria-label="Navigation principale" className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
+        <Link to="/" className="font-display text-lg font-bold tracking-wide text-ink">
+          Kɪ́LINGO
+        </Link>
+
+        <ul className="hidden items-center gap-6 text-sm text-ink-2 lg:flex">
+          {links.map((l) => (
+            <li key={l.to}>
+              <a href={l.to} className="transition-colors hover:text-ink">
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <div className="hidden lg:block">
+          <Link
+            to={authed ? "/app" : "/auth"}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-strong px-5 py-2.5 text-sm font-semibold text-noir shadow-lg shadow-gold/20"
+          >
+            {authed ? s.nav.open : s.nav.start}
+            <ArrowRight className="size-4" aria-hidden="true" />
+          </Link>
+        </div>
+
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls="landing-nav-mobile"
+          className="text-lg text-ink-2 lg:hidden"
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? "✕" : "☰"}
+        </button>
+      </nav>
+
+      {open && (
+        <ul id="landing-nav-mobile" className="border-t border-white/5 px-5 pb-4 pt-2 lg:hidden">
+          {links.map((l) => (
+            <li key={l.to}>
+              <a href={l.to} className="block py-2.5 text-sm text-ink-2" onClick={() => setOpen(false)}>
+                {l.label}
+              </a>
+            </li>
+          ))}
+          <li>
+            <Link to={authed ? "/app" : "/auth"} className="block py-2.5 text-sm font-semibold text-gold">
+              {authed ? s.nav.open : s.nav.start}
+            </Link>
+          </li>
+        </ul>
       )}
     </header>
   );
 }
 
-export default function Landing() {
-  const navigate = useNavigate();
+/* ═══════════════════════════════════════════════════════════════════════
+   SCÈNE 1 — ENTRER DANS LE MONDE
+   Titre + CTA en HTML lisible ; le mini-monde 3D vit derrière le texte.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function Hero({
+  world,
+  setWorld,
+  selectedMonument,
+  setSelectedMonument,
+}: {
+  world: WorldCode;
+  setWorld: (w: WorldCode) => void;
+  selectedMonument: string | null;
+  setSelectedMonument: (id: string | null) => void;
+}) {
+  const { t } = useI18n();
   const { isAuthenticated } = useAuth();
-  /* État du menu hamburger mobile — inutile au-dessus de lg, où le nav
-     desktop reprend la main, mais un seul état évite toute divergence. */
-  const [menuOpen, setMenuOpen] = useState(false);
-  /* `prefers-reduced-motion` : dans ce cas on ne pose NI `initial`
-     (« hidden », donc opacity 0) NI `whileInView` — les éléments sont
-     rendus dans leur état final, sans mouvement et sans attendre le
-     défilement. */
-  const reducedMotion = useReducedMotion();
-  /* Référence du héros : la parallaxe écrit ses variables dessus, donc
-     tous les calques de la section partagent un seul gestionnaire. */
-  const heroRef = useRef<HTMLElement | null>(null);
-  useHeroParallax(heroRef);
-
-  /* ── L'ancre « /#pricing » doit vraiment sauter ────────────────────
-     Les trois invites Premium mènent à `/#pricing`. React Router change
-     bien l'URL, mais une navigation client ne fait sauter AUCUNE ancre :
-     le défilement natif n'a lieu que sur un chargement complet. Sans ce
-     qui suit, le CTA atterrirait en haut de la page — c'est-à-dire nulle
-     part, exactement le défaut que cette section existe pour corriger.
-
-     On vise l'élément après deux frames : Lenis remet la page en haut au
-     changement de route (son effet s'exécute après le nôtre), et la
-     section doit exister au moment du `scrollIntoView`. */
-  const { hash, key: navKey } = useLocation();
-  useEffect(() => {
-    if (!hash) return;
-    const id = decodeURIComponent(hash.slice(1));
-    if (!id) return;
-    let inner = 0;
-    const outer = requestAnimationFrame(() => {
-      inner = requestAnimationFrame(() => {
-        document
-          .getElementById(id)
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    });
-    return () => {
-      cancelAnimationFrame(outer);
-      if (inner) cancelAnimationFrame(inner);
-    };
-  }, [hash, navKey]);
-
-  // Tous les CTA mènent à la découverte : /discover pour les nouveaux
-  // visiteurs, /app/discover pour les inscrits.
-  const start = useMemo(
-    () => (isAuthenticated ? "/app" : "/discover"),
-    [isAuthenticated],
-  );
-  const go = () => navigate(start);
-  const { t, lang } = useI18n();
-  /* Badges « Bientôt » du mur des langues : la réponse est calculée AU BUILD
-     depuis les seeds (data/contentLanguages), jamais recopiée ici. Aucun
-     appel réseau : la page publique reste juste même si le backend dort. */
-  // Compteur temps réel : preuve sociale vérifiable, pas une statistique
-  // figée dans le texte. Les deux requêtes sont des lectures minuscules
-  // (deux agrégats), elles ne bloquent donc pas le rendu.
-  /* Deux lignes, quel que soit le texte de la locale courante. */
-  const titleLines = splitTitle(t("landing.title"));
-  const stats = useQuery(api.landingStats.getLandingStats, {});
-  const numbers = useQuery(api.landingStats.getLandingNumbers, {});
-  const learners = stats?.verifiedLearners ?? 0;
-  // Le nombre d'expressions vient de la base (donc du seed réellement
-  // exécuté) et se formate dans la locale de l'interface ; la constante du
-  // dictionnaire ne sert plus que de repli avant l'arrivée de la requête.
-  const fmt = (n: number) => new Intl.NumberFormat(lang).format(n);
-  const expressionCount =
-    numbers === undefined
-      ? t("landing.features.expressionsValue")
-      : fmt(numbers.expressions);
-  /* Le nombre de langues suit EXACTEMENT la même règle que les expressions :
-     valeur live de landingStats, repli sur la copy i18n tant que la requête
-     n'est pas arrivée. Le titre de la section Langues et la carte de stats
-     lisent donc la MÊME source — plus de « 30 » en haut et « 29 » en bas. */
-  const languageCount =
-    numbers === undefined
-      ? t("landing.features.languagesValue")
-      : String(numbers.languages);
+  const cfg = WORLDS[world];
+  const available = worldHasContent(world);
+  const explored = cfg.monuments.find((m) => m.kind === selectedMonument) ?? null;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-noir text-ink">
-      <NoirAmbience />
+    <section
+      aria-label="Introduction"
+      className="mx-auto flex min-h-[100svh] max-w-6xl flex-col items-center justify-center gap-8 px-5 pb-24 pt-36 text-center"
+    >
+      <Eyebrow>{t("landing.badge")}</Eyebrow>
 
-      {/* ── Barre de navigation ─────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-noir/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-5 py-3.5">
-          <BrandLink to="/" />
+      <h1 className="max-w-4xl font-display text-4xl font-semibold leading-tight text-ink sm:text-6xl lg:text-7xl">
+        {t("landing.title")}
+      </h1>
 
-          {/* Liens — desktop uniquement (≥ lg, comme avant : en dessous, les
-              six liens + les boutons ne tiennent pas sans déborder). Ils
-              passent alors dans le panneau du menu hamburger. */}
-          <nav className="hidden flex-1 items-center justify-center gap-6 text-sm text-ink-2 lg:flex">
-            {NAV_LINKS.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                className="transition-colors hover:text-gold"
+      <p className="max-w-2xl text-base leading-relaxed text-ink-2 sm:text-lg">
+        {t("landing.subtitle")}
+      </p>
+
+      <div className="flex flex-col items-center gap-4 sm:flex-row">
+        <Link
+          to={authedFallback()}
+          className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-gold to-gold-strong px-8 py-4 font-semibold text-noir shadow-lg shadow-gold/25 transition-transform hover:scale-[1.03] active:scale-95"
+        >
+          {t("landing.cta")}
+          <ArrowRight className="size-5" aria-hidden="true" />
+        </Link>
+        <a
+          href="#argot"
+          className="inline-flex items-center gap-2 rounded-2xl border border-white/15 px-6 py-4 text-ink-2 transition-colors hover:border-gold/40 hover:text-ink"
+        >
+          {t("landing.ctaSecondary")}
+        </a>
+      </div>
+
+      <LearnerLine />
+
+      {/* ── Mini-mondes : trois prototypes, une intégration réelle ─────
+          Chaque monde mène à sa langue (Auth → focus de langues) ou le
+          badge Bientôt si le contenu n'existe pas encore. Le libellé
+         /routes sont DÉRIVÉS des données du monde, jamais inventés. */}
+      <div className="ln-card w-full max-w-xl rounded-3xl p-5 text-left" role="group" aria-label="Mini-mondes prototype">
+        <div className="flex flex-wrap items-center gap-2">
+          {WORLD_CODES.map((code) => {
+            const w = WORLDS[code];
+            const activeWorld = code === world;
+            return (
+              <button
+                key={code}
+                type="button"
+                aria-pressed={activeWorld}
+                onClick={() => {
+                  setWorld(code);
+                  setSelectedMonument(null);
+                }}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                  activeWorld
+                    ? "border-gold/50 bg-gold/15 text-gold"
+                    : "border-white/15 text-ink-2 hover:border-gold/30 hover:text-ink"
+                }`}
               >
-                {l.label}
-              </a>
-            ))}
-          </nav>
-
-          <div className="flex-1 lg:hidden" />
-          <Link
-            to={isAuthenticated ? "/app" : "/auth"}
-            className="hidden rounded-full border border-white/10 px-4 py-2 text-sm text-ink-2 transition-colors hover:border-gold/40 hover:text-gold sm:block"
-          >
-            {isAuthenticated ? "Mon espace" : "Se connecter"}
-          </Link>
-          <MagneticButton
-            onClick={go}
-            className="rounded-full bg-gradient-to-r from-gold to-gold-soft px-5 py-2 text-sm font-semibold text-noir"
-          >
-            {isAuthenticated ? "Ouvrir" : "Commencer"}
-          </MagneticButton>
-
-          {/* Bouton hamburger — mobile et tablette (< lg) uniquement. */}
-          <button
-            type="button"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-            aria-expanded={menuOpen}
-            aria-controls="landing-mobile-nav"
-            className="flex size-10 shrink-0 items-center justify-center rounded-full border border-white/10 text-ink-2 transition-colors hover:border-gold/40 hover:text-gold lg:hidden"
-          >
-            {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
-          </button>
+                <span aria-hidden="true">{w.flag}</span>
+                {w.native}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Panneau mobile : mêmes liens que le desktop (source unique),
-            chaque cible tactile faisant au moins 44 px (min-h-11). */}
-        {menuOpen && (
-          <nav
-            id="landing-mobile-nav"
-            className="border-t border-white/5 bg-noir/95 backdrop-blur-xl lg:hidden"
+        <p className="mt-3 text-sm leading-relaxed text-ink-2">
+          <span className="font-semibold text-ink">{cfg.regionLabel}.</span>
+          {explored ? ` Monument sélectionné : ${explored.label}.` : ""}
+        </p>
+
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {cfg.monuments.map((m) => (
+            <button
+              key={m.kind}
+              type="button"
+              aria-pressed={selectedMonument === m.kind}
+              onClick={() => setSelectedMonument(selectedMonument === m.kind ? null : m.kind)}
+              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                selectedMonument === m.kind
+                  ? "border-gold/50 bg-gold/10 text-gold"
+                  : "border-white/10 text-ink-3 hover:border-gold/30 hover:text-ink-2"
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4 flex items-center justify-between gap-3">
+          {available ? (
+            <span className="font-mono text-[0.65rem] uppercase tracking-widest text-gold">Contenu disponible</span>
+          ) : (
+            <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-3">Bientôt</span>
+          )}
+          <Link
+            to={isAuthenticated ? "/app" : "/auth"}
+            className="rounded-xl bg-gradient-to-r from-gold to-gold-strong px-4 py-2 text-xs font-semibold text-noir shadow-md shadow-gold/20 transition-transform hover:scale-[1.03] active:scale-95"
           >
-            <ul className="mx-auto max-w-6xl px-3 py-2">
-              {NAV_LINKS.map((l) => (
-                <li key={l.href}>
-                  <a
-                    href={l.href}
-                    onClick={() => setMenuOpen(false)}
-                    className="flex min-h-11 items-center rounded-lg px-3 text-sm text-ink-2 transition-colors hover:bg-gold/10 hover:text-gold"
-                  >
-                    {l.label}
-                  </a>
-                </li>
-              ))}
-              {/* Le lien de connexion est masqué dans la barre sous sm : on
-                  le réexpose ici pour les écrans étroits. */}
-              <li className="mt-1 border-t border-white/5 pt-1 sm:hidden">
-                <Link
-                  to={isAuthenticated ? "/app" : "/auth"}
-                  onClick={() => setMenuOpen(false)}
-                  className="flex min-h-11 items-center rounded-lg px-3 text-sm text-ink-2 transition-colors hover:bg-gold/10 hover:text-gold"
+            {isAuthenticated ? "Ouvrir l'application" : "Commencer"}
+          </Link>
+        </div>
+
+        <p className="mt-3 text-[0.68rem] leading-relaxed text-ink-3">
+          Prototypes animés : fr · zh · sw. Les autres langues de la liste plus bas reçoivent leur monde dans les
+          prochaines itérations.
+        </p>
+      </div>
+
+      <p className="text-xs text-ink-3">{t("landing.reassurance")}</p>
+    </section>
+  );
+}
+
+/* Éviter le prop-drilling : le seul link du hero mène au parcours réel. */
+function authedFallback() {
+  return "/#langues";
+}
+
+/* Compteur d'apprenants : requête publique, chiffre réel, rien en repli. */
+function LearnerLine() {
+  const { t } = useI18n();
+  const state = useOptionalQuery(api.landingStats.getLandingStats, {});
+  if (state.data === undefined || state.unavailable) return null;
+  if (state.data.verifiedLearners <= 0) return null;
+  return <p className="text-sm text-ink-3">{t("landing.learners", { n: state.data.verifiedLearners })}</p>;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SCÈNE 2 — LA MÉTHODE (trois temps) + les modules média
+   `id="methode"` et `id="modules"`.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function MethodSection({ s }: { s: LandingSections }) {
+  const { t } = useI18n();
+
+  return (
+    <section id="methode" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-28">
+      <SceneHeader chapter={s.chapters.method} title={s.method.title} lead={s.method.eyebrow} />
+
+      <ol className="mt-12 grid gap-6 md:grid-cols-3">
+        {s.method.steps.map((step, i) => (
+          <motion.li
+            key={step.title}
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+            transition={{ delay: i * 0.08 }}
+            className="ln-card h-full rounded-2xl p-7"
+          >
+            <span className="font-mono text-xs text-gold/70">0{i + 1}</span>
+            <h3 className="mt-3 font-display text-xl font-semibold text-ink">{step.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-ink-2">{step.text}</p>
+          </motion.li>
+        ))}
+      </ol>
+
+      <p className="mt-8 text-xs text-ink-3">{s.method.note}</p>
+
+      {/* Modules média : routes réelles de l'app (nécessitent un compte
+          via le flux normal — c'est la continuité attendue). */}
+      <div id="modules" className="mt-20 scroll-mt-24">
+        <SceneHeader chapter={s.chapters.media} title={s.media.title} lead={s.media.body} />
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <li>
+            <Link to="/app/screen" className="ln-card flex h-full flex-col gap-3 rounded-2xl p-6 transition-colors hover:border-gold/30">
+              {icon(Film)}
+              <span className="font-display text-lg font-semibold text-ink">{t("mediaHub.tabs.screen")}</span>
+              <span className="flex items-center gap-1.5 text-xs text-ink-3">
+                <Mic className="size-3.5" aria-hidden="true" />
+                {s.media.available}
+              </span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/app/music" className="ln-card flex h-full flex-col gap-3 rounded-2xl p-6 transition-colors hover:border-gold/30">
+              {icon(Music)}
+              <span className="font-display text-lg font-semibold text-ink">{t("mediaHub.tabs.music")}</span>
+              <span className="flex items-center gap-1.5 text-xs text-ink-3">
+                <Mic className="size-3.5" aria-hidden="true" />
+                {s.media.available}
+              </span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/app/books" className="ln-card flex h-full flex-col gap-3 rounded-2xl p-6 transition-colors hover:border-gold/30">
+              {icon(BookOpen)}
+              <span className="font-display text-lg font-semibold text-ink">{t("mediaHub.tabs.books")}</span>
+              <span className="flex items-center gap-1.5 text-xs text-ink-3">
+                <Mic className="size-3.5" aria-hidden="true" />
+                {s.media.available}
+              </span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/app/talk" className="ln-card flex h-full flex-col gap-3 rounded-2xl p-6 transition-colors hover:border-gold/30">
+              {icon(Podcast)}
+              <span className="font-display text-lg font-semibold text-ink">{t("mediaHub.tabs.talk")}</span>
+              <span className="flex items-center gap-1.5 text-xs text-ink-3">
+                <Mic className="size-3.5" aria-hidden="true" />
+                {s.media.available}
+              </span>
+            </Link>
+          </li>
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function icon(Icon: typeof Film) {
+  return <Icon className="size-6 text-gold" strokeWidth={1.6} aria-hidden="true" />;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SCÈNE 3 — LES MOTS DANS LA VRAIE VIE (vitrine d'expressions réelles)
+   `id="argot"`. Données : api.slang.trending (top popularité globale,
+   multi-langues). Rien d'inventé : vivier vide ⇒ section absente.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function ShowcaseSection({ s }: { s: LandingSections }) {
+  const state = useOptionalQuery(api.slang.trending, { limit: 9 });
+  const cards = state.data ?? [];
+  const [activeIdx, setActiveIdx] = useState(0);
+  const active = cards[activeIdx];
+
+  if (state.unavailable || (state.data !== undefined && cards.length === 0)) return null;
+
+  return (
+    <section id="argot" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-28">
+      <SceneHeader chapter={s.chapters.showcase} title={s.showcase.title} lead={s.showcase.lead} />
+
+      <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.2fr] lg:items-start">
+        <ul className="flex flex-col gap-2">
+          {cards.map((c, i) => {
+            const meta = LANGUAGES.find((l) => l.code === c.language);
+            return (
+              <li key={c._id}>
+                <button
+                  type="button"
+                  aria-pressed={i === activeIdx}
+                  onFocus={() => setActiveIdx(i)}
+                  onMouseEnter={() => setActiveIdx(i)}
+                  onClick={() => setActiveIdx(i)}
+                  className={`flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${
+                    i === activeIdx ? "border-gold/40 bg-gold/[0.07]" : "border-white/10 hover:border-white/25"
+                  }`}
                 >
-                  {isAuthenticated ? "Mon espace" : "Se connecter"}
-                </Link>
+                  <span className="flex items-center gap-2.5">
+                    <span aria-hidden="true">{meta?.flag ?? "🌍"}</span>
+                    <span className="font-display text-lg font-semibold text-ink">« {c.expression} »</span>
+                  </span>
+                  <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-3">{meta?.name}</span>
+                </button>
               </li>
-            </ul>
-          </nav>
+            );
+          })}
+        </ul>
+
+        {active ? (
+          <motion.figure
+            key={active._id}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="ln-card rounded-2xl p-7"
+          >
+            <div className="flex items-center justify-between">
+              <figcaption className="font-mono text-[0.625rem] uppercase tracking-[0.25em] text-gold">
+                {s.showcase.listenLabel}
+              </figcaption>
+              <SpeakButton text={active.expression} language={active.language} />
+            </div>
+            <blockquote className="mt-3">
+              <p className="font-display text-3xl font-semibold text-ink">« {active.expression} »</p>
+            </blockquote>
+            <dl className="mt-5 space-y-3 text-sm">
+              <div>
+                <dt className="text-[0.7rem] uppercase tracking-widest text-ink-3">{s.showcase.meaningLabel}</dt>
+                <dd className="mt-1 text-ink">{active.meaning}</dd>
+              </div>
+              <div>
+                <dt className="text-[0.7rem] uppercase tracking-widest text-ink-3">{s.showcase.contextLabel}</dt>
+                <dd className="mt-1 italic text-ink-2">{active.context}</dd>
+              </div>
+            </dl>
+            <div className="mt-5 flex flex-wrap gap-2 text-[0.7rem] text-ink-3">
+              <span className="rounded-full border border-white/10 px-2.5 py-0.5">
+                {s.showcase.regionLabel}: {active.region}
+              </span>
+              <span className="rounded-full border border-white/10 px-2.5 py-0.5">
+                {s.showcase.registerLabel}: {active.register}
+              </span>
+            </div>
+          </motion.figure>
+        ) : (
+          <div className="ln-card h-72 animate-pulse rounded-2xl p-7" aria-hidden="true" />
         )}
-      </header>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SCÈNE 4 — LES LANGUES QUI MÉRITENT D'ÊTRE DÉCOUVERTES
+   `id="langues"`. Chaque langue listée est dans languages.ts.
+   Les stats restent SECONDAIRES, en dessous de la richesse essayée.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function LanguagesSection({ s }: { s: LandingSections }) {
+  const { t } = useI18n();
+  const numbers = useOptionalQuery(api.landingStats.getLandingNumbers, {});
+  const [hovered, setHovered] = useState<string | null>(null);
+  const fmt = useMemo(() => new Intl.NumberFormat("fr-FR"), []);
+
+  const clusters = [
+    {
+      title: LANGUAGES.find((l) => l.code === t("clusters.intl", { defaultValue: "en" }))?.name ?? "Langues internationales",
+      codes: ["en", "es", "zh", "ar", "ru", "pt", "de", "it", "pl", "el", "fr"],
+    },
+    {
+      title: "Voix moins représentées",
+      codes: ["wo", "sw", "ln", "ha", "yo", "zu", "ig", "am", "tr", "tl", "id", "th", "vi", "fa", "ur", "hi", "bn", "ko", "ja"],
+    },
+  ];
+
+  return (
+    <section id="langues" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-28">
+      <SceneHeader chapter={s.chapters.features} title={t("landing.features.title")} lead={t("landing.features.lead")} />
+
+      <div className="mt-10 grid gap-8 lg:grid-cols-2">
+        {clusters.map((cluster) => (
+          <motion.div
+            key={cluster.title}
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+            className={`ln-card rounded-2xl p-7 transition-colors ${hovered === cluster.title ? "border-gold/30 bg-white/[0.04]" : ""}`}
+            onMouseEnter={() => setHovered(cluster.title)}
+            onMouseLeave={() => setHovered(null)}
+          >
+            <Map className="size-6 text-gold" strokeWidth={1.6} aria-hidden="true" />
+            <h3 className="mt-3 font-display text-xl font-semibold text-ink">{cluster.title}</h3>
+            <ul className="mt-4 flex flex-wrap gap-2">
+              {cluster.codes
+                .map((code) => LANGUAGES.find((l) => l.code === code))
+                .filter((l): l is (typeof LANGUAGES)[number] => Boolean(l))
+                .map((meta) => (
+                  <li key={meta.code} className="flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-xs text-ink-2">
+                    <span aria-hidden="true">{meta.flag}</span>
+                    {meta.name}
+                  </li>
+                ))}
+            </ul>
+          </motion.div>
+        ))}
+      </div>
+
+      {numbers.data ? (
+        <dl className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-4" data-testid="proof-stats">
+          <div className="ln-card rounded-2xl p-5 text-center">
+            <dt className="font-display text-2xl font-bold text-gold">{t("landing.features.languagesValue")}</dt>
+            <dd className="mt-1.5 text-[0.68rem] uppercase tracking-widest text-ink-3">{t("landing.features.languagesLabel")}</dd>
+          </div>
+          <div className="ln-card rounded-2xl p-5 text-center">
+            <dt className="font-display text-2xl font-bold text-gold">{fmt.format(numbers.data.expressions)}</dt>
+            <dd className="mt-1.5 text-[0.68rem] uppercase tracking-widest text-ink-3">{t("landing.features.expressionsLabel")}</dd>
+          </div>
+          <div className="ln-card rounded-2xl p-5 text-center">
+            <dt className="font-display text-2xl font-bold text-gold">{numbers.data.avatars}</dt>
+            <dd className="mt-1.5 text-[0.68rem] uppercase tracking-widest text-ink-3">{t("landing.features.avatarLabel")}</dd>
+          </div>
+          <div className="ln-card rounded-2xl p-5 text-center">
+            <dt className="font-display text-2xl font-bold text-gold">{t("landing.features.cultureValue")}</dt>
+            <dd className="mt-1.5 text-[0.68rem] uppercase tracking-widest text-ink-3">{t("landing.features.cultureLabel")}</dd>
+          </div>
+        </dl>
+      ) : (
+        <div className="mt-14 h-24 animate-pulse rounded-2xl bg-white/[0.03]" aria-hidden="true" />
+      )}
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SCÈNE 5 — PARTICIPER (mini-quiz sans compte, réel)
+   Données : api.dailySlang.getDailySlang (publique). Correction :
+   mutation completeDailySlang — tenue côté serveur ; sans compte la
+   correction locale suffit, la PERSISTANCE attend l'inscription.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function QuizSection({ s }: { s: LandingSections }) {
+  const { isAuthenticated } = useAuth();
+  const state = useOptionalQuery(api.dailySlang.getDailySlang, {});
+  const complete = useMutation(api.dailySlang.completeDailySlang);
+  const [chosen, setChosen] = useState<number | null>(null);
+  const [serverCorrect, setServerCorrect] = useState<boolean | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  if (state.unavailable) return null;
+  const card = state.data;
+  if (!card) return null;
+  const answered = chosen !== null;
+
+  return (
+    <section id="quiz" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-28">
+      <SceneHeader chapter={s.chapters.quiz} title={s.quiz.title} lead={s.quiz.lead} />
+
+      <figure className="ln-card mx-auto mt-12 w-full max-w-lg rounded-2xl p-7" data-testid="daily-quiz">
+        <blockquote>
+          <p className="font-display text-3xl font-semibold text-ink">« {card.expression} »</p>
+          <p className="mt-2 text-sm text-ink-2">
+            {card.region} · {card.register}
+          </p>
+        </blockquote>
+
+        <ul className="mt-6 space-y-2" aria-label={s.quiz.pickLabel}>
+          {card.options.map((opt, i) => {
+            const isAnswer = i === card.answerIndex;
+            return (
+              <li key={opt}>
+                <button
+                  type="button"
+                  disabled={answered || card.completed || submitting}
+                  onClick={() => {
+                    if (answered || card.completed || submitting) return;
+                    setChosen(i);
+                    setSubmitting(true);
+                    if (isAuthenticated) {
+                      complete({ answerIndex: i })
+                        .then((res) => setServerCorrect(res.correct))
+                        .catch(() => setServerCorrect(null))
+                        .finally(() => setSubmitting(false));
+                    } else {
+                      setServerCorrect(null);
+                      setSubmitting(false);
+                    }
+                  }}
+                  className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition-colors ${
+                    answered && isAnswer
+                      ? "border-gold/40 bg-gold/10 text-ink"
+                      : answered && i === chosen
+                        ? "border-white/15 bg-white/[0.03] text-ink-2"
+                        : answered
+                          ? "border-white/5 text-ink-3"
+                          : "border-white/10 bg-white/[0.02] hover:border-gold/30"
+                  }`}
+                >
+                  {opt}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        <p className="sr-only" role="status">
+          {answered && serverCorrect === true ? s.quiz.correct : ""}
+        </p>
+
+        {answered ? (
+          <div className="mt-6 space-y-3 text-sm">
+            {isAnswerIdx(card, chosen) ? (
+              <p className="text-gold">{s.quiz.correct}</p>
+            ) : (
+              <p className="text-ink-3">{s.quiz.incorrect}</p>
+            )}
+            <p className="rounded-xl border border-white/10 bg-white/[0.02] p-3 text-xs text-ink-2">
+              <span className="font-semibold text-ink">{s.quiz.contextIntro} :</span> {card.context}
+            </p>
+            <p className="text-xs text-ink-3">
+              {isAuthenticated ? s.quiz.authedNote : s.quiz.guestNote}
+            </p>
+          </div>
+        ) : null}
+      </figure>
+    </section>
+  );
+}
+
+/* La logique visuelle : face au UX, on re-sélectionne la bonne réponse
+   localement même sans compte (lindex réel, sans re-attribuer le XP). */
+function isAnswerIdx(
+  card: { answerIndex: number },
+  chosen: number | null,
+): boolean {
+  return chosen === card.answerIndex;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SCÈNE 6 — LE SYSTÈME (les fonctions réelles)
+   Recherche/Atlas, ponts culturels, révisions espacées. "8 personnages
+   IA" — la copy est vérifiée par les guards (la table en compte 8).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function SystemSection({ s }: { s: LandingSections }) {
+  const items = [
+    { icon: Map, ...s.system.atlas },
+    { icon: Sparkles, ...s.system.bridges },
+    { icon: Repeat, ...s.system.revisions },
+  ];
+
+  return (
+    <section id="system" className="mx-auto max-w-6xl px-5 py-28">
+      <SceneHeader chapter={s.chapters.system} title={s.system.title} />
+      <ul className="mt-10 grid gap-6 md:grid-cols-3">
+        {items.map((item, i) => (
+          <motion.li
+            key={item.title}
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+            transition={{ delay: i * 0.06 }}
+            className="ln-card rounded-2xl p-6"
+          >
+            <item.icon className="size-6 text-gold" strokeWidth={1.6} aria-hidden="true" />
+            <h3 className="mt-3 font-display text-lg font-semibold text-ink">{item.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-ink-2">{item.text}</p>
+          </motion.li>
+        ))}
+      </ul>
+      <p className="mt-10 text-center font-display text-xl text-ink-2">
+        « Une langue, mille façons de la vivre. »
+      </p>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SCÈNE 7 — LA CONVERSION (prix dérivé, 1 bouton, 1 carte) `id="pricing"`
+   Aucun montant en dur : tout passe par lib/pricing.ts.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function PricingSection({ s, lang }: { s: LandingSections; lang: string }) {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  const monthly = formatEur(PREMIUM.monthlyEur);
+  const annual = formatEur(PREMIUM.annualEur);
+  const perDay = premiumPerDayEur();
+  const discount = premiumAnnualDiscountPct();
+
+  return (
+    <section id="pricing" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-28">
+      <SceneHeader chapter={s.chapters.pricing} title={s.pricing.title} lead={s.pricing.lead} />
+
+      {/* Le catalogue : 2 langues en parallèle + shadowing illimité + les
+          8 personnages IA (table aiCharacters). */}
+      <div className="mt-12 grid gap-8 lg:grid-cols-2 lg:items-start">
+        <div className="ln-card rounded-3xl p-8">
+          <div className="flex items-baseline gap-3">
+            <span className="font-display text-5xl font-bold text-ink">{monthly}</span>
+            <span className="text-sm text-ink-3">{s.pricing.monthlyLabel}</span>
+          </div>
+          <p className="mt-1 text-sm text-ink-2">
+            ≈ {perDay} {s.pricing.perDayLabel}
+          </p>
+          <div className="mt-5 flex items-center gap-3 text-sm">
+            <span className="rounded-full bg-gold/15 px-3 py-1 text-xs font-semibold text-gold">−{discount}%</span>
+            <span className="text-ink-3">{annual} / {s.pricing.annualLabel}</span>
+          </div>
+
+          <ul className="mt-6 space-y-2 text-sm text-ink-2">
+            {s.pricing.includes.map((item) => (
+              <li key={item} className="flex items-start gap-2">
+                <span aria-hidden="true" className="text-gold">✓</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+
+          {authLoading ? null : (
+            <div className="mt-7">
+              <PremiumCta lang={lang} label={s.pricing.ctaLabel ?? s.pricing.cta} returnTo="/#pricing" />
+            </div>
+          )}
+          <p className="mt-4 text-xs text-ink-3">{s.pricing.finePrint}</p>
+        </div>
+
+        <div className="ln-card rounded-3xl p-8">
+          <h3 className="font-display text-xl font-semibold text-ink">{s.pricing.manageSub}</h3>
+          {isAuthenticated ? (
+            <div className="mt-5">
+              <SubscriptionCard lang={lang} />
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-ink-2">
+              <Link to="/auth" className="text-gold hover:underline">
+                {s.nav.start}
+              </Link>
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── FAQ ───────────────────────────────────────────────────────────── */
+
+function FaqSection({ s }: { s: LandingSections }) {
+  const items = s.faq;
+  const [open, setOpen] = useState<string | null>(items[0]?.q ?? null);
+
+  return (
+    <section id="faq" className="mx-auto max-w-3xl scroll-mt-24 px-5 py-28">
+      <Eyebrow>FAQ</Eyebrow>
+      <h2 className="mt-3 font-display text-3xl font-semibold text-ink sm:text-4xl">FAQ</h2>
+
+      <dl className="mt-10 divide-y divide-white/5">
+        {items.map((item) => {
+          const isOpen = open === item.q;
+          return (
+            <div key={item.q} className="py-5">
+              <dt>
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  onClick={() => setOpen(isOpen ? null : item.q)}
+                  className="flex w-full items-center justify-between gap-4 text-left"
+                >
+                  <span className="font-display text-lg font-semibold text-ink">{item.q}</span>
+                  <span aria-hidden="true" className="text-xl text-gold">
+                    {isOpen ? "−" : "+"}
+                  </span>
+                </button>
+              </dt>
+              {isOpen && <dd className="mt-3 text-ink-2">{item.a}</dd>}
+            </div>
+          );
+        })}
+      </dl>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PAGE
+   ═══════════════════════════════════════════════════════════════════════ */
+
+export default function Landing() {
+  const { lang, t } = useI18n();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  const s = snapSections(lang);
+  const authed = !isLoading && isAuthenticated;
+
+  /* ── Mini-mondes : le prototype suit la langue d'interface quand il
+     existe (fr → fr, zh → zh) — sinon on ouvre sur fr, l'un des trois
+     prototypes, sans créer de hiérarchie entre eux. */
+  const [world, setWorld] = useState<WorldCode>(() => (lang === "zh" ? "zh" : "fr"));
+  const [selectedMonument, setSelectedMonument] = useState<string | null>(null);
+
+  /* Scène : ref partagée, écrite par le scroll, lue à chaque frame par
+     CameraRig dans le canvas — zéro re-render pendant le scroll. */
+  const scrollProgress = useRef(0);
+  useMotionValueEvent(useScroll().scrollYProgress, "change", (v) => {
+    scrollProgress.current = v;
+  });
+
+  return (
+    <div className="relative min-h-screen overflow-x-clip bg-noir text-ink">
+      {/* Le mini-monde 3D, fixe, derrière tout le contenu.
+          Le wrapper gère pointer-events (monuments cliquables) et replis. */}
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <MiniWorldHero
+          className="absolute inset-0 [&>div]:pointer-events-auto [&_canvas]:pointer-events-auto"
+          scrollProgress={scrollProgress}
+          world={world}
+          onSelect={(id) => setSelectedMonument(id)}
+        />
+      </div>
+
+      {/* Voile atmosphérique : protège la lisibilité sur les zones denses. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-[1]"
+        style={{
+          background:
+            "radial-gradient(70rem 36rem at 50% 0%, transparent 45%, color-mix(in srgb, var(--noir) 78%, transparent) 88%)",
+        }}
+      />
+
+      <LandingNav authed={authed} s={s} />
 
       <main className="relative z-10">
-        {/* ── Héro ────────────────────────────────────────────────── */}
-        {/* Entrée en cascade (`.hero-anim` + `hero-reveal` / `hero-fade`,
-            délai posé en ligne) et parallaxe curseur (`.ln-hero-layer`,
-            profondeur `--ln-depth`). Aucune bibliothèque d'animation
-            n'entre ici : le mouvement est du CSS plus une seule boucle
-            rAF. Le héros porte le LCP de la page publique, il ne doit
-            pas payer du JS décoratif en plus de three.js. */}
-        <section
-          ref={heroRef}
-          className="relative isolate mx-auto grid max-w-6xl items-center gap-12 px-5 pt-16 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:pt-24"
-        >
-          {/* Décor : une nappe dorée qui respire (22 s) et un halo plus
-              petit qui suit le curseur. Purement visuels —
-              `pointer-events: none`, `aria-hidden`. */}
-          <span aria-hidden="true" className="ln-hero-halo" />
-          <span
-            aria-hidden="true"
-            className="ln-hero-cursor ln-hero-layer"
-            style={{ ["--ln-depth" as string]: "26px" }}
-          />
+        <Hero world={world} setWorld={setWorld} selectedMonument={selectedMonument} setSelectedMonument={setSelectedMonument} />
+        <MethodSection s={s} />
+        <ShowcaseSection s={s} />
+        <LanguagesSection s={s} />
+        <QuizSection s={s} />
+        <SystemSection s={s} />
+        <PricingSection s={s} lang={lang} />
+        <FaqSection s={s} />
 
-          <div>
-            <p
-              className="hero-anim hero-fade ln-hero-layer inline-flex items-center gap-2 rounded-full border border-gold/25 bg-gold/[0.07] px-3.5 py-1.5 font-mono text-[0.625rem] tracking-[0.2em] text-gold uppercase"
-              style={{
-                animationDelay: "0s",
-                ["--ln-depth" as string]: "4px",
-              }}
-            >
-              <Waves className="size-3" />
-              {t("landing.badge")}
-            </p>
-
-            <h1
-              className="hero-anim hero-reveal mt-6 font-display text-3xl leading-[1.1] font-semibold sm:text-4xl md:text-5xl lg:text-6xl"
-              style={{ animationDelay: "0.1s" }}
-            >
-              {titleLines.map((line) => (
-                <span key={line} className="block">
-                  <RevealTitle text={line} />
-                </span>
-              ))}
-            </h1>
-
-            <p
-              className="hero-anim hero-fade mt-6 max-w-xl text-base leading-relaxed text-ink-2"
-              style={{ animationDelay: "0.3s" }}
-            >
-              {t("landing.subtitle")}
-            </p>
-
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+        <section className="mx-auto max-w-4xl px-5 py-28 text-center">
+          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={viewportOnce}>
+            <Eyebrow>{s.footer.tagline}</Eyebrow>
+            <h2 className="mt-3 font-display text-3xl font-semibold text-ink sm:text-5xl">
+              Commence ton immersion.
+            </h2>
+            <div className="mt-10">
               <Link
-                to={start}
-                className="ln-glow ln-sheen hero-anim hero-fade relative inline-flex w-full items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-gold to-gold-soft px-5 py-3 font-semibold text-noir transition-all duration-300 hover:scale-[1.03] active:scale-95 md:w-auto md:px-6"
-                style={{ animationDelay: "0.5s" }}
+                to={authed ? "/app" : "/auth"}
+                className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-gold to-gold-strong px-8 py-4 font-semibold text-noir shadow-lg shadow-gold/25 transition-transform hover:scale-[1.03] active:scale-95"
               >
-                <span aria-hidden="true" className="ln-shine" />
-                {t("landing.cta")}
-                <ArrowRight className="size-4" />
-              </Link>
-              {/* Le bouton secondaire suit la même entrée, juste après :
-                  sans ça, il apparaissait d'un coup à côté d'un CTA
-                  encore en train de se poser. */}
-              <a
-                href="#modules"
-                className="hero-anim hero-fade inline-flex w-full items-center justify-center rounded-xl border border-white/10 px-6 py-3.5 text-sm font-medium text-ink-2 transition-colors hover:border-gold/40 hover:text-gold md:w-auto"
-                style={{ animationDelay: "0.58s" }}
-              >
-                {t("landing.ctaSecondary")}
-              </a>
-            </div>
-
-            <p
-              className="hero-anim hero-fade mt-5 font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase"
-              style={{ animationDelay: "0.7s" }}
-            >
-              {t("landing.reassurance")}
-            </p>
-          </div>
-
-          {/* Context Card — la promesse du produit, rendue visible.
-              Une aura dorée tourne derrière la carte (26 s, floutée) :
-              elle donne au panneau une lumière qui ne s'arrête jamais,
-              sans ajouter une seule propriété animée de plus à la carte,
-              qui garde son inclinaison au curseur via `TiltCard`. */}
-          <div
-            className="hero-anim hero-reveal relative"
-            style={{ animationDelay: "0.35s" }}
-          >
-            <span aria-hidden="true" className="ln-hero-aura" />
-            <TiltCard className="ln-card relative rounded-2xl p-5">
-              <p className="flex items-center justify-between font-mono text-[0.625rem] tracking-[0.2em] text-ink-3 uppercase">
-                Context Card
-                <span className="rounded-full border border-gold/25 bg-gold/10 px-2.5 py-1 text-gold">
-                  street · US (AAVE)
-                </span>
-              </p>
-
-              <p className="mt-4 font-display text-3xl font-semibold text-gold">
-                finna
-              </p>
-              <p className="mt-1 text-sm text-ink-3">
-                sur le point de · littéralement « contraction de fixing to »
-              </p>
-
-              <div className="mt-5 space-y-3 text-sm">
-                <div>
-                  <p className="font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
-                    Contexte
-                  </p>
-                  <p className="mt-1 text-ink-2">
-                    « I'm finna leave » — AAVE essentiel, compris partout.
-                  </p>
-                </div>
-                <div>
-                  <p className="font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
-                    Registre
-                  </p>
-                  <p className="mt-1 text-ink-2">
-                    familier → street · jamais en entretien d'embauche
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                {["COMPRENDRE", "POURQUOI ?", "JE VEUX APPRENDRE ÇA"].map(
-                  (c) => (
-                    <span
-                      key={c}
-                      className="rounded-full border border-white/10 px-3 py-1.5 font-mono text-[0.625rem] tracking-wide text-ink-2"
-                    >
-                      {c}
-                    </span>
-                  ),
-                )}
-              </div>
-            </TiltCard>
-          </div>
-        </section>
-
-        {/* ── Globe + chiffres clés ───────────────────────────────
-            Le globe est chargé à la demande : three.js ne doit pas
-            entrer dans le bundle qui définit le LCP de la landing. */}
-        <section className="mx-auto max-w-6xl px-5 py-16">
-          <div className="grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="relative order-2 lg:order-1">
-              <div className="ln-globe-breathe relative mx-auto aspect-square w-full max-w-sm">
-                <Suspense
-                  fallback={
-                    <div className="size-full animate-pulse rounded-full border border-gold/20" />
-                  }
-                >
-                  <GlobeHero />
-                </Suspense>
-              </div>
-              <p className="mt-2 text-center text-xs text-ink-3">
-                {t("landing.globeCaption")}
-              </p>
-            </div>
-
-            <div className="order-1 lg:order-2">
-              <h2 className="font-display text-3xl font-semibold sm:text-4xl lg:text-5xl">
-                {t("landing.features.title")}
-              </h2>
-              <p className="mt-3 max-w-lg text-ink-2">{t("landing.features.lead")}</p>
-
-              {/* Les six tuiles apparaissent une à une à l'entrée dans le
-                  champ, une seule fois. Le conteneur cadence
-                  (`staggerChildren`), les tuiles ne portent que leur
-                  variante — aucun délai à maintenir à la main. */}
-              <motion.div
-                className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
-                variants={revealGroup}
-                initial={reducedMotion ? false : "hidden"}
-                whileInView={reducedMotion ? undefined : "show"}
-                viewport={REVEAL_VIEWPORT}
-              >
-                {[
-                  {
-                    // Même source que le titre de la section Langues :
-                    // `languageCount` (landingStats, repli copy i18n).
-                    value: languageCount,
-                    label: t("landing.features.languagesLabel"),
-                  },
-                  {
-                    value: expressionCount,
-                    label: t("landing.features.expressionsLabel"),
-                  },
-                  {
-                    value: t("landing.features.avatarValue"),
-                    label: t("landing.features.avatarLabel"),
-                  },
-                  {
-                    value: t("landing.features.cultureValue"),
-                    label: t("landing.features.cultureLabel"),
-                  },
-                  {
-                    value: t("landing.features.pronunciationValue"),
-                    label: t("landing.features.pronunciationLabel"),
-                  },
-                  {
-                    value: t("landing.features.verifiedValue"),
-                    label: t("landing.features.verifiedLabel"),
-                  },
-                ].map((f) => {
-                  /* Une valeur courte et numérique (« 29 », « 6 600+ »,
-                     « 3D », « 20 ») garde text-4xl : elle tient sur une ligne.
-                     Une valeur textuelle (« Audio native », « Base de données
-                     vérifiée ») descend à text-xl puis md:text-2xl : en 4xl,
-                     elle prenait 2 à 3 lignes sur mobile. Les 12 locales
-                     n'utilisent que des chiffres ASCII : tester le premier
-                     caractère suffit à trancher. */
-                  const numeric = /^\d/.test(f.value.trim());
-                  return (
-                    <motion.div
-                      key={f.label}
-                      variants={revealItem}
-                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-white/5 p-6 text-center"
-                    >
-                      <span
-                        className={`font-bold text-gold ${
-                          numeric
-                            ? "text-4xl"
-                            : "text-xl leading-tight md:text-2xl"
-                        }`}
-                      >
-                        {f.value}
-                      </span>
-                      <span className="text-sm font-medium text-ink-2">
-                        {f.label}
-                      </span>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-
-              {/* Social proof — donnée live, pas une statistique figée. */}
-              <p className="mt-8 flex items-center gap-2 text-sm text-ink-2">
-                <Sparkles className="size-4 text-gold" />
-                {t("landing.learners", { n: learners })}
-              </p>
-
-              <Link
-                to={start}
-                className="ln-glow mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-soft px-6 py-3.5 font-semibold text-noir transition-transform hover:-translate-y-0.5"
-              >
-                {t("landing.cta")}
-                <ArrowRight className="size-4" />
+                {authed ? s.nav.open : t("landing.cta")}
+                <ArrowRight className="size-5" aria-hidden="true" />
               </Link>
             </div>
-          </div>
-        </section>
-
-        {/* ── Le problème / la méthode ────────────────────────────── */}
-        <section
-          id="methode"
-          className="border-y border-white/5 bg-noir-2/40 py-20"
-        >
-          <div className="mx-auto max-w-6xl px-5">
-            <SectionTitle
-              eyebrow="La méthode"
-              title="Arrête d'apprendre une langue qui n'existe pas"
-              lead="Les applications classiques t'apprennent à commander un café. KILINGO t'apprend à comprendre une punchline, une interview, un refrain — la langue telle qu'elle se parle."
-            />
-
-            <div className="mt-12 grid gap-4 md:grid-cols-3">
-              {[
-                {
-                  icon: Clapperboard,
-                  title: "CONTENU × LANGUE × CULTURE",
-                  text: "Un même extrait produit du vocabulaire, de l'argot, de la grammaire, de la prononciation et du contexte culturel — pas une leçon isolée.",
-                },
-                {
-                  icon: Brain,
-                  title: "Neurosciences, pas de points",
-                  text: "Répétition espacée, rappel actif, explication des erreurs. On te dit pourquoi tu confonds, pas seulement que tu t'es trompé.",
-                },
-                {
-                  icon: Gauge,
-                  title: "Language DNA",
-                  text: "Ton profil n'est pas un niveau A1/B2 : écoute, lecture, prononciation, argot, compréhension rapide — chacun avec ses forces et ses manques.",
-                },
-              ].map((c) => (
-                <TiltCard key={c.title} className="ln-card p-6">
-                  <span className="flex size-11 items-center justify-center rounded-xl border border-gold/20 bg-gold/10">
-                    <c.icon className="size-5 text-gold" />
-                  </span>
-                  <h3 className="mt-4 font-display text-lg font-semibold">
-                    {c.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-2">
-                    {c.text}
-                  </p>
-                </TiltCard>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Modules ─────────────────────────────────────────────── */}
-        <section id="modules" className="mx-auto max-w-6xl px-5 py-20">
-          <SectionTitle
-            eyebrow="Modules"
-            title="Un univers, pas un cours"
-            lead="Chaque module peut évoluer indépendamment. Tous alimentent la même mémoire et le même profil linguistique."
-          />
-
-          <motion.div
-            className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-            variants={revealGroup}
-            initial={reducedMotion ? false : "hidden"}
-            whileInView={reducedMotion ? undefined : "show"}
-            viewport={REVEAL_VIEWPORT}
-          >
-            {MODULES.map((m) => (
-              /* Le wrapper est la tuile de la grille : il porte l'entrée
-                 au défilement ET la montée au survol. Le TiltCard à
-                 l'intérieur garde son inclinaison — les deux `transform`
-                 sont sur deux éléments distincts, donc ils se composent
-                 au lieu de s'écraser. `h-full` : sans lui, la carte
-                 cessait de remplir sa ligne et les cartes d'une même
-                 rangée n'avaient plus la même hauteur. */
-              <motion.div
-                key={m.name}
-                variants={revealItem}
-                whileHover={
-                  reducedMotion
-                    ? undefined
-                    : {
-                        y: -8,
-                        transition: { duration: 0.3, ease: "easeOut" },
-                      }
-                }
-                className="h-full"
-              >
-                {/* `hover:shadow-xl hover:shadow-gold/10` est la classe
-                    demandée ; elle est neutralisée à l'écran par
-                    `.ln-card:hover` (règle non layerisée, prioritaire sur
-                    `@layer utilities`). L'intensification réelle est donc
-                    portée par `.ln-card-glow`, déclarée après elle. Le
-                    détail est commenté dans `index.css`. */}
-                <TiltCard className="ln-card ln-card-glow hover:shadow-xl hover:shadow-gold/10 h-full p-6">
-                  <div className="flex items-start justify-between">
-                    <span className="flex size-11 items-center justify-center rounded-xl border border-gold/20 bg-gold/10">
-                      <m.icon className="size-5 text-gold" />
-                    </span>
-                    <span className="font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
-                      {m.tag}
-                    </span>
-                  </div>
-                  <h3 className="mt-4 font-display text-lg font-semibold">
-                    {m.name}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-2">
-                    {m.text}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-1">
-                    {m.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="rounded-full border border-white/10 px-2.5 py-1 text-[0.625rem] text-ink-3"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </TiltCard>
-              </motion.div>
-            ))}
           </motion.div>
         </section>
 
-        {/* ── Argot ───────────────────────────────────────────────── */}
-        <section
-          id="argot"
-          className="border-y border-white/5 bg-noir-2/40 py-20"
-        >
-          <div className="mx-auto max-w-6xl px-5">
-            <SectionTitle
-              eyebrow="Slang Engine"
-              title="On ne traduit pas l'argot, on l'explique"
-              /* Le compteur est le MÊME que celui du hero (mesuré côté
-                 Convex, repli i18n) : écrit en dur, il avait dérivé de
-                 974 à 4 136 expressions sans que rien ne le signale. */
-              lead={`Signification naturelle, traduction littérale, contexte, registre, variantes, exemples — et l'avertissement qui va avec. La base embarquée compte ${expressionCount} expressions, du verlan au drill.`}
-            />
-
-            <div className="mt-12 grid gap-4 md:grid-cols-3">
-              {SLANG_SAMPLES.map((s, i) => (
-                <div
-                  key={s.expr}
-                  className="ln-card ln-stagger-item p-5"
-                  style={{ ["--ln-i" as string]: i }}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-display text-xl font-semibold text-gold">
-                      {s.expr}
-                    </p>
-                    <span className="shrink-0 rounded-full border border-white/10 px-2.5 py-1 font-mono text-[0.625rem] text-ink-3">
-                      {s.region}
-                    </span>
-                  </div>
-                  <p className="mt-3 text-sm text-ink">{s.meaning}</p>
-                  <p className="mt-1 text-xs text-ink-3 italic">{s.literal}</p>
-                  <p className="mt-3 text-xs leading-relaxed text-ink-2">
-                    {s.context}
-                  </p>
-                  <p className="mt-3 font-mono text-[0.625rem] tracking-widest text-gold uppercase">
-                    {REGISTERS[s.register] ?? s.register}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Language DNA + Daily Drop ───────────────────────────── */}
-        <section className="mx-auto grid max-w-6xl gap-4 px-5 py-20 lg:grid-cols-2">
-          <TiltCard className="ln-card p-6">
-            <p className="font-mono text-[0.625rem] tracking-[0.3em] text-gold uppercase">
-              Language DNA
-            </p>
-            <h3 className="mt-3 font-display text-2xl font-semibold">
-              Ton profil, en détail
-            </h3>
-            <p className="mt-2 text-sm text-ink-2">
-              Exemple de profil : chaque axe évolue séparément, pour savoir quoi
-              travailler — et pas seulement « où tu en es ».
-            </p>
-            <ul className="mt-6 space-y-3">
-              {DNA.map((d) => (
-                <li key={d.label}>
-                  <div className="flex items-baseline justify-between text-xs">
-                    <span className="text-ink-2">{d.label}</span>
-                    <span className="font-mono text-ink-3">{d.value} %</span>
-                  </div>
-                  <div
-                    className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/5"
-                    role="progressbar"
-                    aria-label={d.label}
-                    aria-valuenow={d.value}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                  >
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-gold-strong to-gold-soft"
-                      style={{ width: `${d.value}%` }}
-                    />
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-5 text-[0.6875rem] text-ink-3">
-              Données d'illustration — ton profil réel se construit à partir de
-              ce que tu écoutes, lis et révises.
-            </p>
-          </TiltCard>
-
-          <div className="space-y-4">
-            <TiltCard className="ln-card p-6">
-              <p className="font-mono text-[0.625rem] tracking-[0.3em] text-gold uppercase">
-                Daily Drop
-              </p>
-              <h3 className="mt-3 font-display text-2xl font-semibold">
-                Ta mission du jour
-              </h3>
-              <ul className="mt-5 space-y-2 text-sm">
-                {[
-                  { icon: Headphones, t: "10 minutes d'écoute active" },
-                  { icon: Sparkles, t: "5 nouvelles expressions" },
-                  { icon: Brain, t: "10 révisions en rappel actif" },
-                  { icon: Mic, t: "5 minutes de shadowing" },
-                  { icon: Subtitles, t: "1 exercice de compréhension" },
-                ].map((r) => (
-                  <li
-                    key={r.t}
-                    className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-3.5 py-2.5"
-                  >
-                    <r.icon className="size-4 shrink-0 text-gold" />
-                    <span className="text-ink-2">{r.t}</span>
-                  </li>
-                ))}
-              </ul>
-            </TiltCard>
-
-            <TiltCard className="ln-card p-6">
-              <p className="flex items-center gap-2 font-mono text-[0.625rem] tracking-[0.3em] text-gold uppercase">
-                <ShieldCheck className="size-3.5" />
-                Contenus & droits
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-ink-2">
-                Ton propre contenu importé reste privé. Tout ce que tu vois
-                dans l'app se lit directement ici — films, musiques, livres,
-                podcasts et vidéos.
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-ink-2">
-                Les contenus proviennent de sources ouvertes et sont analysés
-                pour toi : transcription, traduction, argot.
-              </p>
-            </TiltCard>
-          </div>
-        </section>
-
-        {/* ── Langues ─────────────────────────────────────────────── */}
-        <section
-          id="langues"
-          className="border-y border-white/5 bg-noir-2/40 py-20"
-        >
-          <div className="mx-auto max-w-6xl px-5">
-            <SectionTitle
-              eyebrow="Langues"
-              title={`${languageCount} langues d'apprentissage, une même exigence`}
-              lead="Interface disponible en douze langues, dont le français, l'anglais, l'espagnol, le mandarin, l'arabe (RTL) et le russe. D'autres s'ajoutent sans toucher au reste."
-            />
-            <div className="mt-12 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {LANGUAGES.map((l, i) => (
-                <div
-                  key={l.code}
-                  className="ln-card ln-stagger-item relative p-5 text-center"
-                  style={{ ["--ln-i" as string]: i }}
-                >
-                  {/* La langue encore vide garde sa carte : la promesse est
-                      datée, pas cachée. La carte, elle, surligne déjà ses pays. */}
-                  {languageIsComingSoon(l.code) && (
-                    <SoonBadge className="absolute top-3 right-3" />
-                  )}
-                  <span className="text-3xl">{l.flag}</span>
-                  <p className="mt-3 font-display text-lg font-semibold">
-                    {l.name}
-                  </p>
-                  <p className="mt-1 font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
-                    {l.countries}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mx-auto mt-14 max-w-3xl">
-              <div className="grid gap-4 sm:grid-cols-3">
-                {[
-                  { icon: Search, label: "Recherche universelle" },
-                  { icon: Captions, label: "Transcription & traduction" },
-                  { icon: Languages, label: "Interface multilingue" },
-                ].map((f) => (
-                  <div
-                    key={f.label}
-                    className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3"
-                  >
-                    <f.icon className="size-4 shrink-0 text-gold" />
-                    <span className="text-sm text-ink-2">{f.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Tarifs ────────────────────────────────────────────────
-            Destination des trois invites Premium (« /#pricing »).
-
-            AUCUN montant n'est écrit ici : les valeurs viennent de
-            `lib/pricing.ts`, la source unique que la landing partage avec
-            la caisse. Un prix qui bouge sans qu'on mette la page à jour
-            casse un contrôle au lieu de mentir en silence.
-
-            La carte gratuite est écrite en clair, et pas seulement la
-            payante : ce qui reste gratuit est une promesse, il doit donc
-            être lisible au même endroit que le prix. */}
-        <section
-          id="pricing"
-          className="scroll-mt-24 border-y border-white/5 bg-noir-2/40 py-20"
-        >
-          <div className="mx-auto max-w-6xl px-5">
-            <SectionTitle
-              eyebrow="Tarifs"
-              title="La boucle d'apprentissage reste gratuite"
-              lead="Argot, quiz, révisions espacées, XP, badges et export Anki / CSV : gratuits pour toujours, sans carte bancaire. Premium n'ouvre que ce qui coûte réellement des ressources — langues en parallèle, shadowing illimité, personnages IA."
-            />
-
-            <div className="mx-auto mt-12 grid max-w-4xl gap-4 md:grid-cols-2">
-              {/* Gratuit */}
-              <div className="ln-card flex flex-col p-6">
-                <p className="font-mono text-[0.625rem] tracking-[0.3em] text-ink-3 uppercase">
-                  Gratuit
-                </p>
-                <p className="mt-3 font-display text-3xl font-semibold">
-                  0 €
-                </p>
-                <p className="mt-1 text-xs text-ink-3">
-                  Pour toujours · aucune carte bancaire
-                </p>
-
-                <ul className="mt-5 flex-1 space-y-2 text-sm text-ink-2">
-                  {[
-                    "Une langue active (elle ne disparaît jamais, même en changeant de focus)",
-                    "5 analyses Shadow par jour, compteur visible et remise à zéro chez toi",
-                    "Baba Street et Mama Wisdom, avec tous leurs scénarios",
-                    "Argot, quiz, révisions, XP, badges et export Anki / CSV",
-                  ].map((item) => (
-                    <li key={item} className="flex gap-2 leading-relaxed">
-                      <Check className="mt-0.5 size-4 shrink-0 text-gold" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link
-                  to={start}
-                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-5 py-3 text-sm font-medium text-ink-2 transition-colors hover:border-gold/40 hover:text-gold"
-                >
-                  {isAuthenticated ? "Ouvrir mon espace" : "Commencer gratuitement"}
+        <footer className="border-t border-white/5 px-5 py-10 text-sm text-ink-3">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
+            <span className="font-display font-semibold tracking-wide text-ink-2">Kɪ́LINGO</span>
+            <ul className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <li>
+                <a href="mailto:contact@kilingo.app" className="transition-colors hover:text-ink">
+                  {s.footer.contact}
+                </a>
+              </li>
+              <li>
+                <Link to="/auth" className="transition-colors hover:text-ink">
+                  {s.footer.login}
                 </Link>
-              </div>
-
-              {/* Premium — le seul CTA principal de cette section. */}
-              <div className="ln-card relative flex flex-col border-gold/30 p-6">
-                <span className="absolute -top-3 right-5 rounded-full border border-gold/40 bg-noir px-3 py-1 font-mono text-[0.625rem] tracking-widest text-gold uppercase">
-                  Deux langues en parallèle
-                </span>
-                <p className="font-mono text-[0.625rem] tracking-[0.3em] text-gold uppercase">
-                  Premium
-                </p>
-                <p className="mt-3 font-display text-3xl font-semibold text-gold">
-                  {formatEur(PREMIUM.monthlyEur)}
-                  <span className="ml-1 text-base font-normal text-ink-2">
-                    / mois
-                  </span>
-                </p>
-
-                <ul className="mt-5 space-y-2 text-sm text-ink-2">
-                  {[
-                    "Deux langues actives en parallèle, sans compteur ni plafond",
-                    "Shadowing illimité : plus aucune analyse décomptée",
-                    "Les 8 personnages IA, chacun avec sa voix et son registre",
-                  ].map((item) => (
-                    <li key={item} className="flex gap-2 leading-relaxed">
-                      <Sparkles className="mt-0.5 size-4 shrink-0 text-gold" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Le bouton de paiement n'est monté qu'ICI : c'est ce
-                    montage qui interroge l'état du prestataire et écrit sa
-                    réponse en base. La classe passée est celle des autres
-                    CTA de la page (le défaut du composant vise un style
-                    qui n'existe pas dans cette feuille). */}
-                <PremiumCta
-                  lang={lang}
-                  label={`Démarrer l'essai de ${PREMIUM.trialDays} jours`}
-                  fallbackHref={start}
-                  className="ln-glow mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-soft px-5 py-3 font-semibold text-noir transition-transform hover:-translate-y-0.5"
-                />
-
-                <p className="mt-3 text-[0.6875rem] leading-relaxed text-ink-3">
-                  {PREMIUM.trialDays} jours d'essai, sans prélèvement avant la
-                  fin. Annulation à tout moment, en un clic depuis les
-                  réglages. Ou {formatEur(PREMIUM.annualEur)} par an —{" "}
-                  {premiumAnnualDiscountPct()} % de moins, soit{" "}
-                  {premiumPerDayEur()} par jour.
-                </p>
-              </div>
-            </div>
-
-            {/* Ce qui est déjà ouvert sur CE compte : la carte ne s'affiche
-                qu'une fois connecté, parce que « gérer mon abonnement » ne
-                veut rien dire pour un visiteur. */}
-            {isAuthenticated ? (
-              <div className="mx-auto mt-6 max-w-4xl">
-                <SubscriptionCard lang={lang} />
-              </div>
-            ) : null}
+              </li>
+            </ul>
           </div>
-        </section>
-
-        {/* ── CTA final ───────────────────────────────────────────── */}
-        <section className="mx-auto max-w-3xl px-5 py-24 text-center">
-          <Flame className="mx-auto size-8 text-gold" />
-          <h2 className="mt-5 font-display text-3xl font-semibold sm:text-4xl lg:text-5xl">
-            <ShimmerTitle>Commence ton immersion.</ShimmerTitle>
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-ink-2">
-            Choisis jusqu'à deux langues de focus, et laisse tes films, ta
-            musique et tes podcasts faire le reste. Aucun paiement, aucune
-            dépendance à un service payant pour le cœur du produit.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link
-              to={start}
-              className="ln-glow inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-soft px-7 py-3.5 font-semibold text-noir transition-transform hover:-translate-y-0.5"
-            >
-              {isAuthenticated ? "Ouvrir mon espace" : "Créer mon profil"}
-              <ArrowRight className="size-4" />
-            </Link>
-            <Link
-              to={isAuthenticated ? "/app" : "/auth"}
-              className="rounded-xl border border-white/10 px-7 py-3.5 text-sm font-medium text-ink-2 transition-colors hover:border-gold/40 hover:text-gold"
-            >
-              {isAuthenticated ? "Continuer" : "J'ai déjà un compte"}
-            </Link>
-          </div>
-        </section>
+        </footer>
       </main>
-
-      <footer className="relative z-10 border-t border-white/5 py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 text-center sm:flex-row sm:text-left">
-          <BrandLink to="/" size="sm" />
-          <p className="max-w-xl text-[0.6875rem] leading-relaxed text-ink-3">
-            Watch it. Hear it. Get it. — Uniquement des contenus qui se
-            lisent directement dans l'app.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

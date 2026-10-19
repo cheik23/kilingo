@@ -63,6 +63,9 @@
   --color-magenta: var(--accent-magenta);
   --color-magenta-deep: var(--accent-magenta-deep);
   --color-magenta-ink: var(--accent-magenta-ink, var(--accent-magenta-deep));
+  /* Améthyste : accent violet du duo « Dark Luxury Tech » (or + améthyste).
+     Décoratif uniquement (dégradés de surfaces, lueurs), jamais en texte. */
+  --color-amethyst: var(--amethyst);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
@@ -98,22 +101,29 @@
      s'affiche correctement avant tout JS (index.html pose déjà
      `data-theme="dark"`). La variante claire est un override explicite
      plus bas (`html[data-theme="light"]`). */
-  --bg: #1a1f3a; /* --bg-primary : bleu nuit profond */
-  --text: #f5f1e8; /* --text-primary : blanc chaud */
-  --card-bg: #232946; /* --bg-surface */
-  --noir: #1a1f3a;
-  --noir-2: #232946;
-  --noir-3: #2b3154; /* --bg-elevated : bleu nuit élevé (modales) */
+  /* ─╞ PALETTE « LAGUNE » ═ menthe · turquoise · rose · ivoire ──
+     L'identité encre/or laisse la place à une identité lumineuse :
+     nuit = bleu-vert profond #17484A, jour = ivoire chaud #FFF8EF.
+     Les NOMS de variables (gold / magenta / noir) sont conservés
+     pour la compat des classes : ce sont désormais des tokens sémanti-
+     ques (action principale / accent secondaire / surface), pas des
+     couleurs au sens strict. */
+  --bg: #17484a; /* --bg-primary : bleu-vert profond */
+  --text: #fff8ef; /* --text-primary : ivoire chaud */
+  --card-bg: #1f5a5c; /* --bg-surface */
+  --noir: #17484a;
+  --noir-2: #1f5a5c;
+  --noir-3: #276a6a; /* --bg-elevated : lagune élevée (modales) */
 
   /* ── Design tokens : or, typo, ombres ─────────────────────────── */
-  --gold-primary: #f5c542; /* or vif (décoratif) */
-  --gold-deep: #d4af37; /* or profond */
-  --gold-light: #f7de9b;
-  --gold-dark: #d4af37;
-  --gold-text: #f5c542; /* or lisible sur noir (10.6:1) */
+  --gold-primary: #42cdba; /* turquoise vif (décoratif) */
+  --gold-deep: #2cb3a1; /* turquoise profond */
+  --gold-light: #a7e8d6; /* menthe */
+  --gold-dark: #2cb3a1;
+  --gold-text: #9bebebdc; /* menthe lisible sur lagune (≈7:1) */
   --gold: var(--gold-primary);
   --gold-strong: var(--gold-deep);
-  --gold-soft: #f7de9b;
+  --gold-soft: #a7e8d6;
   /* « Nuit de Lagos » : le rose magenta est la couleur d'action
      secondaire. Les noms de variables restent `magenta` — c'est bien
      la teinte, la compat des classes `bg-magenta` est préservée.
@@ -122,21 +132,31 @@
      APLAT (fond de bouton, badge), jamais une couleur de texte. Pour un
      libellé magenta sur fond sombre, utiliser `--accent-magenta-text`
      (#EC6E9B, 5.6:1). */
-  --accent-magenta: #e91e63;
-  --accent-magenta-deep: #c2185b;
-  --accent-magenta-ink: #b01247; /* lisible sur fond clair */
-  --accent-magenta-text: #ec6e9b; /* magenta en TEXTE sur fond nuit */
-  --accent-secondary: #e91e63;
-  --accent-secondary-deep: #c2185b;
+  /* Rose pastel : accent secondaire « pétillant ». Aplat uniquement
+     (#F3A9C8, ≈2.5:1 sur lagune) ; en TEXTE utiliser
+     --accent-magenta-text (#F9D9E7, ≈7:1 sur surface élevée). */
+  --accent-magenta: #f3a9c8;
+  --accent-magenta-deep: #e279a5;
+  --accent-magenta-ink: #c2618e; /* lisible sur fond clair */
+  --accent-magenta-text: #f9d9e7; /* rose en TEXTE sur fond nuit */
+  --accent-secondary: #f3a9c8;
+  --accent-secondary-deep: #e279a5;
+
+  /* Améthyste #A78BFA — accent violet décoratif nuit (sur bleu nuit,
+     un aplat de surface à 5-10 %, jamais du texte). */
+  /* Accent décoratif nuit : parme doux (surfaces 5-10 %, jamais texte). */
+  --amethyst: #c9a7e8;
 
   /* Terracotta #E2725B — urgence/erreur uniquement (5.2:1 sur bleu nuit).
      Sur les surfaces élevées (modales, `bg-noir-3/60` → #282E4E) il
      descend à 4.3:1 : c'est pourquoi `text-terracotta` pointe vers
      `--terracotta-text` (#F08A76, 5.6:1). Le token `terracotta` reste
      l'aplat des bannières et badges. */
+  /* Corail : urgence/erreur uniquement. Sur lagune le brut #E2725B ne
+     tient pas 4.5:1 → texte = variante claire (#FF9E8A, ≈5:1). */
   --terracotta: #e2725b;
   --terracotta-ink: #e2725b;
-  --terracotta-text: #f08a76; /* terracotta en TEXTE sur fond nuit */
+  --terracotta-text: #ff9e8a;
 
   --ln-font-display: "Playfair Display", Georgia, "Times New Roman", serif;
   --ln-font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -153,19 +173,19 @@
   /* ── Couleurs de la couche 3D (Jabari, coffre, globe, particules) ─
      Lues par `useThemeColors` : une paire de valeurs par thème, donc
      aucune lecture de variable CSS au milieu d'une frame. */
-  --fx-3d-gold: #f5c542;
-  --fx-3d-gold-deep: #d4af37;
-  --fx-3d-accent: #e91e63;
-  --fx-3d-suit: #232946;
-  --fx-3d-env: #1a1f3a;
+  --fx-3d-gold: #42cdba;
+  --fx-3d-gold-deep: #2cb3a1;
+  --fx-3d-accent: #f3a9c8;
+  --fx-3d-suit: #1f5a5c;
+  --fx-3d-env: #17484a;
 
-  /* ── Gradients signature « Nuit de Lagos » ─────────────────────── */
-  --gradient-hero: linear-gradient(135deg, #1a1f3a 0%, #232946 50%, #2b3154 100%);
-  --gradient-gold: linear-gradient(135deg, #f5c542 0%, #d4af37 100%);
-  --gradient-magenta: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+  /* ── Gradients signature « Lagune » ───────────────────────── */
+  --gradient-hero: linear-gradient(135deg, #17484a 0%, #1f5a5c 50%, #276a6a 100%);
+  --gradient-gold: linear-gradient(135deg, #42cdba 0%, #2cb3a1 100%);
+  --gradient-magenta: linear-gradient(135deg, #f3a9c8 0%, #e279a5 100%);
   /* Alias historique : l'app utilisait ce nom quand l'accent était olive.
      Il repart sur le magenta pour éviter un token mort. */
-  --gradient-olive: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+  --gradient-olive: linear-gradient(135deg, #f3a9c8 0%, #e279a5 100%);
 
   /* Module D — rythme de mouvement : 3 durées + 3 courbes. */
   --ln-dur-fast: 150ms;
@@ -211,13 +231,13 @@
   --ln-lh-title: 1.25;
   --ln-lh-body: 1.6;
   --ln-lh-small: 1.5;
-  --silver: #aebfd4;
-  --ink: #f5f1e8; /* texte primaire */
-  --ink-2: #b8c5d6; /* texte secondaire (12:1) */
-  --ink-3: #9aa8ba; /* texte tertiaire (6.7:1 fond · 5.2:1 modale) */
-  --noir: #1a1f3a;
-  --noir-2: #232946;
-  --noir-3: #2b3154;
+  --silver: #b8dcd4;
+  --ink: #fff8ef; /* texte primaire (ivoire) */
+  --ink-2: #c9e7df; /* texte secondaire (≈12:1) */
+  --ink-3: #9ccfc5; /* texte tertiaire (≈5:1) */
+  --noir: #17484a;
+  --noir-2: #1f5a5c;
+  --noir-3: #276a6a;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -287,10 +307,12 @@
      pour les composants shadcn et doit donc porter exactement les mêmes
      valeurs — sinon la classe gagnerait sur `:root` et réintroduirait
      l'ancienne palette. */
-  --gold-primary: #f5c542;
-  --gold-light: #f7de9b;
-  --gold-dark: #d4af37;
-  --gold-text: #f5c542;
+  /* Mêmes tokens de marque que `:root` (la nuit). `.dark` reste supporté
+     et porte les mêmes valeurs — sinon la classe gagnerait sur `:root`. */
+  --gold-primary: #42cdba;
+  --gold-light: #a7e8d6;
+  --gold-dark: #2cb3a1;
+  --gold-text: #9bebec;
   --gold: var(--gold-primary);
   --gold-strong: var(--gold-dark);
   --gold-soft: var(--gold-light);
@@ -434,28 +456,29 @@ html[data-theme="light"],
 html.theme-light {
   color-scheme: light;
 
-  --bg: #faf0e6; /* fond crème */
-  --text: #2c1810; /* texte principal (16:1) */
-  --card-bg: #f3e7d3; /* surface */
-  --noir: #faf0e6;
-  --noir-2: #f3e7d3;
-  --noir-3: #e8d9c0; /* elevated */
+  --bg: #fff8ef; /* ivoire chaud */
+  --text: #17484a; /* bleu-vert profond (≈15:1 sur ivoire) */
+  --card-bg: #fcf3e9; /* surface */
+  --noir: #fff8ef;
+  --noir-2: #fcf3e9;
+  --noir-3: #f3e6db; /* elevated */
 
-  --gold-primary: #8a5a33; /* or foncé lisible */
-  --gold-deep: #6e4626;
-  --gold-light: #a3724a;
-  --gold-dark: #6e4626;
-  --gold-text: #8a5a33;
+  --gold-primary: #2cb3a1; /* turquoise lisible en aplat */
+  --gold-deep: #0f5f55;
+  --gold-light: #42cdba;
+  --gold-dark: #0f5f55;
+  --gold-text: #12766a; /* texte turquoise-deep (≈5:1 sur ivoire) */
   --gold: var(--gold-primary);
-  --gold-strong: #6e4626;
-  --gold-soft: #6e4626; /* CTA : assez sombre pour un libellé crème */
+  --gold-strong: #0f5f55;
+  --gold-soft: #12766a; /* CTA : assez sombre pour un libellé ivoire */
 
-  --accent-magenta: #556b1f; /* olive */
-  --accent-magenta-deep: #44561a;
-  --accent-magenta-ink: #36450f;
-  --accent-secondary: #556b1f;
-  --accent-secondary-deep: #44561a;
+  --accent-magenta: #c65b8e; /* rose profond */
+  --accent-magenta-deep: #a8466f;
+  --accent-magenta-ink: #93405f;
+  --accent-secondary: #c65b8e;
+  --accent-secondary-deep: #a8466f;
   --accent-magenta-text: #556b1f; /* même logique : olive profond en texte */
+  --amethyst: #8a6fc9; /* parme plus profond : contraste sur ivoire */
 
   --terracotta: #e2725b;
   --terracotta-ink: #a8462f; /* le ton brut ne tient pas 4.5:1 sur crème */
@@ -463,31 +486,31 @@ html.theme-light {
      du token texte : ici c'est le ton profond qui sert de libellé. */
   --terracotta-text: #a8462f;
 
-  --silver: #8a7d6b;
-  --ink: #2c1810;
-  --ink-2: #6b5744; /* texte secondaire (6.1:1) */
-  --ink-3: #6e5a47; /* tertiaire (5.8:1 crème · 4.7:1 elevated) */
-  --border: rgba(138, 90, 51, 0.2);
+  --silver: #6e8a82;
+  --ink: #17484a;
+  --ink-2: #3a6a64; /* texte secondaire (≈6:1) */
+  --ink-3: #4a7a73; /* tertiaire (≈5:1) */
+  --border: rgba(18, 118, 106, 0.2);
 
-  --gradient-hero: linear-gradient(135deg, #faf0e6 0%, #f3e7d3 50%, #e8d9c0 100%);
-  --gradient-gold: linear-gradient(135deg, #8a5a33 0%, #6e4626 100%);
-  --gradient-magenta: linear-gradient(135deg, #556b1f 0%, #44561a 100%);
-  --gradient-olive: linear-gradient(135deg, #556b1f 0%, #44561a 100%);
+  --gradient-hero: linear-gradient(135deg, #fff8ef 0%, #fcf3e9 50%, #f3e6db 100%);
+  --gradient-gold: linear-gradient(135deg, #2cb3a1 0%, #12766a 100%);
+  --gradient-magenta: linear-gradient(135deg, #c65b8e 0%, #a8466f 100%);
+  --gradient-olive: linear-gradient(135deg, #c65b8e 0%, #a8466f 100%);
 
   --ln-shadow-sm: 0 1px 2px rgba(44, 24, 16, 0.08), 0 1px 3px rgba(44, 24, 16, 0.06);
   --ln-shadow-md: 0 4px 6px -1px rgba(44, 24, 16, 0.12), 0 2px 4px -1px rgba(44, 24, 16, 0.08);
   --ln-shadow-lg: 0 12px 24px -6px rgba(44, 24, 16, 0.16), 0 6px 10px -6px rgba(44, 24, 16, 0.1);
   --ln-shadow-xl: 0 24px 48px -12px rgba(44, 24, 16, 0.22), 0 12px 20px -8px rgba(44, 24, 16, 0.12);
 
-  /* Couche 3D : or et olive foncés, lisibles sur crème. */
-  --fx-3d-gold: #8a5a33;
-  --fx-3d-gold-deep: #6e4626;
-  --fx-3d-accent: #556b1f;
-  --fx-3d-suit: #6b5744;
-  --fx-3d-env: #e8d9c0;
+  /* Couche 3D : turquoise et rose profonds, lisibles sur ivoire. */
+  --fx-3d-gold: #12766a;
+  --fx-3d-gold-deep: #0f5f55;
+  --fx-3d-accent: #c65b8e;
+  --fx-3d-suit: #3a6a64;
+  --fx-3d-env: #e9efec;
 
   /* Inversion sémantique : les voiles `white/N` deviennent sombres. */
-  --color-white: #2c1810;
+  --color-white: #17484a;
 }
 
 /* Changement de thème (Paramètres) : transition de couleur douce.
@@ -854,9 +877,9 @@ label {
 .animate-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(212, 165, 116, 0) 0%,
-    rgba(212, 165, 116, 0.25) 50%,
-    rgba(212, 165, 116, 0) 100%
+    rgba(66, 205, 186, 0) 0%,
+    rgba(66, 205, 186, 0.25) 50%,
+    rgba(66, 205, 186, 0) 100%
   );
   background-size: 200% 100%;
   animation: ln-shimmer 2.4s linear infinite;
@@ -864,6 +887,12 @@ label {
 
 .animate-marquee {
   animation: ln-marquee 36s linear infinite;
+}
+
+/* La bande défilante se fige au survol : le lecteur doit pouvoir reprendre
+   une entrée de la liste, pas la lire en courant. */
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
 
 .text-gradient-gold {
@@ -916,6 +945,20 @@ label {
     color-mix(in srgb, var(--gold-primary) 12%, transparent) 0%,
     color-mix(in srgb, var(--gold-primary) 4%, transparent) 55%,
     transparent 100%
+  );
+}
+
+/* Surface « givré » de la landing : dégradé améthyste diagonal demandé
+   par la maquette (`bg-gradient-to-br from-amethyst/5 to-transparent`).
+   Même piège que ci-dessus : sur `.ln-card`, l'utilitaire Tailwind est
+   SANS EFFET — le dégradé est porté ici, non layerisé, APRÈS `.ln-card`,
+   avec la valeur brute `--amethyst` (jamais `--color-amethyst`, que
+   `@theme inline` inline dans les seules utilitaires générées). */
+.ln-card-frost {
+  background-image: linear-gradient(
+    to bottom right,
+    color-mix(in srgb, var(--amethyst) 5%, transparent) 0%,
+    transparent 65%
   );
 }
 
@@ -1134,11 +1177,11 @@ label {
   border-radius: 9999px;
   background: radial-gradient(
     circle,
-    #e8cfae 0%,
-    #d4a574 45%,
-    rgba(212, 165, 116, 0) 100%
+    #d9f7ee 0%,
+    #42cdba 45%,
+    rgba(66, 205, 186, 0) 100%
   );
-  box-shadow: 0 0 6px rgba(212, 165, 116, 0.55);
+  box-shadow: 0 0 6px rgba(66, 205, 186, 0.55);
   animation-name: ln-ember-rise;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
@@ -1149,9 +1192,9 @@ label {
 .ln-shimmer-text {
   background: linear-gradient(
     110deg,
-    #b8956a 25%,
-    #f3e4cf 45%,
-    #b8956a 65%
+    #2cb3a1 25%,
+    #d9fbf2 45%,
+    #2cb3a1 65%
   );
   background-size: 200% 100%;
   -webkit-background-clip: text;
@@ -1243,10 +1286,10 @@ label {
   pointer-events: none;
   background: linear-gradient(
     105deg,
-    rgba(243, 228, 207, 0) 30%,
-    rgba(243, 228, 207, 0.14) 48%,
-    rgba(184, 149, 106, 0.12) 52%,
-    rgba(184, 149, 106, 0) 70%
+    rgba(255, 248, 239, 0) 30%,
+    rgba(255, 248, 239, 0.14) 48%,
+    rgba(66, 205, 186, 0.12) 52%,
+    rgba(66, 205, 186, 0) 70%
   );
   transform: translateX(-110%);
   opacity: 0;
@@ -1294,10 +1337,10 @@ label {
 @keyframes ln-slang-pulse {
   0%,
   100% {
-    box-shadow: 0 0 8px rgba(212, 165, 116, 0.35);
+    box-shadow: 0 0 8px rgba(66, 205, 186, 0.35);
   }
   50% {
-    box-shadow: 0 0 18px rgba(212, 165, 116, 0.5);
+    box-shadow: 0 0 18px rgba(66, 205, 186, 0.5);
   }
 }
 
@@ -1323,13 +1366,13 @@ label {
 }
 
 .ln-word-past {
-  color: #d4a574;
+  color: #58c9b5;
   transition: color 120ms linear;
 }
 
 .ln-word-current {
   color: #fdf3e3;
-  text-shadow: 0 0 14px rgba(212, 165, 116, 0.65);
+  text-shadow: 0 0 14px rgba(167, 232, 214, 0.65);
   transform: scale(1.06);
   display: inline-block;
   transition:
@@ -1376,8 +1419,8 @@ label {
   top: 50%;
   left: 50%;
   border-radius: 9999px;
-  background: radial-gradient(circle, #f6e7d0 0%, #d4a574 60%);
-  box-shadow: 0 0 8px rgba(212, 165, 116, 0.7);
+  background: radial-gradient(circle, #f9d9e7 0%, #f3a9c8 60%);
+  box-shadow: 0 0 8px rgba(243, 169, 200, 0.7);
   animation: ln-burst 700ms ease-out forwards;
   pointer-events: none;
 }
@@ -1477,7 +1520,7 @@ label {
    n'existe QUE dans l'animation, donc rien ne reste une fois la lecture
    finie. Coupé en `prefers-reduced-motion` (voir le bloc plus bas).
 
-   Le doré est écrit en rgba LITTÉRAL (#d4af37, la valeur de `--gold-deep`),
+   Le halo est écrit en rgba LITTÉRAL (#2CB3A1, la valeur de `--gold-deep`),
    comme `ln-slang-pulse` juste au-dessus — et pour une raison mesurée, pas
    par oubli : la même clé écrite avec `color-mix(in srgb, var(--gold-deep)
    40%, transparent)` face à `transparent` n'est PAS interpolable par
@@ -1489,15 +1532,15 @@ label {
 @keyframes ln-speak-ring {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 0 0 rgba(66, 205, 186, 0.4);
   }
   50% {
     transform: scale(1.15);
-    box-shadow: 0 0 0 12px rgba(212, 175, 55, 0);
+    box-shadow: 0 0 0 12px rgba(66, 205, 186, 0);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+    box-shadow: 0 0 0 0 rgba(66, 205, 186, 0);
   }
 }
 
@@ -1657,7 +1700,8 @@ label {
   .hero-anim,
   .ln-hero-halo,
   .ln-hero-aura,
-  .ln-globe-breathe {
+  .ln-globe-breathe,
+  .animate-marquee {
     animation: none !important;
   }
 
@@ -2003,8 +2047,8 @@ fieldset:disabled {
    Mêmes teintes que la scène R3F : la substitution est invisible. */
 .ln-network-fallback {
   background-image:
-    radial-gradient(circle at 18% 22%, rgba(212, 165, 116, 0.18) 0%, transparent 45%),
-    radial-gradient(circle at 78% 68%, rgba(107, 142, 35, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 18% 22%, rgba(66, 205, 186, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 78% 68%, rgba(243, 169, 200, 0.16) 0%, transparent 45%),
     var(--gradient-hero);
   animation: ln-network-drift 24s ease-in-out infinite alternate;
 }

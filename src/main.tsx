@@ -75,7 +75,7 @@ const SignLanguageView = lazy(
 const SignCreditsView = lazy(
   () => import("@/components/learner/SignCreditsView").then((m) => ({ default: m.SignCreditsView })),
 );
-const Landing = lazy(() => import("./pages/Landing.tsx"));
+const Landing = lazy(() => import("./pages/Landing.tsx").then((m: any) => ({ default: m.default })));
 const AuthPage = lazy(() => import("./pages/Auth.tsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
