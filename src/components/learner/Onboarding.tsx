@@ -1,15 +1,20 @@
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { LANGUAGES, type LanguageCode } from "@/convex/languages";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Check, ChevronRight, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MascotStage, useMascotSafe } from "@/components/three/MascotProvider";
 import { FlagIcon } from "@/components/ui/FlagIcon";
 import { SoonBadge } from "@/components/ui/SoonBadge";
 import { languageIsComingSoon } from "@/data/contentLanguages";
 import { LanguageCapModal } from "./LanguageCapModal";
+import {
+  clearOnboardingDraft,
+  loadOnboardingDraft,
+  saveOnboardingDraft,
+} from "@/lib/onboardingPersistence";
 import { isLanguageCapError } from "@/lib/premiumLimits";
 import { useI18n } from "@/lib/i18n";
 
@@ -26,11 +31,27 @@ const INTERESTS = [
 
 export function Onboarding() {
   const setFocus = useMutation(api.learning.setFocus);
-  const [step, setStep] = useState(0);
-  const [selected, setSelected] = useState<LanguageCode[]>([]);
+  /* Brouillon d'onboarding (recette 9eed807 : un rechargement avant la
+     finalisation perdait la sélection). L'état du FORMULAIRE est rechargé
+     depuis sessionStorage — le même mécanisme éphémère que « Explorer
+     d'abord » côté AppShell — mais l'écriture serveur reelle reste
+     unique et portée au contrat : setFocus à la finalisation, avec la
+     garde serveur du plafond. Un choix rechargé ne contourne donc jamais
+     les limites Premium. */
+  const draft = useMemo(() => loadOnboardingDraft(), []);
+  const [step, setStep] = useState(draft?.step ?? 0);
+  const [selected, setSelected] = useState<LanguageCode[]>(
+    (draft?.selected ?? []) as LanguageCode[],
+  );
   // Une langue encore vide se choisit quand même : le badge l'annonce, la
   // géographie et le focus fonctionnent dès maintenant.
-  const [interests, setInterests] = useState<string[]>([]);
+  const [interests, setInterests] = useState<string[]>(draft?.interests ?? []);
+  /* Brouillon persisté à chaque changement d'état du formulaire : le
+     rechargement restaure exactement le choix en cours (langues,
+     intérêts, étape) sans jamais écrire au backend. */
+  useEffect(() => {
+    saveOnboardingDraft({ step, selected, interests });
+  }, [step, selected, interests]);
   const [saving, setSaving] = useState(false);
   const { t } = useI18n();
   const [capModalOpen, setCapModalOpen] = useState(false);
@@ -73,6 +94,9 @@ export function Onboarding() {
     setSaving(true);
     try {
       await setFocus({ languages: selected });
+      // Finalisation réussie : le brouillon d'interface n'a plus de raison
+      // d'être (le profil serveur fait désormais foi).
+      clearOnboardingDraft();
       mascot?.play("celebrate", 3000);
       mascot?.say("mascot.greet3");
       toast.success("Bienvenue dans l'ombre 🖤", {
