@@ -4,7 +4,7 @@ import { LANGUAGES, type LanguageCode } from "@/convex/languages";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Moon, Sparkles, Timer } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createSessionClock, type SessionClock } from "@/lib/sessionClock";
 import {
   hasVoiceFor,
@@ -29,26 +29,43 @@ const mb = (bytes: number) =>
 
 const DURATIONS = [15, 30, 45];
 
+/* Choix aléatoire du prochain énoncé, isolé au niveau module : la pureté
+   du rendu (react-hooks/purity) interdit Math.random() dans le corps du
+   composant. La boucle de session l'appelle DANS SON TIMER, jamais
+   pendant un rendu — le comportement produit (énoncé tiré au sort parmi
+   le deck de la langue active) est strictement inchangé. */
+const pickRandom = <T,>(items: T[]): T =>
+  items[Math.floor(Math.random() * items.length)];
+
 export function SleepView() {
   const myLanguages = useQuery(api.learning.myLanguages);
   const recordSession = useMutation(api.learning.recordSession);
 
-  const [lang, setLang] = useState<LanguageCode>("en");
+  /* Langue active SANS setState dans un effet (react-hooks
+     /set-state-in-effect) : l'ancien sync `setLang(firstActive)` dans
+     l'effet myLanguages cascadaient un rendu à chaque résolution de la
+     requête. L'état porte désormais uniquement le CHOIX explicite de
+     l'utilisateur ; avant ce choix, `lang` est DÉRIVÉ au rendu de la
+     première langue active (puis la première) — valeur pure, jamais
+     obsolète, et le choix utilisateur garde la priorité une fois posé. */
+  const [chosenLang, setChosenLang] = useState<LanguageCode | null>(null);
+  const fallbackLang = useMemo<LanguageCode>(() => {
+    if (!myLanguages || myLanguages.rows.length === 0) return "en";
+    const firstActive = myLanguages.rows.find((r) => r.active);
+    return (firstActive ?? myLanguages.rows[0]).language as LanguageCode;
+  }, [myLanguages]);
+  const lang = chosenLang ?? fallbackLang;
   const [duration, setDuration] = useState(30);
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   /* Playlist de la langue SÉLECTIONNÉE — plus la mixture multilingue
      globale (trending) que la session prononçait avec le mauvais tag BCP-47
      (preuve live : « مش »/« Ок » envoyés au moteur en lang="en-US").
-     La requête existante `slang.list` est exacte par langue. */
+     La requête existante `slang.list` est exacte par langue. La valeur
+     dérivée est mémoïsée : l'effet « refs latest » ci-dessous doit se
+     réexécuter UNIQUEMENT quand le contenu change, jamais à chaque rendu. */
   const playlistRows = useQuery(api.slang.list, { language: lang, limit: 8 });
-
-  useEffect(() => {
-    if (myLanguages && myLanguages.rows.length > 0) {
-      const firstActive = myLanguages.rows.find((r) => r.active);
-      setLang((firstActive ?? myLanguages.rows[0]).language as LanguageCode);
-    }
-  }, [myLanguages]);
+  const playlist = useMemo(() => playlistRows ?? [], [playlistRows]);
 
   /* ── Chronomètre de session (horloge pure sessionClock.ts) ──
      Décision produit : la PAUSE suspend le média ET le décompte — sous
@@ -154,9 +171,9 @@ export function SleepView() {
      jour en dehors du fil de l'effet (setTimeout 0) pour ne jamais
      cascader pendant son exécution — le moteur fait le reste honnêtement.
      La RELANCE de la boucle sur la nouvelle langue se fait dans le
-     handler de clic (chooseLang) : les refs y restent libres, et un
-     simple setLang par l'effet myLanguages (mont) ne déclenche jamais
-     de boucle fantôme. */
+     handler de clic (chooseLang) : les refs y restent libres, et la
+     langue dérivée au rendu (sans setState d'effet) ne déclenche jamais
+     de boucle fantôme au montage. */
   useEffect(() => {
     stopSpeaking();
     stopPiper();
@@ -171,11 +188,17 @@ export function SleepView() {
   const runningRef = useRef(false);
   const nextTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const playlist = playlistRows ?? [];
   const playlistRef = useRef(playlist);
-  playlistRef.current = playlist;
   const langRef = useRef(lang);
-  langRef.current = lang;
+  /* Refs « latest » : écrites dans des EFFETS (jamais pendant le rendu,
+     règle react-hooks/refs) — les timers hors cycle React lisent la
+     fermeture la plus fraîche sans recréer l'interval à chaque rendu. */
+  useEffect(() => {
+    playlistRef.current = playlist;
+  }, [playlist]);
+  useEffect(() => {
+    langRef.current = lang;
+  }, [lang]);
 
   const scheduleNext = (delayMs: number) => {
     if (nextTimerRef.current) clearTimeout(nextTimerRef.current);
@@ -194,7 +217,7 @@ export function SleepView() {
     // Pause douce entre chaque énoncé : le rythme « endormant » du produit.
     await new Promise((r) => setTimeout(r, 1200));
     if (!runningRef.current) return;
-    const item = items[Math.floor(Math.random() * items.length)];
+    const item = pickRandom(items);
     const text = speakableText(item.expression);
     /* Réel à l'instant T : la voix native est réinterrogée, on ne se fie
        pas au seul état initial (les voix se chargent en asynchrone). */
@@ -279,7 +302,7 @@ export function SleepView() {
      le média étant coupé, plus rien n'est réellement en pause — le
      décompte reprend (aucune ancienne voix, aucun ancien chrono). */
   const chooseLang = (code: LanguageCode) => {
-    setLang(code);
+    setChosenLang(code);
     if (!runningRef.current) return;
     scheduleNextRef.current?.(900);
     setTimeout(() => {
