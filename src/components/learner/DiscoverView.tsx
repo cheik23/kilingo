@@ -206,6 +206,21 @@ export function DiscoverView() {
 
   const deckItems = useMemo(() => deck ?? [], [deck]);
   const [deckIndex, setDeckIndex] = useState(0);
+
+  /* Changement de filtre (langue, pays ou registre) : la pile REPART DU
+     DÉBUT. Sans ce reset, l'index formé sur l'ancien deck reste collé au
+     nouveau : la première carte du filtre choisi saute (« 7 / 30 » vu
+     alors qu'on n'a rien affiché) et un deck plus court donne un « vide »
+     faux, alors que des cartes existent. Pattern React officiel
+     « adjust state during render » — pas d'effet, donc pas de rendu en
+     cascade (react-hooks/exhaustive-deps). */
+  const filtersKey = `${langFilter}\u0000${countryFilter}\u0000${registerFilter}`;
+  const [deckFiltersKey, setDeckFiltersKey] = useState(filtersKey);
+  if (deckFiltersKey !== filtersKey) {
+    setDeckFiltersKey(filtersKey);
+    if (deckIndex !== 0) setDeckIndex(0);
+  }
+
   const current = deckItems[deckIndex];
   const behind = deckItems.slice(deckIndex + 1, deckIndex + 3);
   const [burst, setBurst] = useState(0);
@@ -316,6 +331,24 @@ export function DiscoverView() {
   const setLang = useCallback((l: LanguageCode | "all") => {
     setLangFilter(l);
     setCountryFilter("all"); // un pays n'a de sens que dans sa langue
+    setDeckIndex(0);
+    /* Le reset de l'index est batché DANS LE MÊME EVENT que le changement
+       de filtre : le premier frame committé ne peut jamais décrire un
+       compteur de l'ancien filtre (même si la requête du nouveau deck
+       tarde). Le filet « adjust state during render » ci-dessus reste en
+       place pour tout autre chemin d'écriture. */
+  }, []);
+
+  /* Même garantie pour les chips pays et registre : filtre + index dans
+     un seul batch de mise à jour (règle React : setState d'un event
+     handler est batché, zéro rendu en cascade). */
+  const setCountry = useCallback((c: string) => {
+    setCountryFilter(c);
+    setDeckIndex(0);
+  }, []);
+  const setRegister = useCallback((k: string) => {
+    setRegisterFilter(k);
+    setDeckIndex(0);
   }, []);
 
   /* ── Transform de la carte active ─────────────────────────────────── */
@@ -403,7 +436,7 @@ export function DiscoverView() {
         <div className="flex flex-wrap items-center gap-2">
           <Globe className="size-3.5 text-ink-3" />
           <button
-            onClick={() => setCountryFilter("all")}
+            onClick={() => setCountry("all")}
             className={`rounded-full border px-3 py-1 font-mono text-[0.6875rem] transition-colors ${
               countryFilter === "all"
                 ? "border-gold/50 bg-gold/10 text-gold"
@@ -417,7 +450,7 @@ export function DiscoverView() {
           {allCountries.map((c) => (
             <button
               key={c.code}
-              onClick={() => setCountryFilter(c.code)}
+              onClick={() => setCountry(c.code)}
               className={`rounded-full border px-3 py-1 text-[0.6875rem] transition-colors ${
                 countryFilter === c.code
                   ? "border-gold/50 bg-gold/10 text-gold"
@@ -432,7 +465,7 @@ export function DiscoverView() {
 
       <div className="flex flex-wrap items-center gap-2">
         <button
-          onClick={() => setRegisterFilter("all")}
+          onClick={() => setRegister("all")}
           className={`rounded-full border px-3 py-1 text-[0.6875rem] transition-colors ${
             registerFilter === "all"
               ? "border-gold/50 bg-gold/10 text-gold"
@@ -444,7 +477,7 @@ export function DiscoverView() {
         {REGISTER_IDS.map((k) => (
           <button
             key={k}
-            onClick={() => setRegisterFilter(k)}
+            onClick={() => setRegister(k)}
             className={`rounded-full border px-3 py-1 text-[0.6875rem] transition-colors ${
               registerFilter === k
                 ? "border-gold/50 bg-gold/10 text-gold"

@@ -170,6 +170,10 @@ export function MemoryView() {
   const favoriteIds = useQuery(api.favorites.favoriteSlangIds, {});
   const toggleFavorite = useMutation(api.favorites.toggleSlangFavorite);
   const favorites = useMemo(() => new Set(favoriteIds ?? []), [favoriteIds]);
+  /* Favoris purs (le cœur ne programme JAMAIS la révision) : même source
+     que Mon espace. Ils fusionnent plus bas avec le deck SRS pour rester
+     retrouvables ici même, sans polluer « À revoir » ni « Plus tard ». */
+  const favs = useQuery(api.favorites.mySlangFavorites, {});
 
   const [query, setQuery] = useState("");
   const [langF, setLangF] = useState<LanguageCode | "all">("all");
@@ -180,12 +184,45 @@ export function MemoryView() {
 
   const now = Date.now();
 
+  /* Rangées « favori pur » : pas de carte SRS (le cœur range sans
+     programmer). Identifiant stable d'expression (`slang._id`), date
+     d'ajout réelle, jamais due — la fusion ci-dessous les rend presentes
+     dans la même liste paginée, recherchables et filtrables par langue. */
+  const favRows = useMemo(
+    () =>
+      (favs ?? []).map((f) => ({
+        card: {
+          _id: `fav:${f.favoriteId}` as string,
+          _creationTime: f.addedAt,
+          nextReview: Number.MAX_SAFE_INTEGER,
+          repetitions: 0,
+          status: "learning" as string,
+        },
+        slang: f.slang,
+        favOnly: true as const,
+      })),
+    [favs],
+  );
+
   const filtered = useMemo(() => {
-    const rows = (deck ?? []).map(({ card, slang }) => ({ card, slang }));
+    const deckRows = (deck ?? []).map(({ card, slang }) => ({
+      card,
+      slang,
+      favOnly: false as const,
+    }));
+    // Pas de doublon : un favori déjà « appris » vit déjà dans le deck.
+    const srsIds = new Set(deckRows.map((r) => r.slang._id));
+    const rows = [
+      ...favRows.filter((f) => !srsIds.has(f.slang._id)),
+      ...deckRows,
+    ];
     const q = query.trim().toLowerCase();
     return rows
-      .filter(({ card, slang }) => {
+      .filter(({ card, slang, favOnly }) => {
         if (langF !== "all" && slang.language !== langF) return false;
+        // Un favori pur est visible sous « Tous les statuts » uniquement :
+        // il n'appartient à aucun état du SRS (jamais programmé).
+        if (statusF !== "all" && favOnly) return false;
         if (statusF === "due" && card.nextReview > now) return false;
         if (statusF === "later" && card.nextReview <= now) return false;
         if (statusF === "mastered" && card.status !== "mastered") return false;
@@ -208,7 +245,7 @@ export function MemoryView() {
             return a.card.nextReview - b.card.nextReview;
         }
       });
-  }, [deck, query, langF, statusF, sort, now]);
+  }, [deck, favRows, query, langF, statusF, sort, now]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount - 1);
@@ -380,7 +417,7 @@ export function MemoryView() {
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {rows.map(({ card, slang }, i) => {
+            {rows.map(({ card, slang, favOnly }, i) => {
               const lang = LANGUAGES.find((l) => l.code === slang.language);
               const rk = registerKey(slang.register);
               const fav = favorites.has(slang._id);
@@ -457,26 +494,36 @@ export function MemoryView() {
                   <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-white/5 pt-2.5 font-mono text-[0.625rem] text-ink-3">
                     <span
                       className={`rounded-full border px-2 py-0.5 uppercase ${
-                        card.status
-                          ? (STATUS_BADGE[card.status] ?? "border-white/10")
-                          : "border-white/10"
+                        favOnly
+                          ? "border-gold/40 bg-gold/10 text-gold"
+                          : card.status
+                            ? (STATUS_BADGE[card.status] ?? "border-white/10")
+                            : "border-white/10"
                       }`}
                     >
-                      {card.status
-                        ? t(`memory.badge_${card.status}`)
-                        : t("memory.badge_learning")}
+                      {favOnly
+                        ? "❤ Favori"
+                        : card.status
+                          ? t(`memory.badge_${card.status}`)
+                          : t("memory.badge_learning")}
                     </span>
-                    <span>· {t("memory.reps", { n: card.repetitions })}</span>
-                    <span>
-                      ·{" "}
-                      {due
-                        ? t("memory.dueBadge")
-                        : t("memory.nextIn", {
-                            d: Math.ceil(
-                              (card.nextReview - now) / 86_400_000,
-                            ),
-                          })}
-                    </span>
+                    {/* Favori pur : jamais programmé — pas de chiffres SRS.
+                        La date d'ajout est réelle (addedAt du favori). */}
+                    {!favOnly && (
+                      <>
+                        <span>· {t("memory.reps", { n: card.repetitions })}</span>
+                        <span>
+                          ·{" "}
+                          {due
+                            ? t("memory.dueBadge")
+                            : t("memory.nextIn", {
+                                d: Math.ceil(
+                                  (card.nextReview - now) / 86_400_000,
+                                ),
+                              })}
+                        </span>
+                      </>
+                    )}
                     <span>
                       ·{" "}
                       {t("memory.addedOn", {

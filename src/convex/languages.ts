@@ -323,13 +323,15 @@ const REGISTER_LEGACY: Record<string, RegisterId> = {
 };
 
 /**
- * Clé normalisée d'un registre, quel que soit l'âge de la donnée.
+ * Clé normalisée d'un registre, quel que soit l'âge de la donnée :
+ * casse et espaces parasites tolérés (« Street », « casual  »…).
  * Retourne null pour une valeur inconnue (affichée brute).
  */
 export function registerKey(r: string): RegisterId | null {
-  const legacy = REGISTER_LEGACY[r];
+  const raw = r.trim().toLowerCase();
+  const legacy = REGISTER_LEGACY[raw];
   if (legacy) return legacy;
-  return (REGISTER_IDS as readonly string[]).includes(r) ? (r as RegisterId) : null;
+  return (REGISTER_IDS as readonly string[]).includes(raw) ? (raw as RegisterId) : null;
 }
 
 /**
