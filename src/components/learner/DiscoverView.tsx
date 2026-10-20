@@ -222,6 +222,12 @@ export function DiscoverView() {
   }
 
   const current = deckItems[deckIndex];
+  /* Identifiant dérivé PUR (lecture d'un état au rendu, sans mutation) :
+     les effets ci-dessous réagissent à l'IDENTITÉ de la carte et n'ont
+     jamais besoin de l'objet complet — le simple `_id` évite que
+     exhaustive-deps demande l'objet `current` entier (déclencheur trop
+     large) tout en gardant exactement le même comportement. */
+  const currentId = current?._id;
   const behind = deckItems.slice(deckIndex + 1, deckIndex + 3);
   const [burst, setBurst] = useState(0);
 
@@ -285,21 +291,21 @@ export function DiscoverView() {
 
   /* Toute carte affichée entre dans l'historique "shown" (FIFO 300). */
   useEffect(() => {
-    if (!current) return;
+    if (!currentId) return;
     const list = readIds("discover_shown");
-    if (!list.includes(current._id)) pushId("discover_shown", current._id);
-  }, [current?._id]);
+    if (!list.includes(currentId)) pushId("discover_shown", currentId);
+  }, [currentId]);
 
   /* Clavier : → = swipe droit (réviser), ← = swipe gauche (plus tard). */
   useEffect(() => {
-    if (tab !== "deck" || !current) return;
+    if (tab !== "deck" || !currentId) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") swipe("right");
       else if (e.key === "ArrowLeft") swipe("left");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [tab, current?._id, swipe]);
+  }, [tab, currentId, swipe]);
 
   const filtersActive =
     langFilter !== "all" || countryFilter !== "all" || registerFilter !== "all";

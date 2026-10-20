@@ -1,4 +1,9 @@
-import { useMemo, useState } from "react";
+import {
+  useCallback,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
@@ -162,6 +167,39 @@ const STATUS_BADGE: Record<string, string> = {
   mastered: "border-emerald-400/40 bg-emerald-400/10 text-emerald-300",
 };
 
+/* Horloge SRS : la granularité est la minute (60 s). Le rendu doit rester
+   pur (react-hooks/purity) — Date.now() y est interdit — et une valeur figée
+   au montage deviendrait obsolète sur une session ouverte. Le bon outil est
+   useSyncExternalStore : le composant s'abonne à un tick discret (60 s +
+   retour au premier plan), la valeur est lue HORS du fil du rendu par
+   React, reste stable à l'intérieur d'un même tick (pas de re-rendu en
+   boucle) et suit l'horloge réelle d'une session à l'autre. */
+const NOW_TICK_MS = 60_000;
+
+function useNow(): number {
+  const subscribe = useCallback((onStoreChange: () => void) => {
+    const id = setInterval(onStoreChange, NOW_TICK_MS);
+    const wake = () => onStoreChange();
+    document.addEventListener("visibilitychange", wake);
+    window.addEventListener("focus", wake);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", wake);
+      window.removeEventListener("focus", wake);
+    };
+  }, []);
+  /* Valeur de snapshot plafonnée au tick : deux lectures dans le même tick
+     renvoient EXACTEMENT le même nombre (pas de re-rendu en boucle), et la
+     valeur reste fraîche — c'est la vraie horloge, plafonnée au créneau. */
+  const getSnapshot = useCallback(
+    () => Math.floor(Date.now() / NOW_TICK_MS) * NOW_TICK_MS,
+    [],
+  );
+  /* SPA 100 % client : pas de snapshot serveur utile — 0 jusqu'au montage. */
+  const getServerSnapshot = useCallback(() => 0, []);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
 export function MemoryView() {
   const { t, lang: uiLang } = useI18n();
   // Deux modes : parcourir la mémoire, ou lancer une session de révision.
@@ -182,7 +220,7 @@ export function MemoryView() {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 24;
 
-  const now = Date.now();
+  const now = useNow();
 
   /* Rangées « favori pur » : pas de carte SRS (le cœur range sans
      programmer). Identifiant stable d'expression (`slang._id`), date
