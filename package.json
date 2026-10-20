@@ -51,6 +51,7 @@
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-three/fiber": "^9.8.1",
+    "@realtimex/piper-tts-web": "^1.1.1",
     "@tailwindcss/vite": "^4.1.17",
     "@vly-ai/integrations": "^0.6.14",
     "@zumer/snapdom": "^3.2.0",

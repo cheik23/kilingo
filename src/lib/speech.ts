@@ -66,7 +66,7 @@ if (isSpeechSupported()) {
 /** Strip parenthetical transliterations ("牛逼 (niúbī)" → "牛逼") so the voice reads the expression cleanly. */
 export function speakableText(expression: string): string {
   const stripped = expression
-    .replace(/[(\[{][^\)\]}]*[\)\]}]/g, " ")
+    .replace(/[([{][^)\]}]*[)\]}]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
   return stripped.length > 0 ? stripped : expression.trim();
@@ -137,4 +137,21 @@ export function speakText(
 /** Stop whatever is currently being spoken. */
 export function stopSpeaking(): void {
   if (isSpeechSupported()) window.speechSynthesis.cancel();
+}
+
+/**
+ * Existe-t-il AU MOINS une voix locale compatible avec cette langue ?
+ * Mêmes règles d'appariement que `speakText` (tag exact puis préfixe,
+ * underscore Windows toléré) — sans forcer une voix inexistante. Sert
+ * à l'UI pour annoncer l'absence AVANT de lancer une session (SleepShadow)
+ * au lieu de laisser croire à une lecture muette.
+ */
+export function hasVoiceFor(langCode: string): boolean {
+  if (!isSpeechSupported()) return false;
+  const base = langCode.split("-")[0];
+  const voices = window.speechSynthesis.getVoices();
+  return voices.some((v) => {
+    const tag = v.lang.replace("_", "-");
+    return tag === speechLanguage(langCode) || tag.startsWith(base);
+  });
 }
