@@ -4,10 +4,11 @@ import { LANGUAGES, type LanguageCode } from "@/convex/languages";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Moon, Sparkles, Timer } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createSessionClock, type SessionClock } from "@/lib/sessionClock";
 import { createSleepSpeechScheduler } from "@/lib/sleepSpeechScheduler";
 import {
+  createStallRetryTracker,
   createUtteranceWatchdog,
   decideResumeAction,
 } from "@/lib/sleepTtsRecovery";
@@ -90,6 +91,14 @@ export function SleepView() {
       launch: () => undefined,
     }),
   );
+  /* Tracker borné des échecs TTS natifs consécutifs (3 tentatives max,
+     même contract que le repli Piper) : une voix défaillante ne boucle
+     jamais à l'infini ; l'épuisement affiche un avertissement récupérable
+     et stoppe les relances. La garde « exhausted » est LUE dans le
+     tracker (identité stable), donc valable même via la closure
+     périmée posée par l'effet setLaunchHandler. */
+  const [stallTracker] = useState(() => createStallRetryTracker());
+  const [voiceStalled, setVoiceStalled] = useState(false);
 
   // ── AUDIO RÉEL ──────────────────────────────────────────────
   // « L'audio répète doucement ton vocabulaire » : la session diffuse
@@ -220,11 +229,19 @@ export function SleepView() {
     langRef.current = lang;
   }, [lang]);
 
-  const launchSpeech = (
-    complete: (nextDelayMs: number | null) => void,
-    isCurrent: () => boolean,
-  ) => {
+  const launchSpeech = useCallback(
+    (
+      complete: (nextDelayMs: number | null) => void,
+      isCurrent: () => boolean,
+    ) => {
     if (!runningRef.current || !isCurrent()) return;
+    /* Voie épuisée (failVoice a borné les réessais) : plus AUCUNE relance
+       tant que l'utilisateur ne reprend pas la main (relance via une autre
+       langue ou une nouvelle session, qui resetent le tracker). */
+    if (stallTracker.exhausted()) {
+      complete(null);
+      return;
+    }
     const items = playlistRef.current;
     if (items.length === 0) {
       // Rien à lire : on garde la session ouverte, on retente plus tard
@@ -261,6 +278,15 @@ export function SleepView() {
       complete(nextDelayMs);
     };
     const failVoice = () => {
+      /* Borne honnête des réessais : une erreur TTS ne tue pas la session
+         MAIS une voie qui échoue d'affilée au-delà de la borne n'est plus
+         réessayée — avertissement récupérable au lieu d'une boucle infinie. */
+      const verdict = stallTracker.record();
+      if (!verdict.canRetry) {
+        setVoiceStalled(true);
+        finishVoice(null);
+        return;
+      }
       // Une erreur/netteté TTS ne tue pas la session : on retente si elle reste active.
       finishVoice(3000);
     };
@@ -274,6 +300,11 @@ export function SleepView() {
         isCurrent,
         hasStarted: () => seenStart,
         hasEnded: () => nativeEnded,
+        /* Distinction retard vs blocage : si le moteur rapporte encore de
+           l'activité sans `onstart`, la vigie accorde UNE fenêtre de grâce
+           avant de proclamer le blocage (callback raté possible). */
+        hasEngineActivity: () =>
+          isSpeechSupported() && window.speechSynthesis.speaking,
         /* La relance n'est PAS faite ici : on coupe via finishVoice (la
            nouvelle utterance, émise par speakText, annule d'abord le
            moteur — cleanup naturel du wedge). */
@@ -288,7 +319,11 @@ export function SleepView() {
              moteur (pas d'une estimation). */
           setCurrentPhrase(text);
         },
-        onEnd: () => finishVoice(800),
+        onEnd: () => {
+          // Succès réel (phrase jouée jusqu'à sa fin) : compteur d'échecs remis à zéro.
+          stallTracker.reset();
+          finishVoice(800);
+        },
         onError: failVoice,
       });
       return;
@@ -326,11 +361,15 @@ export function SleepView() {
         if (isCurrent()) setPiperProgress({ loaded, total });
       },
     });
-  };
+  },
+  [stallTracker]);
 
+  /* Identité STABLE (useCallback sur un tracker lui-même stable) : l'effet
+     ne se réarme qu'une fois au montage, et le scheduler garde toujours le
+     même handler — qui ne lit jamais d'état React périmé (refs + tracker). */
   useEffect(() => {
     speechScheduler.setLaunchHandler(launchSpeech);
-  }, [speechScheduler]);
+  }, [speechScheduler, launchSpeech]);
 
   const start = () => {
     setRunning(true);
@@ -339,6 +378,10 @@ export function SleepView() {
     setSessionPausedState(false);
     setCurrentPhrase("");
     runningRef.current = true;
+    /* Nouvelle session : l'historique d'échecs d'une voix défaillante n'est
+       plus pertinent — le tracker repart à zéro et l'avertissement s'efface. */
+    stallTracker.reset();
+    setVoiceStalled(false);
     /* Horloge neuve à chaque session : la durée choisie est FONDÉE au
        lancement (les sélecteurs de durée sont désactivés pendant la
        session) — l'arrêt automatique tombèra exactement là. */
@@ -365,6 +408,10 @@ export function SleepView() {
       setCurrentPhrase("");
       setPaused(false);
       setSessionPausedState(false);
+      /* Nouvelle langue = nouvelle possible de la voix : l'historique
+         d'échecs de l'ancienne langue ne doit pas bloquer la suivante. */
+      stallTracker.reset();
+      setVoiceStalled(false);
       clockRef.current?.resume();
     }, 0);
   };
@@ -642,6 +689,13 @@ export function SleepView() {
                 ⚠️ Aucune voix installée pour cette langue — la lecture risquerait
                 d'être silencieuse. Choisis une langue qui a une voix, ou
                 installe une voix système ; la playlist reste consultable ici.
+              </p>
+            )}
+            {voiceStalled && (
+              <p className="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+                ⚠️ La voix système ne démarre pas (plusieurs essais). La playlist
+                est en attente honnête : choisis une autre langue, ou arrête puis
+                relance la session. Réessai possible plus tard.
               </p>
             )}
             {usingPiper && piperProgress && !voiceOk && (

@@ -17,6 +17,11 @@
  *    (`onstart` absent) ou ne termine jamais (`onend` absent) — le budget
  *    est gelé pendant une pause légitime (moteur réellement suspendu ou
  *    session explicitement en pause), jamais de faux positif sous pause.
+ *    Si le moteur rapporte encore de l'activité sans `onstart`, une seule
+ *    fenêtre de grâce est accordée (retard de démarrage / callback raté)
+ *    avant le verdict « véritable blocage ».
+ *  - createStallRetryTracker : borne les réessais consécutifs pour qu'une
+ *    voix défaillante ne boucle jamais à l'infini.
  */
 
 export type ResumeAction =
@@ -59,6 +64,11 @@ export type UtteranceWatchdogOptions = {
   hasEnded(): boolean;
   /** Déclenché une fois : l'utterance est perdue, la relance est au caller. */
   onStall(): void;
+  /** Activité moteur apparente (ex. `speechSynthesis.speaking === true`) à
+   *  l'instant du verdict : l'utterance a peut-être RÉELLEMENT démarré
+   *  (callback `onstart` raté) — si renseigné, UNE fenêtre de grâce est
+   *  accordée avant le verdict de blocage. Absent : verdict direct. */
+  hasEngineActivity?(): boolean;
   /** Injectables pour des tests déterministes. */
   setTimeout?(callback: () => void, delayMs: number): TimerHandle;
   clearTimeout?(timer: TimerHandle): void;
@@ -80,11 +90,13 @@ export function createUtteranceWatchdog({
   hasStarted,
   hasEnded,
   onStall,
+  hasEngineActivity,
   setTimeout = (callback, delayMs) => globalThis.setTimeout(callback, delayMs),
   clearTimeout = (timer) => globalThis.clearTimeout(timer),
 }: UtteranceWatchdogOptions): UtteranceWatchdog {
   let stopped = false;
   let unpausedMs = 0;
+  let graceUsed = false;
   let timer: TimerHandle | null = setTimeout(tick, tickMs);
 
   const disarm = () => {
@@ -110,6 +122,18 @@ export function createUtteranceWatchdog({
     unpausedMs += tickMs;
     const budgetMs = hasStarted() ? endBudgetMs : startBudgetMs;
     if (unpausedMs >= budgetMs) {
+      /* Verdict : le délai vient d'expirer SANS `onstart`. Avant de proclamer
+         le blocage, regarder si le navigateur accorde de l'activité à cette
+         utterance (ex. `speaking === true`) : elle est peut-être réellement
+         en train de jouer avec un `onstart` raté — UNE seule grâce, jamais
+         deux : un retard légitime est honoré, un blocage finit toujours
+         par être proclamé (pas de silence infini). */
+      if (!hasStarted() && !graceUsed && hasEngineActivity?.() === true) {
+        graceUsed = true;
+        unpausedMs = 0;
+        timer = setTimeout(tick, tickMs);
+        return;
+      }
       disarm();
       onStall();
       return;
@@ -119,5 +143,41 @@ export function createUtteranceWatchdog({
 
   return {
     stop: disarm,
+  };
+}
+
+export type StallRetryVerdict = { canRetry: boolean; exhausted: boolean };
+export type StallRetryTracker = {
+  /** Un échec supplémentaire. La borne vaut N tentatives consécutives :
+   *  record() N-1 fois → canRetry, Nᵉ fois → exhausted. */
+  record(): StallRetryVerdict;
+  /** Une utterance a réussi (onend naturel, ou nouvelle session/nouvelle
+   *  langue) : le compteur repart de zéro. */
+  reset(): void;
+  count(): number;
+  exhausted(): boolean;
+};
+
+/**
+ * Borne les réessais consécutifs d'une voie défaillante (défaut 3) — le
+ * même contract que le repli Piper de SleepView : après épuisement, la
+ * relance s'arrête net (verdict `exhausted`), le composant affiche un
+ * avertissement récupérable et ne boucle plus à l'infini.
+ */
+export function createStallRetryTracker(maxConsecutive = 3): StallRetryTracker {
+  let failures = 0;
+  return {
+    record(): StallRetryVerdict {
+      failures += 1;
+      return {
+        canRetry: failures < maxConsecutive,
+        exhausted: failures >= maxConsecutive,
+      };
+    },
+    reset() {
+      failures = 0;
+    },
+    count: () => failures,
+    exhausted: () => failures >= maxConsecutive,
   };
 }
