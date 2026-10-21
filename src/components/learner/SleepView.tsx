@@ -89,6 +89,7 @@ export function SleepView() {
   // énoncé démarre le suivant à sa fin → boucle continue tant que running.
   const [speaking, setSpeaking] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [sessionPaused, setSessionPaused] = useState(false);
 
   /* Le décompte (mis sous l'état `paused` ci-dessus pour que la PAUSE
      suspende média ET chrono) : l'interval 1 s tourne mais tick() est un
@@ -96,7 +97,7 @@ export function SleepView() {
      est détectée par la machine (finished à la seconde exacte) : l'arrêt
      automatique part de là, UNE seule fois (garde dans stop()). */
   useEffect(() => {
-    if (!running || paused) return;
+    if (!running || paused || sessionPaused) return;
     const t = setInterval(() => {
       const clock = clockRef.current;
       if (!clock) return;
@@ -107,7 +108,7 @@ export function SleepView() {
       }
     }, 1000);
     return () => clearInterval(t);
-  }, [running, paused]);
+  }, [running, paused, sessionPaused]);
   /* Phrase active : récupérée directement des événements du moteur
      (onStart/onEnd) — pas de timestamps fabriqués. */
   const [currentPhrase, setCurrentPhrase] = useState("");
@@ -229,14 +230,15 @@ export function SleepView() {
       speakingRef.current = false;
       setSpeaking(false);
       setCurrentPhrase("");
-      if (runningRef.current) scheduleNext(800);
+      // Ne schedule pas le prochain énoncé si la session est en pause entre deux phrases
+      if (runningRef.current && !sessionPaused) scheduleNext(800);
     };
     const failVoice = () => {
       speakingRef.current = false;
       setSpeaking(false);
       setCurrentPhrase("");
       // Une erreur TTS ne doit pas tuer la session : on retente.
-      if (runningRef.current) scheduleNext(3000);
+      if (runningRef.current && !sessionPaused) scheduleNext(3000);
     };
     if (nativeNow) {
       speakText(text, langRef.current, {
@@ -309,6 +311,7 @@ export function SleepView() {
       setSpeaking(false);
       setCurrentPhrase("");
       setPaused(false);
+      setSessionPaused(false);
       clockRef.current?.resume();
     }, 0);
   };
@@ -316,6 +319,7 @@ export function SleepView() {
   // Pause/Reprise réelles : suspendre passe par speechSynthesis.pause/resume ou
   // audio.pause() ; la MÊME action suspend le décompte (horloge de session) —
   // pause = média ET chrono figés, reprise = les deux au position exact.
+  // sessionPaused mémorise l'état entre deux énoncés.
   const togglePause = () => {
     if (!runningRef.current) return;
     const clock = clockRef.current;
@@ -324,22 +328,43 @@ export function SleepView() {
         resumePiper();
         clock?.resume();
         setPaused(false);
+        setSessionPaused(false);
       } else if (piperPlaying()) {
         pausePiper();
         clock?.pause();
         setPaused(true);
+        setSessionPaused(true);
       }
       return;
     }
     if (!isSpeechSupported()) return;
     const synth = window.speechSynthesis;
-    if (synth.paused) {
-      synth.resume();
-      clock?.resume();
+    // Cas 1 : actuellement en train de parler ou en attente → pause/résume TTS
+    if (synth.speaking || synth.pending) {
+      if (synth.paused) {
+        synth.resume();
+        clock?.resume();
+        setPaused(false);
+        setSessionPaused(false);
+      } else {
+        synth.pause();
+        clock?.pause();
+        setPaused(true);
+        setSessionPaused(true);
+      }
+      return;
+    }
+    // Cas 2 : entre deux énoncés (pas de speaking, pas de pending)
+    // On inverse l'état de pause de session
+    if (sessionPaused) {
+      // Reprise : réactive la progression
+      setSessionPaused(false);
       setPaused(false);
-    } else if (synth.speaking || synth.pending) {
-      synth.pause();
-      clock?.pause();
+      // Planifie le prochain énoncé
+      scheduleNext(0);
+    } else {
+      // Mise en pause : mémorise l'état, empêche le prochain démarrage automatique
+      setSessionPaused(true);
       setPaused(true);
     }
   };
@@ -564,15 +589,11 @@ export function SleepView() {
                 disabled={
                   usingPiper
                     ? !piperPlaying() && !piperPaused()
-                    : !(
-                        window.speechSynthesis?.speaking ||
-                        window.speechSynthesis?.pending ||
-                        window.speechSynthesis?.paused
-                      )
+                    : !runningRef.current
                 }
                 className="mt-2 w-full rounded-xl border border-gold/30 py-3 text-sm font-medium text-gold transition-colors hover:bg-gold/10 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {paused ? "▶ Reprendre" : "⏸︎ Pause"}
+                {paused || sessionPaused ? "▶ Reprendre" : "⏸︎ Pause"}
               </button>
             )}
           </div>
