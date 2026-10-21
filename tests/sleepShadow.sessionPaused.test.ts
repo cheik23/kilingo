@@ -1,147 +1,175 @@
-/* ══════════════════════════════════════════════════════════════════════
-   SLEEP SHADOW — sessionPaused LOGIQUE (déterministe, sans hooks)
-   
-   Ces tests verrouillent le contrat `sessionPaused` en ne testant que
-   le code pur extrait de SleepView.tsx — pas de rendu React, pas de
-   convex hooks. Les transitions d'état, les gardes d'effet et les
-   callbacks sont validés tels qu'ils apparaissent dans le composant.
-   ══════════════════════════════════════════════════════════════════════ */
-
 import { describe, expect, test } from "bun:test";
+import {
+  createSleepSpeechScheduler,
+  type SleepSpeechScheduler,
+} from "../src/lib/sleepSpeechScheduler";
 
-// --- Pure logic mirrors from SleepView.tsx ---
-
-/**
- * Mirrors the useEffect dependency array check.
- * The real effect: useEffect(() => { ... }, [running, paused, sessionPaused]);
- * Returns early (undefined) when !running || paused || sessionPaused
- * Returns "start" (interval would start) when all conditions are met
- */
-const checkEffectDeps = (running: boolean, paused: boolean, sessionPaused: boolean) => {
-  if (!running || paused || sessionPaused) return undefined;
-  // interval would start
-  return "start";
+type Deferred = {
+  promise: Promise<void>;
+  resolve(): void;
 };
 
-/**
- * Mirrors finishVoice: if (runningRef.current && !sessionPaused) scheduleNext(800);
- */
-const finishVoiceGatesScheduling = (running: boolean, sessionPaused: boolean) => {
-  return running && !sessionPaused;
-};
+function deferred(): Deferred {
+  let resolve!: () => void;
+  const promise = new Promise<void>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+}
 
-/**
- * Mirrors failVoice: if (runningRef.current && !sessionPaused) scheduleNext(3000);
- */
-const failVoiceGatesScheduling = (running: boolean, sessionPaused: boolean) => {
-  return running && !sessionPaused;
-};
-
-/**
- * Mirrors togglePause three-case logic between utterances.
- * When not speaking/pending: if (sessionPaused) { setSessionPaused(false); scheduleNext(0); }
- * else { setSessionPaused(true); }
- */
-const togglePauseBetweenUtterances = (sessionPaused: boolean) => {
-  if (sessionPaused) {
-    // Reprise : réactive la progression, relance le prochain énoncé
-    return { sessionPaused: false, scheduleNext: true };
-  } else {
-    // Mise en pause : mémorise l'état, empêche le prochain démarrage automatique
-    return { sessionPaused: true, scheduleNext: false };
-  }
-};
-
-/**
- * Mirrors chooseLang: setSessionPaused(false) reset on language change.
- */
-const chooseLangResetsSessionPaused = () => {
-  return false; // sessionPaused reset to false
-};
-
-/*
- * Mirrors the clock effect guard:
- * useEffect(() => { if (!running || paused || sessionPaused) return; ... }, [running, paused, sessionPaused]);
- */
-
-/* ════════════════════════════════════════════════════════════════════════ */
-
-describe("SleepView — sessionPaused pure logic", () => {
-  describe("useEffect dependency [running, paused, sessionPaused]", () => {
-    test("effect returns early (undefined) when sessionPaused is true", () => {
-      // When sessionPaused=true, the effect returns early and no interval is set up
-      const result = checkEffectDeps(true, false, true);
-      expect(result).toBeUndefined();
-    });
-
-    test("effect returns early (undefined) when running is false", () => {
-      const result = checkEffectDeps(false, false, false);
-      expect(result).toBeUndefined();
-    });
-
-    test("effect returns early (undefined) when paused is true", () => {
-      const result = checkEffectDeps(true, true, false);
-      expect(result).toBeUndefined();
-    });
-
-    test("effect starts (returns 'start') when all conditions are met", () => {
-      const result = checkEffectDeps(true, false, false);
-      expect(result).toBe("start");
-    });
+function createHarness() {
+  const waits: Deferred[] = [];
+  const launched: Array<{
+    complete(nextDelayMs: number | null): void;
+    isCurrent(): boolean;
+  }> = [];
+  const timers: Array<() => void> = [];
+  const scheduler: SleepSpeechScheduler = createSleepSpeechScheduler({
+    wait: () => {
+      const wait = deferred();
+      waits.push(wait);
+      return wait.promise;
+    },
+    setTimeout: (callback) => {
+      timers.push(callback);
+      return timers.length as unknown as ReturnType<typeof setTimeout>;
+    },
+    // Model a callback already queued by the event loop when cancellation occurs.
+    clearTimeout: () => {},
+    launch: (complete, isCurrent) => launched.push({ complete, isCurrent }),
   });
 
-  describe("finishVoice scheduling gate", () => {
-    test("schedules next phrase when not sessionPaused", () => {
-      const result = finishVoiceGatesScheduling(true, false);
-      expect(result).toBe(true);
-    });
+  return {
+    scheduler,
+    launched,
+    runTimer(index = 0) {
+      const timer = timers[index];
+      if (!timer) throw new Error(`No scheduled timer at index ${index}`);
+      timer();
+    },
+    async resolveWait(index = 0) {
+      const wait = waits[index];
+      if (!wait) throw new Error(`No pending wait at index ${index}`);
+      wait.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    },
+  };
+}
 
-    test("does NOT schedule when sessionPaused is true", () => {
-      const result = finishVoiceGatesScheduling(true, true);
-      expect(result).toBe(false);
-    });
+describe("Sleep Shadow — scheduler actually used by SleepView", () => {
+  test("pause before the scheduled timeout fires invalidates that queued callback", async () => {
+    const h = createHarness();
+    h.scheduler.start();
+    h.scheduler.pause();
+    h.runTimer(); // simulate a timeout callback already queued before clearTimeout
+    await Promise.resolve();
+    expect(h.launched).toHaveLength(0);
+    expect(h.scheduler.isPaused()).toBe(true);
 
-    test("does NOT schedule when running is false", () => {
-      const result = finishVoiceGatesScheduling(false, false);
-      expect(result).toBe(false);
-    });
+    h.scheduler.resume();
+    h.runTimer(1);
+    await h.resolveWait();
+    expect(h.launched).toHaveLength(1);
   });
 
-  describe("failVoice scheduling gate", () => {
-    test("schedules retry when not sessionPaused", () => {
-      const result = failVoiceGatesScheduling(true, false);
-      expect(result).toBe(true);
-    });
+  test("pause during the quiet gap invalidates the pending utterance before it starts", async () => {
+    const h = createHarness();
+    h.scheduler.start();
+    h.runTimer(); // the timeout fires, then enters the 1200ms quiet gap
+    expect(h.launched).toHaveLength(0);
 
-    test("does NOT schedule when sessionPaused is true", () => {
-      const result = failVoiceGatesScheduling(true, true);
-      expect(result).toBe(false);
-    });
-
-    test("does NOT schedule when running is false", () => {
-      const result = failVoiceGatesScheduling(false, false);
-      expect(result).toBe(false);
-    });
+    h.scheduler.pause();
+    await h.resolveWait();
+    expect(h.launched).toHaveLength(0);
+    expect(h.scheduler.isPaused()).toBe(true);
   });
 
-  describe("togglePause between utterances", () => {
-    test("resumes from pause between utterances (sessionPaused → false, scheduleNext=true)", () => {
-      const result = togglePauseBetweenUtterances(true);
-      expect(result.sessionPaused).toBe(false);
-      expect(result.scheduleNext).toBe(true);
-    });
+  test("resuming a suspended utterance resumes that same speech without launching a duplicate", async () => {
+    const h = createHarness();
+    h.scheduler.start();
+    h.runTimer();
+    await h.resolveWait();
+    expect(h.launched).toHaveLength(1);
+    expect(h.launched[0].isCurrent()).toBe(true);
 
-    test("pauses between utterances (sessionPaused → true, scheduleNext=false)", () => {
-      const result = togglePauseBetweenUtterances(false);
-      expect(result.sessionPaused).toBe(true);
-      expect(result.scheduleNext).toBe(false);
-    });
+    h.scheduler.pause();
+    h.scheduler.resume();
+    expect(h.launched).toHaveLength(1);
+    expect(h.launched[0].isCurrent()).toBe(true);
+
+    h.launched[0].complete(800);
+    expect(h.launched).toHaveLength(1);
+    h.runTimer(1);
+    await h.resolveWait(1);
+    expect(h.launched).toHaveLength(2);
   });
 
-  describe("chooseLang resets sessionPaused", () => {
-    test("reset called on language change", () => {
-      const result = chooseLangResetsSessionPaused();
-      expect(result).toBe(false); // sessionPaused reset to false
-    });
+  test("resuming between utterances schedules exactly one next utterance", async () => {
+    const h = createHarness();
+    h.scheduler.start();
+    h.runTimer();
+    await h.resolveWait();
+    h.launched[0].complete(null); // completed; do not automatically schedule
+
+    h.scheduler.pause();
+    h.scheduler.resume();
+    // Repeated resume calls are idempotent and cannot add a second timer.
+    h.scheduler.resume();
+    h.runTimer(1);
+    await h.resolveWait(1);
+    expect(h.launched).toHaveLength(2);
+  });
+
+  test("stop during a scheduled delay prevents any utterance from starting", async () => {
+    const h = createHarness();
+    h.scheduler.start();
+    h.scheduler.stop();
+    h.runTimer();
+    await Promise.resolve();
+    expect(h.launched).toHaveLength(0);
+    expect(h.scheduler.isRunning()).toBe(false);
+  });
+
+  test("stop during the quiet gap invalidates the in-flight continuation", async () => {
+    const h = createHarness();
+    h.scheduler.start();
+    h.runTimer();
+    expect(h.launched).toHaveLength(0);
+    h.scheduler.stop();
+    await h.resolveWait();
+    expect(h.launched).toHaveLength(0);
+  });
+
+  test("a repeated completion or stale completion cannot schedule a double read", async () => {
+    const h = createHarness();
+    h.scheduler.start();
+    h.runTimer();
+    await h.resolveWait();
+    expect(h.launched).toHaveLength(1);
+
+    h.launched[0].complete(800);
+    h.launched[0].complete(800);
+    h.runTimer(1);
+    await h.resolveWait(1);
+    expect(h.launched).toHaveLength(2);
+
+    h.launched[0].complete(800); // callback from an already finished phrase
+    expect(h.launched).toHaveLength(2);
+  });
+
+  test("completion while paused waits for Resume before queueing another utterance", async () => {
+    const h = createHarness();
+    h.scheduler.start();
+    h.runTimer();
+    await h.resolveWait();
+    h.scheduler.pause();
+    h.launched[0].complete(800);
+    expect(h.launched).toHaveLength(1);
+
+    h.scheduler.resume();
+    h.runTimer(1);
+    await h.resolveWait(1);
+    expect(h.launched).toHaveLength(2);
   });
 });

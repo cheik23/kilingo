@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Moon, Sparkles, Timer } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createSessionClock, type SessionClock } from "@/lib/sessionClock";
+import { createSleepSpeechScheduler } from "@/lib/sleepSpeechScheduler";
 import {
   hasVoiceFor,
   isSpeechSupported,
@@ -80,7 +81,11 @@ export function SleepView() {
      la plus fraîche sans recréer l'interval à chaque rendu — écrites
      dans un effet (jamais pendant le rendu, règle react-hooks). */
   const stopRef = useRef<(() => void) | null>(null);
-  const scheduleNextRef = useRef<((ms: number) => void) | null>(null);
+  const [speechScheduler] = useState(() =>
+    createSleepSpeechScheduler({
+      launch: () => undefined,
+    }),
+  );
 
   // ── AUDIO RÉEL ──────────────────────────────────────────────
   // « L'audio répète doucement ton vocabulaire » : la session diffuse
@@ -187,7 +192,6 @@ export function SleepView() {
   }, [lang]);
   const speakingRef = useRef(false);
   const runningRef = useRef(false);
-  const nextTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const playlistRef = useRef(playlist);
   const langRef = useRef(lang);
@@ -201,89 +205,100 @@ export function SleepView() {
     langRef.current = lang;
   }, [lang]);
 
-  const scheduleNext = (delayMs: number) => {
-    if (nextTimerRef.current) clearTimeout(nextTimerRef.current);
-    nextTimerRef.current = setTimeout(() => void speakLoop(), delayMs);
-  };
-
-  const speakLoop = async () => {
-    if (!runningRef.current) return;
+  const launchSpeech = (
+    complete: (nextDelayMs: number | null) => void,
+    isCurrent: () => boolean,
+  ) => {
+    if (!runningRef.current || !isCurrent()) return;
     const items = playlistRef.current;
     if (items.length === 0) {
       // Rien à lire : on garde la session ouverte, on retente plus tard
       // (les données arrivent réactivement depuis la base).
-      scheduleNext(4000);
+      complete(4000);
       return;
     }
-    // Pause douce entre chaque énoncé : le rythme « endormant » du produit.
-    await new Promise((r) => setTimeout(r, 1200));
-    if (!runningRef.current) return;
     const item = pickRandom(items);
     const text = speakableText(item.expression);
     /* Réel à l'instant T : la voix native est réinterrogée, on ne se fie
        pas au seul état initial (les voix se chargent en asynchrone). */
     const nativeNow = isSpeechSupported() && hasVoiceFor(langRef.current);
-    if (!nativeNow && !piperVoiceForRuntime(langRef.current)) return; // aucun moteur : silence honnête
+    if (!nativeNow && !piperVoiceForRuntime(langRef.current)) {
+      complete(null); // Aucun moteur : silence honnête, aucun timer fantôme.
+      return;
+    }
+
     speakingRef.current = true;
     setSpeaking(true);
-    const finishVoice = () => {
+    const finishVoice = (nextDelayMs: number | null) => {
+      if (!isCurrent()) return;
       speakingRef.current = false;
       setSpeaking(false);
       setCurrentPhrase("");
-      // Ne schedule pas le prochain énoncé si la session est en pause entre deux phrases
-      if (runningRef.current && !sessionPaused) scheduleNext(800);
+      complete(nextDelayMs);
     };
     const failVoice = () => {
-      speakingRef.current = false;
-      setSpeaking(false);
-      setCurrentPhrase("");
-      // Une erreur TTS ne doit pas tuer la session : on retente.
-      if (runningRef.current && !sessionPaused) scheduleNext(3000);
+      // Une erreur TTS ne doit pas tuer la session : on retente si elle reste active.
+      finishVoice(3000);
     };
+
     if (nativeNow) {
       speakText(text, langRef.current, {
         rate: 0.75,
         onStart: () => {
+          if (!isCurrent()) return;
           /* Sync du texte : la phrase active vient de l'événement onstart du
              moteur (pas d'une estimation). */
           setCurrentPhrase(text);
         },
-        onEnd: finishVoice,
+        onEnd: () => finishVoice(800),
         onError: failVoice,
       });
       return;
     }
+
     /* Repli libre Piper : téléchargement si la voix n'est pas encore en
        cache (progression affichée), puis lecture WAV locale. Après 3
        échecs consécutifs on s'arrête net : pas de boucle fantôme. */
     setUsingPiper(true);
     void playPiper(text, langRef.current, {
-      onStart: () => setCurrentPhrase(text),
+      onStart: () => {
+        if (isCurrent()) setCurrentPhrase(text);
+      },
       onEnd: () => {
+        if (!isCurrent()) return;
         piperErrorsRef.current = 0;
         setPiperProgress(null);
         setPiperReady(true); // la voix est forcément en OPFS maintenant
         setUsingPiper(false);
-        finishVoice();
+        finishVoice(800);
       },
       onError: () => {
+        if (!isCurrent()) return;
         piperErrorsRef.current += 1;
         setUsingPiper(false);
         setPiperProgress(null);
         if (piperErrorsRef.current >= 3) {
           setPiperFailed(true); // diagramme honnête : consultable, pas jouable
+          finishVoice(null);
           return;
         }
-        if (runningRef.current) scheduleNext(3000);
+        finishVoice(3000);
       },
-      onProgress: (loaded, total) => setPiperProgress({ loaded, total }),
+      onProgress: (loaded, total) => {
+        if (isCurrent()) setPiperProgress({ loaded, total });
+      },
     });
   };
+
+  useEffect(() => {
+    speechScheduler.setLaunchHandler(launchSpeech);
+  }, [speechScheduler]);
 
   const start = () => {
     setRunning(true);
     setElapsed(0);
     setPaused(false);
+    setSessionPaused(false);
     setCurrentPhrase("");
     runningRef.current = true;
     /* Horloge neuve à chaque session : la durée choisie est FONDÉE au
@@ -293,8 +308,8 @@ export function SleepView() {
     toast.success("SleepShadow lancé", {
       description: `${duration} min d'audio passif · ${LANGUAGES.find((l) => l.code === lang)?.name}`,
     });
-    // Le premier énoncé part tout de suite — l'utilisateur ENTEND la session.
-    void speakLoop();
+    // Le scheduler attend le silence d'ouverture avant de lancer le premier énoncé.
+    speechScheduler.start();
   };
 
   /* Choix de langue : setLang +, si une session tourne, relance de la
@@ -306,7 +321,7 @@ export function SleepView() {
   const chooseLang = (code: LanguageCode) => {
     setChosenLang(code);
     if (!runningRef.current) return;
-    scheduleNextRef.current?.(900);
+    speechScheduler.restart(900);
     setTimeout(() => {
       setSpeaking(false);
       setCurrentPhrase("");
@@ -326,11 +341,13 @@ export function SleepView() {
     if (usingPiper) {
       if (piperPaused()) {
         resumePiper();
+        speechScheduler.resume();
         clock?.resume();
         setPaused(false);
         setSessionPaused(false);
       } else if (piperPlaying()) {
         pausePiper();
+        speechScheduler.pause();
         clock?.pause();
         setPaused(true);
         setSessionPaused(true);
@@ -343,27 +360,29 @@ export function SleepView() {
     if (synth.speaking || synth.pending) {
       if (synth.paused) {
         synth.resume();
+        speechScheduler.resume();
         clock?.resume();
         setPaused(false);
         setSessionPaused(false);
       } else {
         synth.pause();
+        speechScheduler.pause();
         clock?.pause();
         setPaused(true);
         setSessionPaused(true);
       }
       return;
     }
-    // Cas 2 : entre deux énoncés (pas de speaking, pas de pending)
-    // On inverse l'état de pause de session
-    if (sessionPaused) {
-      // Reprise : réactive la progression
+    // Cas 2 : aucune phrase active ; le scheduler décide l'état courant afin
+    // qu'un rendu React en attente ne puisse inverser la transition par stale closure.
+    if (speechScheduler.isPaused()) {
+      speechScheduler.resume();
+      clock?.resume();
       setSessionPaused(false);
       setPaused(false);
-      // Planifie le prochain énoncé
-      scheduleNext(0);
     } else {
-      // Mise en pause : mémorise l'état, empêche le prochain démarrage automatique
+      speechScheduler.pause();
+      clock?.pause();
       setSessionPaused(true);
       setPaused(true);
     }
@@ -376,17 +395,15 @@ export function SleepView() {
     if (!runningRef.current) return;
     setRunning(false);
     runningRef.current = false;
+    speechScheduler.stop();
     setPaused(false);
+    setSessionPaused(false);
     setCurrentPhrase("");
     /* L'horloge est figée en l'état : ses secondes finales sont la vérité
        (au dernier tick de l'auto-stop, la closure `elapsed` du rendu
        peut être en retard d'une seconde — l'horloge, elle, est exacte). */
     const finalSeconds = clockRef.current?.elapsed ?? elapsed;
     clockRef.current = null;
-    if (nextTimerRef.current) {
-      clearTimeout(nextTimerRef.current);
-      nextTimerRef.current = null;
-    }
     // Stopper toute voix en cours — sinon elle continuerait après « Arrêter ».
     stopSpeaking();
     stopPiper();
@@ -412,18 +429,17 @@ export function SleepView() {
      sans jamais recréer d'interval. */
   useEffect(() => {
     stopRef.current = () => void stop();
-    scheduleNextRef.current = scheduleNext;
   });
 
   // Sécurité de cycle de vie : démontage / changement de langue → on coupe.
   useEffect(() => {
     return () => {
       runningRef.current = false;
+      speechScheduler.stop();
       stopSpeaking();
       stopPiper();
-      if (nextTimerRef.current) clearTimeout(nextTimerRef.current);
     };
-  }, []);
+  }, [speechScheduler]);
 
   const pct = Math.min(100, (elapsed / (duration * 60)) * 100);
 
@@ -589,7 +605,7 @@ export function SleepView() {
                 disabled={
                   usingPiper
                     ? !piperPlaying() && !piperPaused()
-                    : !runningRef.current
+                    : !running
                 }
                 className="mt-2 w-full rounded-xl border border-gold/30 py-3 text-sm font-medium text-gold transition-colors hover:bg-gold/10 disabled:opacity-40 disabled:cursor-not-allowed"
               >
