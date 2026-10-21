@@ -8,6 +8,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createSessionClock, type SessionClock } from "@/lib/sessionClock";
 import { createSleepSpeechScheduler } from "@/lib/sleepSpeechScheduler";
 import {
+  createUtteranceWatchdog,
+  decideResumeAction,
+} from "@/lib/sleepTtsRecovery";
+import {
   hasVoiceFor,
   isSpeechSupported,
   speakText,
@@ -95,6 +99,17 @@ export function SleepView() {
   const [speaking, setSpeaking] = useState(false);
   const [paused, setPaused] = useState(false);
   const [sessionPaused, setSessionPaused] = useState(false);
+  /* Source de vérité de la pause de session : un ref miroir tenu À JOUR au
+     moment du set (les closures des timers/moteurs ne lisent jamais un
+     rendu périmé). La consigne produit : la décision pause/reprise se fonde
+     sur CET état explicite, jamais sur la seule valeur instantanée du
+     moteur — Edge ignore parfois pause() (paused restant faux) et le
+     dérivé moteur classerait « Reprendre » dans le chemin pause. */
+  const sessionPausedRef = useRef(false);
+  const setSessionPausedState = (value: boolean) => {
+    sessionPausedRef.current = value;
+    setSessionPaused(value);
+  };
 
   /* Le décompte (mis sous l'état `paused` ci-dessus pour que la PAUSE
      suspende média ET chrono) : l'interval 1 s tourne mais tick() est un
@@ -229,7 +244,16 @@ export function SleepView() {
 
     speakingRef.current = true;
     setSpeaking(true);
+    /* Vigie d'utterance : le moteur Edge ignore parfois pause() ET tire
+       parfois ni onstart ni onend (matrice live). Sans vigie, une utterance
+       perdue inactive activeSpeechId pour toujours : session muette.
+       Le budget ne tourne QUE hors pause (suspension moteur réelle ||
+       session explicitement en pause) — zéro faux positif sous pause. */
+    let watchdogHandle: { stop(): void } | null = null;
+    let nativeEnded = false;
     const finishVoice = (nextDelayMs: number | null) => {
+      nativeEnded = true;
+      watchdogHandle?.stop();
       if (!isCurrent()) return;
       speakingRef.current = false;
       setSpeaking(false);
@@ -237,15 +261,29 @@ export function SleepView() {
       complete(nextDelayMs);
     };
     const failVoice = () => {
-      // Une erreur TTS ne doit pas tuer la session : on retente si elle reste active.
+      // Une erreur/netteté TTS ne tue pas la session : on retente si elle reste active.
       finishVoice(3000);
     };
 
     if (nativeNow) {
+      let seenStart = false;
+      watchdogHandle = createUtteranceWatchdog({
+        isPaused: () =>
+          sessionPausedRef.current ||
+          (isSpeechSupported() && window.speechSynthesis.paused),
+        isCurrent,
+        hasStarted: () => seenStart,
+        hasEnded: () => nativeEnded,
+        /* La relance n'est PAS faite ici : on coupe via finishVoice (la
+           nouvelle utterance, émise par speakText, annule d'abord le
+           moteur — cleanup naturel du wedge). */
+        onStall: failVoice,
+      });
       speakText(text, langRef.current, {
         rate: 0.75,
         onStart: () => {
           if (!isCurrent()) return;
+          seenStart = true;
           /* Sync du texte : la phrase active vient de l'événement onstart du
              moteur (pas d'une estimation). */
           setCurrentPhrase(text);
@@ -298,7 +336,7 @@ export function SleepView() {
     setRunning(true);
     setElapsed(0);
     setPaused(false);
-    setSessionPaused(false);
+    setSessionPausedState(false);
     setCurrentPhrase("");
     runningRef.current = true;
     /* Horloge neuve à chaque session : la durée choisie est FONDÉE au
@@ -326,15 +364,23 @@ export function SleepView() {
       setSpeaking(false);
       setCurrentPhrase("");
       setPaused(false);
-      setSessionPaused(false);
+      setSessionPausedState(false);
       clockRef.current?.resume();
     }, 0);
   };
 
   // Pause/Reprise réelles : suspendre passe par speechSynthesis.pause/resume ou
   // audio.pause() ; la MÊME action suspend le décompte (horloge de session) —
-  // pause = média ET chrono figés, reprise = les deux au position exact.
-  // sessionPaused mémorise l'état entre deux énoncés.
+  // pause = média ET chrono figés, reprise = les deux au même endroit.
+  /* Décision pause/reprise : la SOURCE DE VÉRITÉ est l'état de session
+     explicite (sessionPausedRef), jamais la valeur instantanée du moteur.
+     Preuve recette : Edge ignore parfois pause() sur une utterance en
+     cours (paused reste false) — un dérivé synth.paused faisait alors du
+     bouton « Reprendre » un second Pause : session figée pour toujours.
+     La suspension du FLUX passe toujours par le scheduler + l'horloge,
+     donc la session est réellement figée même si le moteur n'a rien
+     entendu. Le rôle du moteur est réduit au MODE de reprise
+     (decideResumeAction : reprise en place / récupération wedge / idle). */
   const togglePause = () => {
     if (!runningRef.current) return;
     const clock = clockRef.current;
@@ -344,48 +390,102 @@ export function SleepView() {
         speechScheduler.resume();
         clock?.resume();
         setPaused(false);
-        setSessionPaused(false);
+        setSessionPausedState(false);
       } else if (piperPlaying()) {
         pausePiper();
         speechScheduler.pause();
         clock?.pause();
         setPaused(true);
-        setSessionPaused(true);
+        setSessionPausedState(true);
       }
       return;
     }
     if (!isSpeechSupported()) return;
     const synth = window.speechSynthesis;
-    // Cas 1 : actuellement en train de parler ou en attente → pause/résume TTS
-    if (synth.speaking || synth.pending) {
-      if (synth.paused) {
-        synth.resume();
-        speechScheduler.resume();
-        clock?.resume();
-        setPaused(false);
-        setSessionPaused(false);
-      } else {
-        synth.pause();
-        speechScheduler.pause();
-        clock?.pause();
-        setPaused(true);
-        setSessionPaused(true);
+
+    /* ── PASSER EN PAUSE — toujours possible pendant une session, et un
+       seul chemin : scheduler + horloge + états React. La suspension
+       native est best-effort (les moteurs fidèles figent l'audio en
+       place) ; le mode de reprise décidera si elle a marché. */
+    if (!sessionPausedRef.current) {
+      speechScheduler.pause();
+      clock?.pause();
+      setPaused(true);
+      setSessionPausedState(true);
+      if (synth.speaking || synth.pending) {
+        try {
+          synth.pause();
+        } catch {
+          /* Moteur récalcitrant : la session est déjà figée par le
+             scheduler ; la reprise décidera (wedge → récupération). */
+        }
+        /* Durcissement anti-fuite audio : un moteur honnête MARTCHE paused
+           tout de suite (cf. matrice live). Si paused est DEMEURÉ faux
+           alors qu'un média « parle », le moteur refuse — on le coupe
+           NET, maintenant et sous contrôle différé (certains moteurs
+           appliquent la pause en async) : pendant une pause, rien ne
+           sonne. La reprise route alors via resume-idle/wedge → une seule
+           phrase neuve, jamais deux. */
+        const cancelIfEngineIgnored = () => {
+          if (!sessionPausedRef.current) return; // reprise déjà intervenue
+          if (synth.paused || !synth.speaking) return; // pause réelle ou silence
+          stopSpeaking();
+          speakingRef.current = false;
+          setSpeaking(false);
+          setCurrentPhrase("");
+        };
+        if (!synth.paused && synth.speaking) cancelIfEngineIgnored();
+        else setTimeout(cancelIfEngineIgnored, 250);
       }
       return;
     }
-    // Cas 2 : aucune phrase active ; le scheduler décide l'état courant afin
-    // qu'un rendu React en attente ne puisse inverser la transition par stale closure.
-    if (speechScheduler.isPaused()) {
+
+    /* ── REPRENDRE — par construction du chemin : la session EST en pause
+       (état explicite), on ne peut plus retomber dans Pause. Le mode
+       exact est décidé par la pure fonction testée (sleepTtsRecovery). */
+    const action = decideResumeAction({
+      enginePaused: synth.paused,
+      hasActiveUtterance:
+        speechScheduler.hasActiveUtterance() || speakingRef.current,
+    });
+    if (action === "resume-engine") {
+      // Le média a réellement suspendu : reprise EN PLACE de la même phrase
+      // (le scheduler garde l'utterance active — jamais de doublon).
+      try {
+        synth.resume();
+      } catch {
+        /* Réponse moteur défaillante : à défaut la branche wedge traiterait */
+      }
       speechScheduler.resume();
       clock?.resume();
-      setSessionPaused(false);
       setPaused(false);
-    } else {
-      speechScheduler.pause();
-      clock?.pause();
-      setSessionPaused(true);
-      setPaused(true);
+      setSessionPausedState(false);
+      return;
     }
+    if (action === "recover-wedge") {
+      /* Le moteur n'a JAMAIS appliqué la pause (paused resté false) et une
+         utterance est active : elle ne tires jamais onend, elle ne peut
+         être « reprise en place » par personne. Compromis assumé : on la
+         coupe net et le scheduler relance UNE phrase NEUVE de la playlist
+         (pas une relecture du même mot depuis le début, pas de doublon —
+         le cancel précède tout nouveau speak et restart invalide les
+         callbacks périmés, protection eb36149 conservée). */
+      stopSpeaking();
+      speakingRef.current = false;
+      setSpeaking(false);
+      setCurrentPhrase("");
+      setPaused(false);
+      setSessionPausedState(false);
+      clock?.resume();
+      speechScheduler.restart(0); // un seul remplacement après le petit silence
+      return;
+    }
+    /* reprise-idle : pause entre deux phrases — le scheduler relance
+       exactement une fois (idempotent même si resume est rappelé). */
+    speechScheduler.resume();
+    clock?.resume();
+    setPaused(false);
+    setSessionPausedState(false);
   };
 
   const stop = async () => {
@@ -397,7 +497,7 @@ export function SleepView() {
     runningRef.current = false;
     speechScheduler.stop();
     setPaused(false);
-    setSessionPaused(false);
+    setSessionPausedState(false);
     setCurrentPhrase("");
     /* L'horloge est figée en l'état : ses secondes finales sont la vérité
        (au dernier tick de l'auto-stop, la closure `elapsed` du rendu
@@ -476,15 +576,19 @@ export function SleepView() {
             </motion.div>
 
             <p className="mt-6 min-h-16 break-words px-2 font-display text-2xl">
-              {speaking
-                ? currentPhrase
-                  ? `🗣️ « ${currentPhrase} »`
-                  : "🗣️ Répétition en cours…"
-                : paused
-                  ? "⏸️ En pause — reprends quand tu veux"
+              {/* La PAUSE passe AVANT l'apparence speaking du moteur : une
+                  utterance wedgée ne tire jamais onend, speaking resterait
+                  vrai pendant toute la pause et masquerait le bandeau. */}
+              {(paused || sessionPaused) &&
+                "⏸️ En pause — reprends quand tu veux"}
+              {!(paused || sessionPaused) &&
+                (speaking
+                  ? currentPhrase
+                    ? `🗣️ « ${currentPhrase} »`
+                    : "🗣️ Répétition en cours…"
                   : running
                     ? "Repos actif…"
-                    : "Prêt à dormir ?"}
+                    : "Prêt à dormir ?")}
             </p>
             <p className="mt-1 font-mono text-xs text-ink-3">
               {String(Math.floor(elapsed / 60)).padStart(2, "0")}:

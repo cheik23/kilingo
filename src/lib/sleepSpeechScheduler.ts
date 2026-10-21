@@ -18,6 +18,10 @@ export type SleepSpeechScheduler = {
   ): void;
   isRunning(): boolean;
   isPaused(): boolean;
+  /** Une utterance acceptée est-elle encore active (lancée, jamais terminée) ?
+   *  Sert à distinguer, à la reprise, une pause entre deux phrases d'un
+   *  moteur qui a ignoré pause() (média coincé sans fin, cf. sleepTtsRecovery). */
+  hasActiveUtterance(): boolean;
 };
 
 type CreateSleepSpeechSchedulerOptions = {
@@ -145,5 +149,6 @@ export function createSleepSpeechScheduler({
     },
     isRunning: () => running,
     isPaused: () => paused,
+    hasActiveUtterance: () => activeSpeechId !== null,
   };
 }

@@ -172,4 +172,75 @@ describe("Sleep Shadow — scheduler actually used by SleepView", () => {
     await h.resolveWait(1);
     expect(h.launched).toHaveLength(2);
   });
+
+  test("pause pendant une phrase : l'utterance lancée reste active au scheduler (reprise en place possible... si le moteur l'a vraiment suspendue)", async () => {
+    const h = createHarness();
+    h.scheduler.start();
+    h.runTimer();
+    await h.resolveWait();
+    expect(h.launched).toHaveLength(1);
+    h.scheduler.pause();
+    // Cas du wedge Edge : pause() natif ignoré, la phrase vraie reste « parlée »
+    // sans jamais finir — hasActiveUtterance est le signal utilisé par
+    // decideResumeAction pour router la reprise vers la récupération.
+    expect(h.scheduler.hasActiveUtterance()).toBe(true);
+    h.scheduler.resume();
+    expect(h.launched).toHaveLength(1);
+    expect(h.launched[0].isCurrent()).toBe(true);
+  });
+});
+
+describe("Sleep Shadow — récupération du wedge (média qui n'a jamais suspendu)", () => {
+  test("restart après wedge : relance exactement UNE phrase neuve et ignore le callback périmé du média tué", async () => {
+    const h = createHarness();
+    h.scheduler.start();
+    h.runTimer();
+    await h.resolveWait();
+    expect(h.launched).toHaveLength(1);
+
+    // Pause pendant la phrase, puis recovery du wedge (restart) : le
+    // cancel du composant précède, le callback onend/onerror de l'ancienne
+    // utterance arrivera APRÈS — il ne doit jamais créer un doublon.
+    h.scheduler.pause();
+    h.scheduler.restart(0);
+    expect(h.launched).toHaveLength(1);
+    expect(h.scheduler.hasActiveUtterance()).toBe(false);
+
+    h.launched[0].complete(800); // callback périmé de l'utterance tuée
+    expect(h.launched).toHaveLength(1);
+
+    h.runTimer(1);
+    await h.resolveWait(1);
+    expect(h.launched).toHaveLength(2); // la reprise ne lance bien qu'une phrase
+  });
+
+  test("arrêt pendant la pause wedge : plus rien ne démarre, même avec orchestrations successives", async () => {
+    const h = createHarness();
+    h.scheduler.start();
+    h.runTimer();
+    await h.resolveWait();
+    h.scheduler.pause();
+    h.scheduler.stop();
+    h.launched[0].complete(800); // callback périmé après stop
+    expect(h.launched).toHaveLength(1);
+    // Un restart après stop est KO : la session est fermée.
+    h.scheduler.restart(0);
+    expect(h.launched).toHaveLength(1);
+    expect(h.scheduler.isRunning()).toBe(false);
+    expect(h.scheduler.isPaused()).toBe(false);
+  });
+
+  test("changement de langue pendant une pause wedge : les callbacks de l'ancienne langue sont invalidés", async () => {
+    const h = createHarness();
+    h.scheduler.start();
+    h.runTimer();
+    await h.resolveWait();
+    h.scheduler.pause();
+    h.scheduler.restart(900);
+    h.launched[0].complete(800); // bon callback de l'ancienne langue
+    expect(h.launched).toHaveLength(1);
+    h.runTimer(1);
+    await h.resolveWait(1);
+    expect(h.launched).toHaveLength(2); // une seule relance sur la nouvelle langue
+  });
 });
