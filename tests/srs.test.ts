@@ -26,53 +26,64 @@ describe("SRS advanceCard — machine à états", () => {
   });
 
   test("confirming → learning avec again", () => {
-    const outcome = advanceCard("confirming" as CardStatus, "again" as Rating, now());
+    const t = now();
+    const outcome = advanceCard("confirming" as CardStatus, "again" as Rating, t);
     expect(outcome.status).toBe("learning");
-    expect(outcome.due).toBe(now(1));
+    expect(outcome.due).toBe(t + DAY_MS);
     expect(outcome.justMastered).toBe(false);
   });
 
   test("confirming → learning avec hard", () => {
-    const outcome = advanceCard("confirming" as CardStatus, "hard" as Rating, now());
+    const t = now();
+    const outcome = advanceCard("confirming" as CardStatus, "hard" as Rating, t);
     expect(outcome.status).toBe("learning");
-    expect(outcome.due).toBe(now(2));
+    expect(outcome.due).toBe(t + 2 * DAY_MS);
     expect(outcome.justMastered).toBe(false);
   });
 
   test("learning → learning avec again (première fois)", () => {
-    const outcome = advanceCard("learning" as CardStatus, "again" as Rating, now());
+    const t = now();
+    const outcome = advanceCard("learning" as CardStatus, "again" as Rating, t);
     expect(outcome.status).toBe("learning");
-    expect(outcome.due).toBe(now(1));
+    expect(outcome.due).toBe(t + DAY_MS);
     expect(outcome.justMastered).toBe(false);
   });
 
   test("learning → learning avec hard", () => {
-    const outcome = advanceCard("learning" as CardStatus, "hard" as Rating, now());
+    const t = now();
+    const outcome = advanceCard("learning" as CardStatus, "hard" as Rating, t);
     expect(outcome.status).toBe("learning");
-    expect(outcome.due).toBe(now(2));
+    expect(outcome.due).toBe(t + 2 * DAY_MS);
     expect(outcome.justMastered).toBe(false);
   });
 
   test("learning → confirming avec good", () => {
-    const outcome = advanceCard("learning" as CardStatus, "good" as Rating, now());
+    const t = now();
+    const outcome = advanceCard("learning" as CardStatus, "good" as Rating, t);
     expect(outcome.status).toBe("confirming");
-    expect(outcome.due).toBe(now(2));
+    expect(outcome.due).toBe(t + 2 * DAY_MS);
     expect(outcome.justMastered).toBe(false);
   });
 
   test("learning → confirming avec easy (accéléré à 1j)", () => {
-    const outcome = advanceCard("learning" as CardStatus, "easy" as Rating, now());
+    const t = now();
+    const outcome = advanceCard("learning" as CardStatus, "easy" as Rating, t);
     expect(outcome.status).toBe("confirming");
-    expect(outcome.due).toBe(now(1));
+    expect(outcome.due).toBe(t + DAY_MS);
     expect(outcome.justMastered).toBe(false);
   });
 
   test("retour learning → learning avec again après avoir été confirming", () => {
-    const afterConfirming = advanceCard("learning" as CardStatus, "good" as Rating, now());
+    // Un seul instant capturé (t) : comparer `due` à un now() RÉAPPELÉ
+    // serait faussé dès que l'horloge avance d'une ms entre les deux
+    // appels — c'est ce qui rendait ce test instable.
+    const t = now();
+    const afterConfirming = advanceCard("learning" as CardStatus, "good" as Rating, t);
     expect(afterConfirming.status).toBe("confirming");
-    const back = advanceCard("confirming" as CardStatus, "again" as Rating, now());
+    expect(afterConfirming.due).toBe(t + 2 * DAY_MS);
+    const back = advanceCard("confirming" as CardStatus, "again" as Rating, t);
     expect(back.status).toBe("learning");
-    expect(back.due).toBe(now(1));
+    expect(back.due).toBe(t + DAY_MS);
   });
 });
 
@@ -232,5 +243,14 @@ describe("anti double-soumission : le contrat d'idempotence relie backend et fro
     expect(src).toMatch(/if \(submittingRef\.current\) return;/);
     expect(src).toMatch(/submittingRef\.current = true;/);
     expect(src).toMatch(/finally \{\s*submittingRef\.current = false;/);
+  });
+
+  test("seule une revue ACCEPTÉE compte dans le compteur de session", () => {
+    const src = read("src/components/learner/ReviewView.tsx");
+    // Un rejet backend (stale_review, réseau) n'enregistre rien en base :
+    // le compteur de cartes consolidées — et le résumé « +N XP » qui en
+    // découle — ne doit donc pas l'inclure.
+    expect(src).toMatch(/if \(accepted\) setReviewed\(\(r\) => r \+ 1\);/);
+    expect(src).not.toMatch(/\n {4}setReviewed\(\(r\) => r \+ 1\);/);
   });
 });

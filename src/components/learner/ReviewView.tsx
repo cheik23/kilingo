@@ -188,6 +188,10 @@ export function ReviewView() {
     const card = cards[index];
     if (!card) return;
     submittingRef.current = true;
+    // `accepted` = la mutation a-t-elle VRAIMENT enregistré la revue ?
+    // Un rejet (stale_review, réseau) ne change rien en base : la session
+    // ne doit pas le compter comme une carte consolidée.
+    let accepted = false;
     try {
       const res = await reviewMutation({
         cardId: card.card._id as never,
@@ -196,6 +200,7 @@ export function ReviewView() {
         // depuis que cette carte a été affichée (lastReview périmé).
         expectedLastReview: card.card.lastReview ?? null,
       });
+      accepted = true;
       setFeedback(feedbackText(t, rating, res.intervalDays, res.justMastered));
       if (res.justMastered) setBurst((b) => b + 1);
     } catch {
@@ -203,7 +208,10 @@ export function ReviewView() {
     } finally {
       submittingRef.current = false;
     }
-    setReviewed((r) => r + 1);
+    // Seule une revue acceptée par le backend compte dans la session : le
+    // résumé « +N XP » et le nombre de cartes consolidées reflètent ainsi
+    // l'XP réellement crédité.
+    if (accepted) setReviewed((r) => r + 1);
     setRevealed(false);
     const next = index + 1;
     setIndex(next);
