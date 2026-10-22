@@ -450,14 +450,41 @@ export const reviewQueue = query({
 /**
  * Révise une carte via la machine à états learning → confirming → mastered.
  * Retourne le résultat pour le feedback inline animé de l'UI.
+ *
+ * Idempotence (anti double-soumission côté backend) : le client peut
+ * transmettre `expectedLastReview` — la valeur de `lastReview` qu'il a vue
+ * dans la file de révision au moment où il a affiché la carte. Si la carte
+ * a déjà été revue entre-temps, `lastReview` a changé → la mutation refuse
+ * (code `stale_review`) sans avancer l'état ni créditer de XP.
+ *
+ * Deux revues légitimes d'une carte restent toujours possibles : chaque
+ * revue repousse l'échéance d'au moins un jour, donc la seconde survient
+ * après l'échéance, quand le client détient une file rafraîchie portant le
+ * `lastReview` à jour. Le garde ne rejette qu'une soumission construite sur
+ * un état périmé (clic dupliqué, mutation fantôme rejouée).
  */
 export const reviewCardMutation = mutation({
-  args: { cardId: v.id("srsCards"), rating: ratingValidator },
+  args: {
+    cardId: v.id("srsCards"),
+    rating: ratingValidator,
+    expectedLastReview: v.optional(v.union(v.number(), v.null())),
+  },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) throw new Error("Not signed in");
     const card = await ctx.db.get(args.cardId);
     if (!card || card.userId !== userId) throw new Error("Card not found");
+
+    // Compare-and-swap sur lastReview — AVANT toute écriture (XP, statut).
+    // `undefined` = appelant legacy sans garde ; `null` = carte jamais revue.
+    if (
+      args.expectedLastReview !== undefined &&
+      (card.lastReview ?? null) !== args.expectedLastReview
+    ) {
+      throw new Error(
+        JSON.stringify({ ok: false, reason: "stale_review" }),
+      );
+    }
 
     const now = Date.now();
     const currentStatus = (card.status ?? "learning") as CardStatus;

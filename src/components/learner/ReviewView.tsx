@@ -54,6 +54,9 @@ type QueueItem = {
     language: string;
     status?: string;
     consecutiveFails?: number;
+    /** Dernière revue servie par reviewQueue — transmise à la mutation
+        comme clé d'idempotence (compare-and-swap sur lastReview). */
+    lastReview?: number;
   };
   slang: {
     _id: string;
@@ -140,6 +143,12 @@ export function ReviewView() {
   const startedAt = useRef(Date.now());
   const sessionSaved = useRef(false);
   const drawAttempted = useRef(false);
+  // Garde anti double-soumission : un seul rate() en vol à la fois.
+  // Sans elle, deux clics rapprochés ciblent cards[index] avant que
+  // setIndex(next) ne s'applique — la même carte est notée deux fois
+  // (double avancement + double XP). Un ref (et non un state) pour
+  // éviter tout re-rendu au moment du blocage.
+  const submittingRef = useRef(false);
 
   // Tire les nouvelles cartes du jour (plafond 10/jour) au montage.
   useEffect(() => {
@@ -172,17 +181,27 @@ export function ReviewView() {
   };
 
   const rate = async (rating: Rating) => {
+    // Anti double-soumission : si une mutation est déjà en vol, on ignore
+    // le clic (pas de file d'attente — l'utilisateur doit attendre le
+    // feedback). Un state serait asynchrone ; un ref est synchrone ici.
+    if (submittingRef.current) return;
     const card = cards[index];
     if (!card) return;
+    submittingRef.current = true;
     try {
       const res = await reviewMutation({
         cardId: card.card._id as never,
         rating,
+        // Idempotence backend : la mutation refuse si la carte a été revue
+        // depuis que cette carte a été affichée (lastReview périmé).
+        expectedLastReview: card.card.lastReview ?? null,
       });
       setFeedback(feedbackText(t, rating, res.intervalDays, res.justMastered));
       if (res.justMastered) setBurst((b) => b + 1);
     } catch {
       setFeedback({ kind: "again", text: t("review.fbError") });
+    } finally {
+      submittingRef.current = false;
     }
     setReviewed((r) => r + 1);
     setRevealed(false);
