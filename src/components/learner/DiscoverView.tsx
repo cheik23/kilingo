@@ -180,6 +180,11 @@ export function DiscoverView() {
   const [explicitRegion, setExplicitRegion] = useState<string | null>(
     readDiscoverRegionPref,
   );
+  /* Garde de sélection manuelle + marqueur d'application du focus
+     déclarés ici pour précéder TOUS les callbacks qui les utilisent
+     (voir bloc « adjust state during render » plus bas). */
+  const [hasTouched, setHasTouched] = useState(false);
+  const [focusApplied, setFocusApplied] = useState<LanguageCode | null>(null);
   const [registerFilter, setRegisterFilter] = useState<string | "all">("all");
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"deck" | "database">("deck");
@@ -204,6 +209,7 @@ export function DiscoverView() {
       ...(registerFilter !== "all" ? { register: registerFilter } : {}),
     };
   }, [excludeList, langFilter, countryFilter, registerFilter]);
+  const myLanguages = useQuery(api.learning.myLanguages, {});
   const deck = useQuery(api.slang.discoveryDeck, deckArgs);
   const database = useQuery(api.slang.list, {
     language: langFilter === "all" ? undefined : langFilter,
@@ -324,11 +330,12 @@ export function DiscoverView() {
   const filtersActive =
     langFilter !== "all" || countryFilter !== "all" || registerFilter !== "all";
   const resetFilters = useCallback(() => {
+    setHasTouched(true);
     setLangFilter("all");
     setCountryFilter("all");
     setRegisterFilter("all");
     setDeckIndex(0);
-  }, []);
+  }, [setHasTouched]);
 
   const reshuffle = useCallback(() => {
     setDeckIndex(0);
@@ -348,7 +355,30 @@ export function DiscoverView() {
   );
   const showCountryRow = allCountries.length > 1 || countryFilter !== "all";
 
+  /* Explorer reflète le FOCUS D'APPRENTISSAGE persisté du profil — la
+     même convention que ShadowView et SleepView (myLanguages.activeFocus,
+     source de vérité canonique, pas de préférence locale en plus). Au
+     premier rendu où le profil est résolu, si l'utilisateur n'a encore
+     rien choisi DANS CETTE PAGE, la langue active s'applique AVEC sa
+     région effectrice (préférence régionale explicite conservée, défaut
+     Espagne pour l'espagnol). Pattern « adjust state during render » du
+     reset d'index ci-dessus : setState conditionnel en rendu,
+     ZÉRO effet — donc ZÉRO rendu en cascade, et la région n'est jamais
+     réinitialisée au fil des rendus (le marqueur ne s'applique qu'une
+     fois par langue de focus). Le garde `hasTouched` (événements
+     utilisateur) empêche une résolution asynchrone de myLanguages
+     d'écraser un choix fait entre-temps ; l'écriture du défaut Espagne
+     dans la préférence persistée n'est PAS déclenchée ici : le défaut
+     n'en est pas une (comportement identique aux clics chip). */
+  const focusLang = ((myLanguages?.activeFocus ?? []) as readonly LanguageCode[])[0];
+  if (!hasTouched && focusLang && focusApplied !== focusLang) {
+    setFocusApplied(focusLang);
+    setLangFilter(focusLang);
+    setCountryFilter(effectiveRegion(focusLang, explicitRegion));
+  }
+
   const setLang = useCallback((l: LanguageCode | "all") => {
+    setHasTouched(true);
     setLangFilter(l);
     /* Région : Espagne par défaut pour l'espagnol quand rien n'a été choisi
        explicitement ; sinon préférence conservée (le Chili explicitement
@@ -361,12 +391,13 @@ export function DiscoverView() {
        compteur de l'ancien filtre (même si la requête du nouveau deck
        tarde). Le filet « adjust state during render » ci-dessus reste en
        place pour tout autre chemin d'écriture. */
-  }, [explicitRegion]);
+  }, [explicitRegion, setHasTouched]);
 
   /* Même garantie pour les chips pays et registre : filtre + index dans
      un seul batch de mise à jour (règle React : setState d'un event
      handler est batché, zéro rendu en cascade). */
   const setCountry = useCallback((c: string) => {
+    setHasTouched(true);
     setCountryFilter(c);
     /* Tout clic pays — « Tous » inclus — est un choix EXPLICITE : persisté
        pour que « tous pays » demandé volontairement ne soit jamais ré-emporté
@@ -374,11 +405,12 @@ export function DiscoverView() {
     setExplicitRegion(c);
     writeDiscoverRegionPref(c);
     setDeckIndex(0);
-  }, []);
+  }, [setHasTouched]);
   const setRegister = useCallback((k: string) => {
+    setHasTouched(true);
     setRegisterFilter(k);
     setDeckIndex(0);
-  }, []);
+  }, [setHasTouched]);
 
   /* ── Transform de la carte active ─────────────────────────────────── */
 
