@@ -20,6 +20,11 @@ import { useI18n } from "@/lib/i18n";
 import { SoonBadge } from "@/components/ui/SoonBadge";
 import { supportsReducedMotion, usePerfMode } from "@/lib/perf";
 import { languageIsComingSoon } from "@/data/contentLanguages";
+import {
+  effectiveRegion,
+  readDiscoverRegionPref,
+  writeDiscoverRegionPref,
+} from "@/lib/discoverRegion";
 import { useSwipe, type SwipeDirection } from "@/hooks/useSwipe";
 
 const REGISTER_STYLES: Record<string, string> = {
@@ -166,6 +171,15 @@ export function DiscoverView() {
   // l'état vide change de texte au lieu de laisser croire à un bug.
   const [langFilter, setLangFilter] = useState<LanguageCode | "all">("all");
   const [countryFilter, setCountryFilter] = useState<string | "all">("all");
+  /* Préférence régionale EXPLICITE de l'utilisateur ("all", code pays, ou
+     null = jamais choisi). Elle seule décide si le défaut régional Espagne
+     s'applique à l'espagnol : sans elle — c'est-à-dire pour toutes les
+     sessions — la sélection de l'espagnol laissait le deck sur « tous pays », régionalement
+     flou (audit de transition). Persistée pour survivre à la navigation et au
+     rechargement, comme les historiques d'exposition ci-dessus. */
+  const [explicitRegion, setExplicitRegion] = useState<string | null>(
+    readDiscoverRegionPref,
+  );
   const [registerFilter, setRegisterFilter] = useState<string | "all">("all");
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"deck" | "database">("deck");
@@ -336,20 +350,29 @@ export function DiscoverView() {
 
   const setLang = useCallback((l: LanguageCode | "all") => {
     setLangFilter(l);
-    setCountryFilter("all"); // un pays n'a de sens que dans sa langue
+    /* Région : Espagne par défaut pour l'espagnol quand rien n'a été choisi
+       explicitement ; sinon préférence conservée (le Chili explicitement
+       choisi n'est JAMAIS remplacé). Une langue ≠ « es » n'hérite d'AUCUN
+       défaut espagnol. */
+    setCountryFilter(effectiveRegion(l, explicitRegion));
     setDeckIndex(0);
     /* Le reset de l'index est batché DANS LE MÊME EVENT que le changement
        de filtre : le premier frame committé ne peut jamais décrire un
        compteur de l'ancien filtre (même si la requête du nouveau deck
        tarde). Le filet « adjust state during render » ci-dessus reste en
        place pour tout autre chemin d'écriture. */
-  }, []);
+  }, [explicitRegion]);
 
   /* Même garantie pour les chips pays et registre : filtre + index dans
      un seul batch de mise à jour (règle React : setState d'un event
      handler est batché, zéro rendu en cascade). */
   const setCountry = useCallback((c: string) => {
     setCountryFilter(c);
+    /* Tout clic pays — « Tous » inclus — est un choix EXPLICITE : persisté
+       pour que « tous pays » demandé volontairement ne soit jamais ré-emporté
+       par le défaut Espagne au prochain rechargement. */
+    setExplicitRegion(c);
+    writeDiscoverRegionPref(c);
     setDeckIndex(0);
   }, []);
   const setRegister = useCallback((k: string) => {

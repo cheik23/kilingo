@@ -497,6 +497,10 @@ const REGION_ALIASES: Record<string, string> = {
   "afrique du sud": "za",
   afrique: "af",
   // ES
+  // ⚠️ « espagne » existe dans les données réelles (3 cartes régions
+  // « Espagne ») : sans cet alias, leur regionKey ne valait jamais « es »
+  // et le filtre Espagne les ratait silencieusement (audit de transition).
+  espagne: "es",
   espana: "es",
   spain: "es",
   mexico: "mx",
