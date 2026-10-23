@@ -200,6 +200,26 @@ for (const r of perLanguage) {
   );
 }
 
+/* ── Opérations explicites (exigence produit : le dry-run dit TOUT) ── */
+const plannedOperations = {
+  "exécutées_ici": [
+    "slang:seedPlan (lecture)",
+    "slang:list {language,country} par partition (lecture)",
+    "slang:knownWords par batchs de 40 (lecture)",
+    "slang:stats (lecture)",
+  ],
+  "écritures_ici": [],
+  "planifiées_si_semis": [
+    ...langsToCheck.map((l) => `slang:seed {language:"${l}"} (écriture)`),
+    ...langsToCheck.map((l) => `slang:recomputeAggregates {language:"${l}"} (écriture)`),
+    "ponts culturels crossConcepts — SAUTÉS par défaut (opt-in explicite " +
+      "--include-cross-concepts du pilote scripts/seed-backend.mjs)",
+  ],
+};
+console.log("\n── OPÉRATIONS ──");
+console.log("Ce dry-run : lectures uniquement, AUCUNE écriture.");
+console.log(`Pilote planifié ensuite : ${plannedOperations["planifiées_si_semis"].length} opérations (${langsToCheck.length} × seed + ${langsToCheck.length} × agrégats) + ponts SAUTÉS par défaut.`);
+
 const reportPath = path.join(projectDir, "scripts", "seed-dry-run-report.json");
 writeFileSync(
   reportPath,
@@ -209,6 +229,7 @@ writeFileSync(
       at: new Date().toISOString(),
       bundleCheck: { count: deployedLangs.size, missing: bundleMissing, extra: bundleExtra },
       totals: { willInsert, wouldUpdate, unchanged, foundElsewhere },
+      plannedOperations,
       perLanguage,
     },
     null,

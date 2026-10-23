@@ -176,7 +176,30 @@ describe("Seed Pipeline intégration — slang:seed réel (convex-test)", () => 
   });
 });
 
-describe("Seed Pipeline intégration — ponts entre langues (crossSeed)", () => {
+describe("Seed Pipeline intégration — mode standard : zéro pont, zéro crossConcepts", () => {
+  /* Le flux standard du pilote (sans opt-in) = slang:seed +
+   * recomputeAggregates, RIEN d'autre. Ce test l'exécute tel quel dans la
+   * base de test spécifique et prouve que ni crossConcepts ni les données
+   * des ponts ( lectures/écritures) n'ont été touchés. */
+  test("flux standard : crossConcepts reste VIDE après le semis + agrégats", async () => {
+    const t = makeApp();
+    await t.mutation(api.slang.seed, { language: LANG });
+    await t.mutation(api.slang.recomputeAggregates, { language: LANG });
+
+    const crossCount = await t.run(async (ctx) => {
+      return (await ctx.db.query("crossConcepts").collect()).length;
+    });
+    expect(crossCount).toBe(0);
+
+    // Nouvelle lecture idem (aucune mutation dans la durée du test).
+    const crossCount2 = await t.run(async (ctx) => {
+      return (await ctx.db.query("crossConcepts").collect()).length;
+    });
+    expect(crossCount2).toBe(0);
+  });
+});
+
+describe("Seed Pipeline intégration — ponts entre langues (crossSeed, opt-in)", () => {
   test("seedCrossConceptsPublic : création puis idempotence (0 créée au 2e tour)", async () => {
     const t = makeApp();
     const first = await t.mutation(api.crossSeed.seedCrossConceptsPublic, {});

@@ -12,6 +12,8 @@
  * isolée).
  */
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { SLANG_SEED, slangSlug } from "../src/convex/slangSeed";
 import { normalizeRegion } from "../src/convex/languages";
 import type { SlangSeed as SlangRow } from "../src/convex/slangSeed";
@@ -142,6 +144,39 @@ describe("Seed Pipeline — qualité minimale des données", () => {
     for (const lang of langSet) {
       expect(lang).toMatch(/^[a-z]{2}$/);
     }
+  });
+});
+
+describe("Seed Pipeline — sécurité du pilote (mode standard)", () => {
+  const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
+
+  /* Même convention que tests/srs.test.ts : contrat d'archécture vérifié
+   * en statique — ici, la décision produit « ponts non semés par défaut ».
+   * La preuve dynamique (aucune ligne en base de test) est dans le fichier
+   * d'intégration convex-test. */
+  test("le pilote N'appelle les ponts CULTURELS qu'Avec l'opt-in explicite", () => {
+    const src = read("scripts/seed-backend.mjs");
+    // L'appel seedCrossConceptsPublic n'existe qu'à un seul endroit.
+    const call = src.indexOf('runFn("crossSeed:seedCrossConceptsPublic"');
+    expect(call, "l'appel des ponts doit être unique").toBeGreaterThanOrEqual(0);
+    expect(src.indexOf('runFn("crossSeed:', call + 1)).toBe(-1);
+    // et il se trouve APRÈS le gardes opt-in strict (--include-cross-concepts).
+    const guard = src.indexOf("if (includeCross)");
+    expect(guard, "la garde d'opt-in doit exister").toBeGreaterThan(-1);
+    expect(call, "l'appel des ponts doit être DANS plan a drapeau explicite").toBeGreaterThan(guard);
+    // Sans opt-in : message "SAUTÉS" — pas d'appel, pas de mutation.
+    expect(src).toMatch(/SAUTÉS.*include-cross-concepts/);
+  });
+
+  test("le semis des expressions (slang.ts) ne référence jamais crossConcepts", () => {
+    const src = read("src/convex/slang.ts");
+    expect(src).not.toMatch(/crossConcepts/);
+  });
+
+  test("le dry-run liste explicitement ses opérations (lectures ici, écritures = 9 done)", () => {
+    const src = read("scripts/seed-dry-run.mjs");
+    expect(src).toContain('"écritures_ici": []');
+    expect(src).toMatch(/ponts culturels crossConcepts — SAUTÉS par défaut/);
   });
 });
 

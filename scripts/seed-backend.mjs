@@ -10,12 +10,18 @@
  *   2. `slang:seed`          → UNE langue par appel (idempotent) ;
  *   3. `slang:recomputeAggregates` → une langue par appel (compteurs par
  *                              langue + registres + total du catalogue) ;
- *   4. `crossSeed:seedCrossConcepts` → les ponts entre langues ;
- *   5. rapport : compteurs par langue, mesurés par les agrégats.
+ *   4. rapport : compteurs par langue, mesurés par les agrégats.
+ *
+ * Ponts culturels (crossConcepts) : SAUTÉS par défaut — décision produit.
+ * Ils ne sont semés qu'avec l'opt-in explicite `--include-cross-concepts`,
+ * qui appelle `crossSeed:seedCrossConceptsPublic` (upsert purgent scoped
+ * à la table crossConcepts uniquement.
  *
  * Usage :
  *   node scripts/seed-backend.mjs                 # backend local (.env.local)
  *   node scripts/seed-backend.mjs --prod          # production (.env.production)
+ *   [--only a,b,c]                                # restreindre les langues
+ *   [--include-cross-concepts]                    # OPT-IN : semer les ponts
  *
  * `--prod` passe `--env-file .env.production`, ET RIEN D'AUTRE n'est touché :
  * ce drapeau choisit la cible du CLI, il ne déploie pas de code (pour pousser
@@ -80,6 +86,10 @@ const only =
   onlyArg && onlyArg.split("=").pop()
     ? onlyArg.split("=").pop().split(",").filter(Boolean).map((s) => s.trim())
     : null;
+/* Ponts culturels : OPT-IN STRICT (`--include-cross-concepts`). Sans ce
+ * drapeau, AUCUNE fonction crossSeed n'est appelée — le semis ordinaire des
+ * expressions ne touche jamais la table crossConcepts. */
+const includeCross = process.argv.includes("--include-cross-concepts");
 const reportArg = process.argv.findIndex((a) => a.startsWith("--report"));
 const reportPath =
   reportArg >= 0 && process.argv[reportArg + 1]
@@ -129,17 +139,23 @@ for (const language of languages) {
 }
 console.log(`Agrégats recalculés (${perLanguage.size} langues) — catalogue : ${catalogTotal} fiches\n`);
 
-// 4. Ponts entre langues --------------------------------------------------
-/* `seedCrossConcepts` est une internalMutation : le CLI Convex ne peut
- * exécuter que des fonctions PUBLIQUES. L'étape historique visait donc une
- * fonction non exécutable et échouait à chaque semis complet. Le wrapper
- * public `seedCrossConceptsPublic` (même handler, mêmes règles upsert +
- * purge scoped à crossConcepts) restaure l'étape. */
-const cross = runFn("crossSeed:seedCrossConceptsPublic", {});
-console.log(
-  `Ponts entre langues (crossSeed) : ${cross.concepts} concepts ` +
-    `(+${cross.created} créés, ${cross.updated} rafraîchis)\n`,
-);
+// 4. Ponts entre langues — OPT-IN STRICT (--include-cross-concepts) --------
+/* Sans opt-in : AUCUN appel crossSeed (décision produit). Avec opt-in, le
+ * CLI ne peut exécuter que des fonctions PUBLIQUES, d'où le wrapper public
+ * `seedCrossConceptsPublic` (même handler que l'interne, mêmes règles
+ * upsert + purge scoped à crossConcepts). */
+let cross = null;
+if (includeCross) {
+  cross = runFn("crossSeed:seedCrossConceptsPublic", {});
+  console.log(
+    `Ponts entre langues (crossSeed) : ${cross.concepts} concepts ` +
+      `(+${cross.created} créés, ${cross.updated} rafraîchis)\n`,
+  );
+} else {
+  console.log(
+    `Ponts entre langues : SAUTÉS (opt-in --include-cross-concepts pour les semer)\n`,
+  );
+}
 
 // 5. Rapport --------------------------------------------------------------
 const stats = runFn("slang:stats", {});
@@ -170,6 +186,7 @@ if (reportPath) {
         perLanguage,
         catalogTotal,
         statsTotal: stats.total,
+        includedCrossConcepts: includeCross,
         cross,
       },
       null,
