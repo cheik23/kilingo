@@ -22,7 +22,7 @@
  * les fonctions : `npx convex deploy --env-file .env.production`).
  */
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -72,23 +72,46 @@ function runFn(fn, jsonArgs) {
 const label = prod ? "PRODUCTION (formal-vulture-518)" : "local";
 console.log(`\n=== Semis du backend ${label} ===\n`);
 
+/* Filtrage optionnel : `--only am,th,ig` ne sème (et ne recalcule les
+ * agrégats) QUE ces langues. Sans ce drapeau, comportement historique :
+ * toutes les langues du plan. */
+const onlyArg = process.argv.find((a) => a.startsWith("--only"));
+const only =
+  onlyArg && onlyArg.split("=").pop()
+    ? onlyArg.split("=").pop().split(",").filter(Boolean).map((s) => s.trim())
+    : null;
+const reportArg = process.argv.findIndex((a) => a.startsWith("--report"));
+const reportPath =
+  reportArg >= 0 && process.argv[reportArg + 1]
+    ? path.resolve(process.argv[reportArg + 1])
+    : null;
+
 // 1. Plan de semis --------------------------------------------------------
-const languages = runFn("slang:seedPlan", {});
-if (!Array.isArray(languages) || languages.length === 0) {
+const planned = runFn("slang:seedPlan", {});
+if (!Array.isArray(planned) || planned.length === 0) {
   console.error("slang:seedPlan n'a renvoyé aucune langue — seed introuvable ?");
   process.exit(1);
 }
-console.log(`${languages.length} langues porteuses de contenu : ${languages.join(" ")}\n`);
+const languages = only ? planned.filter((l) => only.includes(l)) : planned;
+if (languages.length === 0) {
+  console.error(`Aucune langue du plan ne correspond à --only ${only.join(",")} — plan réel : ${planned.join(" ")}`);
+  process.exit(1);
+}
+console.log(
+  `${languages.length}/${planned.length} langues porteuses de contenu : ${languages.join(" ")}\n`,
+);
 
 // 2. Semis langue par langue ---------------------------------------------
 let inserted = 0;
 let updated = 0;
 let skipped = 0;
+const perLanguage = [];
 for (const language of languages) {
   const r = runFn("slang:seed", { language });
   inserted += r.inserted;
   updated += r.updated;
   skipped += r.skipped;
+  perLanguage.push({ lang: language, seeded: r.seeded, inserted: r.inserted, updated: r.updated, skipped: r.skipped });
   console.log(
     `  seed ${language.padEnd(3)} ${String(r.seeded).padStart(4)} fiches ` +
       `(+${r.inserted} insérées, ${r.updated} rafraîchies, ${r.skipped} inchangées)`,
@@ -97,18 +120,26 @@ for (const language of languages) {
 console.log(`\nSemis : ${inserted} insérées, ${updated} rafraîchies, ${skipped} inchangées\n`);
 
 // 3. Agrégats, langue par langue -----------------------------------------
-const perLanguage = new Map();
+const aggregates = new Map();
 let catalogTotal = 0;
 for (const language of languages) {
   const r = runFn("slang:recomputeAggregates", { language });
-  perLanguage.set(language, r.inLanguage);
+  aggregates.set(language, r.inLanguage);
   catalogTotal = r.catalogTotal;
 }
 console.log(`Agrégats recalculés (${perLanguage.size} langues) — catalogue : ${catalogTotal} fiches\n`);
 
 // 4. Ponts entre langues --------------------------------------------------
-runFn("crossSeed:seedCrossConcepts", {});
-console.log("Ponts entre langues (crossSeed) : OK\n");
+/* `seedCrossConcepts` est une internalMutation : le CLI Convex ne peut
+ * exécuter que des fonctions PUBLIQUES. L'étape historique visait donc une
+ * fonction non exécutable et échouait à chaque semis complet. Le wrapper
+ * public `seedCrossConceptsPublic` (même handler, mêmes règles upsert +
+ * purge scoped à crossConcepts) restaure l'étape. */
+const cross = runFn("crossSeed:seedCrossConceptsPublic", {});
+console.log(
+  `Ponts entre langues (crossSeed) : ${cross.concepts} concepts ` +
+    `(+${cross.created} créés, ${cross.updated} rafraîchis)\n`,
+);
 
 // 5. Rapport --------------------------------------------------------------
 const stats = runFn("slang:stats", {});
@@ -125,6 +156,27 @@ if (stats.total !== catalogTotal) {
       `total:catalog en annonce ${catalogTotal}.\n`,
   );
   process.exit(1);
+}
+
+/* Bilan JSON optionnel : `--report <chemin>` (contrôle a posteriori). */
+if (reportPath) {
+  writeFileSync(
+    reportPath,
+    JSON.stringify(
+      {
+        target: prod ? "production" : "local",
+        at: new Date().toISOString(),
+        expected: { inserted, updated, skipped },
+        perLanguage,
+        catalogTotal,
+        statsTotal: stats.total,
+        cross,
+      },
+      null,
+      2,
+    ),
+  );
+  console.log(`Rapport : ${reportPath}\n`);
 }
 
 console.log("✅ Backend semé et agrégats à jour.\n");

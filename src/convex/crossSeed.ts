@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { internalMutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
 import type { LanguageCode } from "./languages";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -912,49 +913,85 @@ export const getConceptDetails = query({
   ),
 });
 
+/** Cœur du seed, partagé entre la mutation interne et le wrapper public :
+ *  le pilote d'exploitation (`scripts/seed-backend.mjs`) passe par le CLI
+ *  Convex, qui ne peut exécuter QUE des fonctions publiques (`npx convex run`).
+ *  L'ancienne étape 4 du pilote visait `crossSeed:seedCrossConcepts` (interne)
+ *  et échouait donc à chaque exécution complète du pilote. */
+/** Sérialisation canonique : clés triées récursivement. La comparaison
+ *  naïve `JSON.stringify(a) !== JSON.stringify(b)` était sensible à l'ORDRE
+ *  des clés : le même contenu lu depuis Convex repartait avec un ordre
+ *  différent et déclenchait des patchs fantômes à chaque re-exécution du
+ *  seed (idempotence brisée : 20 « updates » sur des contenus identiques). */
+function canonicalJson(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) {
+    return `[${value.map(canonicalJson).join(",")}]`;
+  }
+  const obj = value as Record<string, unknown>;
+  const keys = Object.keys(obj).sort();
+  return `{${keys.map((k) => `${JSON.stringify(k)}:${canonicalJson(obj[k])}`).join(",")}}`;
+}
+
+async function seedCrossConceptsImpl(ctx: MutationCtx) {
+  const parsed = parseCrossData(RAW);
+  const existing = await ctx.db.query("crossConcepts").collect();
+  const bySlug = new Map(existing.map((r) => [r.slug, r]));
+  let created = 0;
+  let updated = 0;
+  for (const p of parsed) {
+    const row = bySlug.get(p.slug);
+    if (!row) {
+      await ctx.db.insert("crossConcepts", p);
+      created += 1;
+    } else if (
+      row.labelFr !== p.labelFr ||
+      row.labelEn !== p.labelEn ||
+      canonicalJson(row.entries) !== canonicalJson(p.entries)
+    ) {
+      await ctx.db.patch(row._id, {
+        labelFr: p.labelFr,
+        labelEn: p.labelEn,
+        entries: p.entries,
+      });
+      updated += 1;
+    }
+  }
+  // Nettoyage : concepts disparus du seed (sécurité).
+  const keep = new Set(parsed.map((p) => p.slug));
+  for (const row of existing) {
+    if (!keep.has(row.slug)) {
+      await ctx.db.delete(row._id);
+    }
+  }
+  return { concepts: parsed.length, created, updated };
+}
+
+const SeedCrossReturns = v.object({
+  concepts: v.number(),
+  created: v.number(),
+  updated: v.number(),
+});
+
 /** Seed idempotent : upsert par slug.
- *  PHASE 11 (C-3) — INTERNE : l'appel venait du client (Atlas, à chaque
- *  montage) ; l'écriture est désormais réservée à l'exploitation
- *  (`npx convex run crossSeed:seedCrossConcepts`). Le seed reste idempotent,
- *  donc rejouable à volonté. */
+ *  PHASE 11 (C-3) — INTERNE : historiquement appelé depuis le client (Atlas,
+ *  à chaque montage) ; l'écriture est réservée à l'exploitation.
+ *  Le seed reste idempotent, donc rejouable à volonté.
+ *  ATTENTION : ce seed est un upsert PURGEANT — les concepts absents du
+ *  seed sont supprimés de la table `crossConcepts` (et rien d'autre).
+ *  Pour l'exécution opérationnelle via CLI, voir `seedCrossConceptsPublic`. */
 export const seedCrossConcepts = internalMutation({
   args: {},
-  handler: async (ctx) => {
-    const parsed = parseCrossData(RAW);
-    const existing = await ctx.db.query("crossConcepts").collect();
-    const bySlug = new Map(existing.map((r) => [r.slug, r]));
-    let created = 0;
-    let updated = 0;
-    for (const p of parsed) {
-      const row = bySlug.get(p.slug);
-      if (!row) {
-        await ctx.db.insert("crossConcepts", p);
-        created += 1;
-      } else if (
-        row.labelFr !== p.labelFr ||
-        row.labelEn !== p.labelEn ||
-        JSON.stringify(row.entries) !== JSON.stringify(p.entries)
-      ) {
-        await ctx.db.patch(row._id, {
-          labelFr: p.labelFr,
-          labelEn: p.labelEn,
-          entries: p.entries,
-        });
-        updated += 1;
-      }
-    }
-    // Nettoyage : concepts disparus du seed (sécurité).
-    const keep = new Set(parsed.map((p) => p.slug));
-    for (const row of existing) {
-      if (!keep.has(row.slug)) {
-        await ctx.db.delete(row._id);
-      }
-    }
-    return { concepts: parsed.length, created, updated };
-  },
-  returns: v.object({
-    concepts: v.number(),
-    created: v.number(),
-    updated: v.number(),
-  }),
+  handler: (ctx) => seedCrossConceptsImpl(ctx),
+  returns: SeedCrossReturns,
+});
+
+/** Wrapper PUBLIQUE du seed des ponts, pour le CLI Convex (`convex run`) —
+ *  mêmes règles et même idempotence que `slang:seed`. Sans ce wrapper,
+ *  le pilote ne peut pas finaliser son étape « ponts entre langues »
+ *  (une fonction interne n'est pas exécutable via `convex run`). */
+export const seedCrossConceptsPublic = mutation({
+  args: {},
+  handler: (ctx) => seedCrossConceptsImpl(ctx),
+  returns: SeedCrossReturns,
 });
