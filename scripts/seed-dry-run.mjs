@@ -210,8 +210,8 @@ const plannedOperations = {
   ],
   "écritures_ici": [],
   "planifiées_si_semis": [
-    ...langsToCheck.map((l) => `slang:seed {language:"${l}"} (écriture)`),
-    ...langsToCheck.map((l) => `slang:recomputeAggregates {language:"${l}"} (écriture)`),
+    ...langsToCheck.map((l) => `internal.slang.seed {language:"${l}"} (écriture)`),
+    ...langsToCheck.map((l) => `internal.slang.recomputeAggregates {language:"${l}"} (écriture)`),
     "ponts culturels crossConcepts — SAUTÉS par défaut (opt-in explicite " +
       "--include-cross-concepts du pilote scripts/seed-backend.mjs)",
   ],

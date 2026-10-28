@@ -33,6 +33,14 @@ type PwaCopy = {
     manual: string;
     dismissed: string;
   };
+  update: {
+    /** Bandeau « nouvelle version détectée » (SW en attente). */
+    banner: string;
+    /** Bouton d'activation : SKIP_WAITING puis rechargement unique. */
+    button: string;
+    /** Libellé pendant l'application (le bouton est désactivé). */
+    applying: string;
+  };
 };
 
 const PWA: Record<string, PwaCopy> = {
@@ -49,6 +57,11 @@ const PWA: Record<string, PwaCopy> = {
       manual: "Sur iPhone : Partager → Sur l'écran d'accueil",
       dismissed: "Installation suggérée plus tard",
     },
+    update: {
+      banner: "Une nouvelle version est disponible",
+      button: "Mettre à jour",
+      applying: "Mise à jour…",
+    },
   },
   en: {
     offline: {
@@ -62,6 +75,11 @@ const PWA: Record<string, PwaCopy> = {
       installed: "The app is already installed",
       manual: "On iPhone: Share → Add to Home Screen",
       dismissed: "Install suggestion dismissed",
+    },
+    update: {
+      banner: "A new version is available",
+      button: "Update",
+      applying: "Updating…",
     },
   },
   es: {
@@ -77,6 +95,11 @@ const PWA: Record<string, PwaCopy> = {
       manual: "En iPhone: Compartir → Añadir a inicio",
       dismissed: "Sugerencia de instalación descartada",
     },
+    update: {
+      banner: "Hay una nueva versión disponible",
+      button: "Actualizar",
+      applying: "Actualizando…",
+    },
   },
   zh: {
     offline: {
@@ -90,6 +113,11 @@ const PWA: Record<string, PwaCopy> = {
       installed: "应用已安装",
       manual: "在 iPhone 上：分享 → 添加到主屏幕",
       dismissed: "已关闭安装提示",
+    },
+    update: {
+      banner: "有新版本可用",
+      button: "更新",
+      applying: "正在更新…",
     },
   },
   ar: {
@@ -105,6 +133,11 @@ const PWA: Record<string, PwaCopy> = {
       manual: "على iPhone: مشاركة → إضافة إلى الشاشة الرئيسية",
       dismissed: "تم رفض اقتراح التثبيت",
     },
+    update: {
+      banner: "يتوفر إصدار جديد",
+      button: "تحديث",
+      applying: "جارٍ التحديث…",
+    },
   },
   ru: {
     offline: {
@@ -118,6 +151,11 @@ const PWA: Record<string, PwaCopy> = {
       installed: "Приложение уже установлено",
       manual: "На iPhone: Поделиться → На экран «Домой»",
       dismissed: "Предложение установки отклонено",
+    },
+    update: {
+      banner: "Доступна новая версия",
+      button: "Обновить",
+      applying: "Обновление…",
     },
   },
   sw: {
@@ -133,6 +171,11 @@ const PWA: Record<string, PwaCopy> = {
       manual: "Kwenye iPhone: Shiriki → Weka kwenye Skrini ya Nyumbani",
       dismissed: "Ushauri wa kusasisha umekataliwa",
     },
+    update: {
+      banner: "Toleo jipya lipo",
+      button: "Sasisha",
+      applying: "Inasasisha…",
+    },
   },
   ln: {
     offline: {
@@ -146,6 +189,11 @@ const PWA: Record<string, PwaCopy> = {
       installed: "Programme ebongisami yáká",
       manual: "Na iPhone: Kabongá → Bóngá na écran ya Ndako",
       dismissed: "Mokano ya kobonga programme etandali",
+    },
+    update: {
+      banner: "Versiona sika ezali",
+      button: "Sanzola",
+      applying: "Kesenzolami…",
     },
   },
   ha: {
@@ -161,6 +209,11 @@ const PWA: Record<string, PwaCopy> = {
       manual: "A kan iPhone: Raba → Ƙara zuwa allon gida",
       dismissed: "An soke shawara shigar",
     },
+    update: {
+      banner: "Sabon siga na shirye ne",
+      button: "Sabunta",
+      applying: "Ana sabuntawa…",
+    },
   },
   yo: {
     offline: {
@@ -174,6 +227,11 @@ const PWA: Record<string, PwaCopy> = {
       installed: "Ọ̀pọ̀ ìlé ti fi tẹ́lẹ̀",
       manual: "Lórí iPhone: Pín → Fi sí ojú-ìwé ìbẹ̀rẹ̀",
       dismissed: "Ìtànlé ọ̀pọ̀ ìlé ti fagilé",
+    },
+    update: {
+      banner: "Àtúnjẹ̀ tuntun wà",
+      button: "Ṣàtúnjẹ̀",
+      applying: "Ǹ ń ṣàtúnjẹ̀…",
     },
   },
   zu: {
@@ -189,6 +247,11 @@ const PWA: Record<string, PwaCopy> = {
       manual: "Ku-iPhone: Yabelana → Faka ekhasini likhaya",
       dismissed: "Isiqondiso sokufaka siyichululiwe",
     },
+    update: {
+      banner: "Kukhona okusha okulungile",
+      button: "Buyekeza",
+      applying: "Kubuyekezwa…",
+    },
   },
   wo: {
     offline: {
@@ -202,6 +265,11 @@ const PWA: Record<string, PwaCopy> = {
       installed: "Application bi dinu install",
       manual: "Ci iPhone: Raan → Tukulo screen bu kër",
       dismissed: "Tëmbë bi installsalaama yi naka",
+    },
+    update: {
+      banner: "Ñaari version bu am",
+      button: "Yëggee ko",
+      applying: "Ñu yëggee ko…",
     },
   },
 };

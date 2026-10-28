@@ -4,8 +4,15 @@
  * Contrairement à `tests/seedPipeline.test.ts` (unités pures sur les
  * sources), ce fichier EXÉCUTE la mutation réelle de `src/convex/slang.ts`
  * dans un environnement Convex de test isolé (`convex-test`, base en
- * mémoire) — et aussi le wrapper public `crossSeed:seedCrossConceptsPublic`
- * introduit pour réparer l'étape « ponts » du pilote.
+ * mémoire) — et aussi le seed INTERNE des ponts
+ * `internal.crossSeed.seedCrossConcepts`, seul chemin d'écriture restant
+ * pour `crossConcepts`.
+ *
+ * Depuis P0.2, les écritures du pipeline sont des fonctions INTERNES
+ * (`internal.slang.seed`, `internal.slang.recomputeAggregates`) : elles
+ * sont invoquées ici comme le fait le CLI d'exploitation (clé admin), et
+ * leur absence du registre PUBLIC est vérifiée par
+ * `tests/convexSecurity.integration.test.ts`.
  *
  * Ce que cela prouve (et que les unités ne prouvent pas) :
  *  - la partition by_language d'une langue informe se remplit EXACTEMENT
@@ -21,7 +28,7 @@
 import { describe, expect, test } from "bun:test";
 import { convexTest } from "convex-test";
 import schema from "../src/convex/schema";
-import { api } from "../src/convex/_generated/api";
+import { api, internal } from "../src/convex/_generated/api";
 import { SLANG_SEED, slangSlug } from "../src/convex/slangSeed";
 import { normalizeRegion } from "../src/convex/languages";
 
@@ -58,7 +65,7 @@ describe("Seed Pipeline intégration — slang:seed réel (convex-test)", () => 
     const expected = expectedDistinct(LANG);
     expect(expected).toBeGreaterThan(0);
 
-    const result = await t.mutation(api.slang.seed, { language: LANG });
+    const result = await t.mutation(internal.slang.seed, { language: LANG });
     expect(result.language).toBe(LANG);
     expect(result.seeded).toBe(expected);
     expect(result.inserted).toBe(expected);
@@ -76,9 +83,9 @@ describe("Seed Pipeline intégration — slang:seed réel (convex-test)", () => 
   test("seconde exécution identique : ZÉRO duplication (idempotence)", async () => {
     const t = makeApp();
     const expected = expectedDistinct(LANG);
-    await t.mutation(api.slang.seed, { language: LANG });
+    await t.mutation(internal.slang.seed, { language: LANG });
 
-    const again = await t.mutation(api.slang.seed, { language: LANG });
+    const again = await t.mutation(internal.slang.seed, { language: LANG });
     expect(again.inserted).toBe(0);
     expect(again.updated).toBe(0);
     expect(again.skipped).toBe(expected);
@@ -96,7 +103,7 @@ describe("Seed Pipeline intégration — slang:seed réel (convex-test)", () => 
 
   test("fiche en dérive : rafraîchie (updated) au contenu du seed, pas dupliquée", async () => {
     const t = makeApp();
-    const before = await t.mutation(api.slang.seed, { language: LANG });
+    const before = await t.mutation(internal.slang.seed, { language: LANG });
     expect(before.inserted).toBeGreaterThan(0);
 
     // Une fiche dont le sens dérive — mise en base à l'ancienne version.
@@ -116,7 +123,7 @@ describe("Seed Pipeline intégration — slang:seed réel (convex-test)", () => 
       });
     });
 
-    const run = await t.mutation(api.slang.seed, { language: LANG });
+    const run = await t.mutation(internal.slang.seed, { language: LANG });
     expect(run.inserted).toBe(0);
     expect(run.updated).toBe(1);
     // La fiche dérivée est comptée dans `updated`, pas dans `skipped` :
@@ -142,7 +149,7 @@ describe("Seed Pipeline intégration — slang:seed réel (convex-test)", () => 
 
   test("semis refusé sans `language` (demi-semis > erreur franche)", async () => {
     const t = makeApp();
-    await expect(t.mutation(api.slang.seed, {})).rejects.toThrow(
+    await expect(t.mutation(internal.slang.seed, {})).rejects.toThrow(
       /utilise le pilote|seed.*language/i,
     );
   });
@@ -150,8 +157,8 @@ describe("Seed Pipeline intégration — slang:seed réel (convex-test)", () => 
   test("agrégats : recompute + stats cohérents pour la langue semée", async () => {
     const t = makeApp();
     const expected = expectedDistinct(LANG);
-    await t.mutation(api.slang.seed, { language: LANG });
-    await t.mutation(api.slang.recomputeAggregates, { language: LANG });
+    await t.mutation(internal.slang.seed, { language: LANG });
+    await t.mutation(internal.slang.recomputeAggregates, { language: LANG });
 
     const stats = await t.query(api.slang.stats, {});
     expect(stats.byLanguage[LANG]).toBe(expected);
@@ -160,8 +167,8 @@ describe("Seed Pipeline intégration — slang:seed réel (convex-test)", () => 
 
   test("ventilation par registre vérifiée via les agrégats que le semis recalcule", async () => {
     const t = makeApp();
-    await t.mutation(api.slang.seed, { language: LANG });
-    await t.mutation(api.slang.recomputeAggregates, { language: LANG });
+    await t.mutation(internal.slang.seed, { language: LANG });
+    await t.mutation(internal.slang.recomputeAggregates, { language: LANG });
 
     const registers = await t.run(async (ctx) => {
       const rows = await ctx.db
@@ -177,14 +184,14 @@ describe("Seed Pipeline intégration — slang:seed réel (convex-test)", () => 
 });
 
 describe("Seed Pipeline intégration — mode standard : zéro pont, zéro crossConcepts", () => {
-  /* Le flux standard du pilote (sans opt-in) = slang:seed +
-   * recomputeAggregates, RIEN d'autre. Ce test l'exécute tel quel dans la
+  /* Le flux standard du pilote (sans opt-in) = internal.slang.seed +
+   * internal.slang.recomputeAggregates, RIEN d'autre. Ce test l'exécute tel quel dans la
    * base de test spécifique et prouve que ni crossConcepts ni les données
    * des ponts ( lectures/écritures) n'ont été touchés. */
   test("flux standard : crossConcepts reste VIDE après le semis + agrégats", async () => {
     const t = makeApp();
-    await t.mutation(api.slang.seed, { language: LANG });
-    await t.mutation(api.slang.recomputeAggregates, { language: LANG });
+    await t.mutation(internal.slang.seed, { language: LANG });
+    await t.mutation(internal.slang.recomputeAggregates, { language: LANG });
 
     const crossCount = await t.run(async (ctx) => {
       return (await ctx.db.query("crossConcepts").collect()).length;
@@ -200,19 +207,71 @@ describe("Seed Pipeline intégration — mode standard : zéro pont, zéro cross
 });
 
 describe("Seed Pipeline intégration — ponts entre langues (crossSeed, opt-in)", () => {
-  test("seedCrossConceptsPublic : création puis idempotence (0 créée au 2e tour)", async () => {
+  test("seed INTERNE : création puis idempotence (0 créée au 2e tour)", async () => {
     const t = makeApp();
-    const first = await t.mutation(api.crossSeed.seedCrossConceptsPublic, {});
+    const first = await t.mutation(internal.crossSeed.seedCrossConcepts, {});
     expect(first.concepts).toBeGreaterThan(0);
     expect(first.created).toBe(first.concepts);
 
-    const again = await t.mutation(api.crossSeed.seedCrossConceptsPublic, {});
+    const again = await t.mutation(internal.crossSeed.seedCrossConcepts, {});
     expect(again.created).toBe(0);
     expect(again.updated).toBe(0);
+    expect(again.concepts).toBe(first.concepts);
 
-    // L'ancienne fonction interne reste intacte.
-    const legacy = await t.mutation(api.crossSeed.seedCrossConcepts, {});
-    expect(legacy.created).toBe(0);
-    expect(legacy.concepts).toBe(first.concepts);
+    const count = await t.run(async (ctx) => {
+      return (await ctx.db.query("crossConcepts").collect()).length;
+    });
+    expect(count).toBe(first.concepts);
+  });
+
+  test("la purge reste STRICTEMENT limitée à crossConcepts", async () => {
+    const t = makeApp();
+    await t.mutation(internal.crossSeed.seedCrossConcepts, {});
+
+    // Un concept hors seed (à purger) + une ligne dans une table voisine
+    // (à préserver) : le périmètre de suppression doit rester explicite.
+    const before = await t.run(async (ctx) => {
+      const count = (await ctx.db.query("crossConcepts").collect()).length;
+      const neighbourId = await ctx.db.insert("users", {});
+      await ctx.db.insert("crossConcepts", {
+        slug: "concept-hors-seed",
+        labelFr: "Hors seed",
+        labelEn: "Out of seed",
+        entries: [],
+      });
+      return { count, neighbourId };
+    });
+
+    const run = await t.mutation(internal.crossSeed.seedCrossConcepts, {});
+    expect(run.created).toBe(0);
+
+    const after = await t.run(async (ctx) => {
+      const rows = await ctx.db.query("crossConcepts").collect();
+      const neighbour = await ctx.db.get(before.neighbourId);
+      return { slugs: rows.map((r) => r.slug), neighbour };
+    });
+    expect(after.slugs).not.toContain("concept-hors-seed");
+    expect(after.slugs.length).toBe(before.count);
+    expect(after.neighbour, "aucune autre table ne doit être touchée").not.toBeNull();
+  });
+
+  test("l'ancien point d'entrée public a disparu : l'appel échoue sans rien modifier", async () => {
+    const t = makeApp();
+    await t.mutation(internal.crossSeed.seedCrossConcepts, {});
+    const before = await t.run(async (ctx) => {
+      return (await ctx.db.query("crossConcepts").collect()).length;
+    });
+
+    // `api` est un proxy `anyApi` : la référence existe à l'exécution même
+    // si le type a disparu. convex-test la résout dans le registre des
+    // exports du module — absent = rejet avant toute écriture.
+    const removedPublic = (api.crossSeed as unknown as Record<string, unknown>)
+      .seedCrossConceptsPublic;
+    await expect(t.mutation(removedPublic as never, {})).rejects.toThrow();
+
+    const after = await t.run(async (ctx) => {
+      return (await ctx.db.query("crossConcepts").collect()).length;
+    });
+    expect(after).toBe(before);
   });
 });

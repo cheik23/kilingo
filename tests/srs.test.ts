@@ -245,12 +245,32 @@ describe("anti double-soumission : le contrat d'idempotence relie backend et fro
     expect(src).toMatch(/finally \{\s*submittingRef\.current = false;/);
   });
 
-  test("seule une revue ACCEPTÉE compte dans le compteur de session", () => {
+  test("seule une revue ACCEPTÉE est créditée par le tracker de session", () => {
     const src = read("src/components/learner/ReviewView.tsx");
     // Un rejet backend (stale_review, réseau) n'enregistre rien en base :
-    // le compteur de cartes consolidées — et le résumé « +N XP » qui en
-    // découle — ne doit donc pas l'inclure.
-    expect(src).toMatch(/if \(accepted\) setReviewed\(\(r\) => r \+ 1\);/);
-    expect(src).not.toMatch(/\n {4}setReviewed\(\(r\) => r \+ 1\);/);
+    // le tracker n'est appelé qu'après le retour réussi de reviewMutation,
+    // et le compteur affiché vient de son résultat.
+    expect(src).toContain('from "@/lib/reviewSessionTracker"');
+    expect(src).toMatch(/tracker\.accept\(card\.card\._id, sessionId\)/);
+    // Le compteur affiché est lu dans le tracker (synchrone), pas dans un
+    // state `reviewed` mis à jour après coup.
+    expect(src).toMatch(/const reviewedNow = current \? tracker\.count\(\)/);
+    expect(src).toMatch(/tracker\.lastItemsLearned\(\)/);
+    expect(src).not.toMatch(/itemsLearned:\s*reviewed/);
+    const awaitIdx = src.indexOf("await reviewMutation");
+    const acceptIdx = src.indexOf("tracker.accept(");
+    expect(acceptIdx).toBeGreaterThan(awaitIdx);
+  });
+
+  test("recordSession expose la clé d'idempotence et l'index user+clé", () => {
+    const src = read("src/convex/learning.ts");
+    const schema = read("src/convex/schema.ts");
+    expect(src).toMatch(/sessionKey: v\.optional\(v\.string\(\)\)/);
+    expect(src).toMatch(/by_user_session_key/);
+    expect(src).toMatch(/xpAwarded/);
+    expect(src).toMatch(/streakAfter/);
+    expect(schema).toMatch(
+      /\.index\("by_user_session_key", \["userId", "sessionKey"\]\)/,
+    );
   });
 });

@@ -6,6 +6,7 @@ import { api, internal } from "./_generated/api";
 import { runSharedPipeline, transcribeAudio } from "./youtubePipeline";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Id } from "./_generated/dataModel";
+import { assertAudioSourceUrl, fetchAudioSource } from "./mediaUrlPolicy";
 
 /** Bornes de sécurité sur un transcript poussé par le client (§14). */
 const MAX_CLIENT_SEGMENTS = 5_000;
@@ -68,9 +69,13 @@ export const transcribeRemoteAudio = action({
     ),
   },
   handler: async (ctx, args): Promise<TranscribeResult> => {
+    // P0.2.3 — politique d'adresse PARTAGÉE avant tout téléchargement :
+    // hôtes internes et plages privées refusés (sauf mode dev explicite),
+    // et c'est l'URL normalisée qui sert à la requête comme au stockage.
+    const sourceUrl = assertAudioSourceUrl(args.url);
     // 1. Taille : au-delà de 25 Mo, le moteur refuse la requête directe —
     // découpage en jobs (mediaJobs).
-    const size = await fetch(args.url, {
+    const size = await fetchAudioSource(sourceUrl, {
       method: "HEAD",
       signal: AbortSignal.timeout(8_000),
     })
@@ -83,7 +88,7 @@ export const transcribeRemoteAudio = action({
     }
 
     // 2. Téléchargement du fichier.
-    const audioRes = await fetch(args.url, {
+    const audioRes = await fetchAudioSource(sourceUrl, {
       signal: AbortSignal.timeout(60_000),
     });
     if (!audioRes.ok) {
@@ -101,7 +106,7 @@ export const transcribeRemoteAudio = action({
     const mediaId = await ctx.runMutation(api.media.createHubMedia, {
       language: args.language,
       title: args.title,
-      sourceName: args.url,
+      sourceName: sourceUrl,
       mediaType: "talk",
       targetLanguage: args.targetLanguage,
     });

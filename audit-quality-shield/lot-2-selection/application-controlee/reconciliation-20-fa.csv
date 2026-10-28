@@ -1,0 +1,21 @@
+cle;statut;inclus_lot_final;decision_csv20;correction_specifique
+fa:خالی بستن (khâli bastan);CAS_RESOLU_SANS_CORRECTION;OUI;revue linguistique humaine;"aucune ; trad inchangée (verdict VARIATION D'USAGE)"
+fa:پیچوندن (pichundan);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:سه‌سوت (seh soot);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:تیکه انداختن (tike andâkhtan);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:آویزون (âvizun);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:سرِ کار گذاشتن (sar-e kâr gozâshtan);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:کِرم ریختن (kerm rikhtan);CAS_RESOLU_AVEC_CORRECTION;OUI;revue linguistique humaine;"traduction de l'exemple dans `context` : « Arrête de me chercher » → « Arrête de m'embêter » ; champ `meaning` inchangé (confirmé ≥ 5 sources)"
+fa:تابلو (tâblo);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:سوتی (sooti);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:دهن سرویس کردن (dahan servis kardan);CAS3_EXCLUE_DEFINITIVE;NON;revue linguistique humaine;"aucun champ modifié ; statut À VÉRIFIER maintenu tant que l'oreille native n'a pas tranché (polarité admiration/menace/obscénité selon le ton)"
+fa:باحال (bâhâl);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:خفن (khafan);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:ضایع (zâye);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:خودمونی (khodemuni);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:خز (khaz);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:اسکل (oskol);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:کف کردم (kaf kardam);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:لش (lash);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:جوگیر (jo-gir);MECANIQUE_CONFIRMEE;OUI;extraction sûre;
+fa:فاز (fâz);CAS_RESOLU_SANS_CORRECTION;OUI;revue linguistique humaine;"aucune ; trad alternative documentaire non retenue (verdict VARIATION D'USAGE)"

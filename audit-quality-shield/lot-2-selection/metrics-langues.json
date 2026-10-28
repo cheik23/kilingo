@@ -1,0 +1,75 @@
+{
+  "totalParLangue": {
+    "fa": 221,
+    "bn": 235,
+    "ur": 197
+  },
+  "parLangue": {
+    "fa": {
+      "fiches": 221,
+      "gabarit": 203,
+      "extractibles": 203,
+      "tradGuillemets": 1,
+      "tradTiret": 173,
+      "sansTraduction": 47,
+      "avecNoteMéta": 1,
+      "multitours": 1,
+      "candidates": 172,
+      "revueHumaine": 2,
+      "exclues": 47,
+      "formats": {
+        "trad_tiret": 172,
+        "trad_guillemets+note_méta": 1,
+        "trad_tiret+multitours": 1,
+        "sans_traduction": 29,
+        "(non-extractible)": 18
+      }
+    },
+    "bn": {
+      "fiches": 235,
+      "gabarit": 158,
+      "extractibles": 156,
+      "tradGuillemets": 2,
+      "tradTiret": 32,
+      "sansTraduction": 201,
+      "avecNoteMéta": 0,
+      "multitours": 0,
+      "candidates": 34,
+      "revueHumaine": 0,
+      "exclues": 201,
+      "formats": {
+        "trad_tiret": 32,
+        "(non-extractible)": 79,
+        "trad_guillemets": 2,
+        "sans_traduction": 122
+      }
+    },
+    "ur": {
+      "fiches": 197,
+      "gabarit": 97,
+      "extractibles": 97,
+      "tradGuillemets": 10,
+      "tradTiret": 47,
+      "sansTraduction": 140,
+      "avecNoteMéta": 4,
+      "multitours": 0,
+      "candidates": 53,
+      "revueHumaine": 4,
+      "exclues": 140,
+      "formats": {
+        "trad_guillemets": 6,
+        "sans_traduction": 40,
+        "trad_guillemets+note_méta": 4,
+        "(non-extractible)": 100,
+        "trad_tiret": 47
+      }
+    }
+  },
+  "exclusionsGlobales": {
+    "no_gabarit": 195,
+    "non_extractible": 2,
+    "pas_de_traduction": 191,
+    "meta_mele": 5,
+    "multitours": 1
+  }
+}

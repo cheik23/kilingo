@@ -1,3 +1,5 @@
+"use node";
+
 import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { api, internal } from "./_generated/api";
@@ -9,6 +11,7 @@ import {
   splitMp3,
   splitRaw,
 } from "./chunkingCore";
+import { fetchAudioSource } from "./mediaUrlPolicy";
 
 /* ═══════════════════════════════════════════════════════════════════
    Transcription longue — chunking > 25 Mo (limite HTTP du moteur ASR).
@@ -25,9 +28,22 @@ import {
      restant le repli ;
      dans mediaJobs après CHAQUE chunk (live via useQuery) ;
    - reprise : les chunks déjà réussis (job.chunkCache) ne sont pas
-     re-transcrits — c'est le « Réessayer » ;
+     re-transcrits — c'est le « Réessayer » ; une relance n'est acceptée
+     que si aucun run frais n'est déjà en cours (P0.2.3) ;
+   - adresse : toute source passe par `mediaUrlPolicy.fetchAudioSource`
+     (hôte revalidé à CHAQUE saut de redirection, échec fermé si la cible
+     n'est pas inspectable) ;
    - fin : segments fusionnés triés, offsets cumulés via data.duration,
      pipeline traduction/argot complet via mediaHub2.analyzeHubSegments.
+
+   Runtime — P0.3.1 : ce module est une action NODE (`"use node"`). Il
+   manipule des octets audio avec `Buffer`, absent de l'isolat V8 par
+   défaut : sans la directive, l'action échouait après le téléchargement
+   (`Buffer is not defined`) au lieu de découper puis transcrire. Le
+   module n'exporte QUE des actions, condition requise par ce runtime ;
+   les mutations de progression restent dans `mediaJobOps` (V8) et sont
+   appelées par `ctx.runMutation`, donc la sérialisation et les gardes de
+   relance (P0.2.3) sont inchangées.
    ═══════════════════════════════════════════════════════════════════ */
 
 type RawSeg = { start: number; end: number; text: string };
@@ -93,14 +109,19 @@ export const transcribeLongAudio = action({
 
     try {
       // ── 1. Téléchargement (serveur) ──────────────────────────────────
+      // P0.2.3 — réservation du run : refuse une relance tant qu'un run est
+      // en cours et frais (patch du MÊME document ⇒ conflit OCC réel), tout
+      // en laissant repartir un job échoué ou bloqué (updatedAt ancien).
       await ctx.runMutation(internal.mediaJobOps.start, {
         jobId: args.jobId,
         step: "media.stepDownload",
+        requireIdle: true,
       });
       // HEAD d'abord : Content-Length + Content-Type (les gros CDN comme
-      // blubrry servent des 302 — fetch les suit nativement).
+      // blubrry servent des 302 — les redirections sont suivies À LA MAIN
+      // par `fetchAudioSource`, chaque cible revalidée).
       try {
-        const head = await fetch(job.sourceUrl, {
+        const head = await fetchAudioSource(job.sourceUrl, {
           method: "HEAD",
           signal: AbortSignal.timeout(20_000),
         });
@@ -114,7 +135,7 @@ export const transcribeLongAudio = action({
       } catch {
         /* HEAD refusé — le GET reste la source de vérité */
       }
-      const res = await fetch(job.sourceUrl, {
+      const res = await fetchAudioSource(job.sourceUrl, {
         signal: AbortSignal.timeout(120_000),
       });
       if (!res.ok) throw new Error("Fichier audio injoignable.");

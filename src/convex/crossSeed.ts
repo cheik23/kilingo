@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
+import { internalMutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { LanguageCode } from "./languages";
 
@@ -979,18 +979,15 @@ const SeedCrossReturns = v.object({
  *  Le seed reste idempotent, donc rejouable à volonté.
  *  ATTENTION : ce seed est un upsert PURGEANT — les concepts absents du
  *  seed sont supprimés de la table `crossConcepts` (et rien d'autre).
- *  Pour l'exécution opérationnelle via CLI, voir `seedCrossConceptsPublic`. */
+ *
+ *  SÉCURITÉ : AUCUN wrapper public n'existe, volontairement. Une mutation
+ *  publique sans argument aurait permis à n'importe quel client de lancer
+ *  la purge de `crossConcepts`. Le CLI Convex authentifié exécute les
+ *  fonctions INTERNES (`npx convex run internal.crossSeed.seedCrossConcepts`,
+ *  voir docs.convex.dev/cli/overview : « Run a public or internal Convex
+ *  query, mutation, or action »), ce qui suffit au pilote d'exploitation
+ *  `scripts/seed-backend.mjs` — et laisse l'application sans chemin d'accès. */
 export const seedCrossConcepts = internalMutation({
-  args: {},
-  handler: (ctx) => seedCrossConceptsImpl(ctx),
-  returns: SeedCrossReturns,
-});
-
-/** Wrapper PUBLIQUE du seed des ponts, pour le CLI Convex (`convex run`) —
- *  mêmes règles et même idempotence que `slang:seed`. Sans ce wrapper,
- *  le pilote ne peut pas finaliser son étape « ponts entre langues »
- *  (une fonction interne n'est pas exécutable via `convex run`). */
-export const seedCrossConceptsPublic = mutation({
   args: {},
   handler: (ctx) => seedCrossConceptsImpl(ctx),
   returns: SeedCrossReturns,

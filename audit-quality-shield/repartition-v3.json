@@ -1,0 +1,10 @@
+{
+  "total": 6601,
+  "cats": {
+    "LABEL": 5397,
+    "DIRECTIVE": 13,
+    "MIXED": 1184,
+    "AMBIGUOUS": 6,
+    "PURE": 1
+  }
+}

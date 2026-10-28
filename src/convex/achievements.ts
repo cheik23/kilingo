@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { action, mutation } from "./_generated/server";
+import { action, internalMutation, mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { ACHIEVEMENT_DEFINITIONS } from "./achievementCatalog";
 import { recordAchievementMetric } from "./achievementProgress";
@@ -12,8 +12,16 @@ type CheckAchievementsResult = {
   reminders: Array<{ achievementId: string; title: string; remaining: number; icon: string }>;
 };
 
-/** Seed idempotent : les définitions sont patchées, jamais dupliquées. */
-export const seed = mutation({
+/**
+ * Seed idempotent : les définitions sont patchées, jamais dupliquées.
+ *
+ * INTERNE DEPUIS P0.2 : ce seed écrit le catalogue des 150 succès et n'a
+ * aucun appelant dans l'application. Public, il permettait à un client
+ * anonyme de réécrire le catalogue des récompenses. L'exécution de
+ * maintenance passe par le CLI Convex authentifié :
+ *   npx convex run internal.achievements.seed
+ */
+export const seed = internalMutation({
   args: {},
   handler: async (ctx) => {
     let inserted = 0;

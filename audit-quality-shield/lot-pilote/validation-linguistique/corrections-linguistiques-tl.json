@@ -1,0 +1,20 @@
+[
+ {
+  "key": "tl:Guize",
+  "type": "linguistique — correction approuvée",
+  "champ": "context",
+  "before": "'Guize, pasyal tayo' « Les gars, on va à Rain ! »",
+  "after": "'Guize, pasyal tayo kina Rain!' « Les gars, on va chez Rain ! »",
+  "motif": "Exemple tronqué avant « kina Rain » alors que la traduction conservait « Rain » ; « Rain » est un prénom, kina = « chez » — « à Rain » est fautif en français.",
+  "fondement": "RAPPORT-VALIDATION-LINGUISTIQUE.md §4.1 ; FilipinoPod101 (2019), exemple complet « Guize, pasyal tayo kina Rain! » traduit « Guys, let's go to Rain's place! » — https://www.filipinopod101.com/blog/2019/07/23/filipino-text-slang/"
+ },
+ {
+  "key": "tl:Sana all",
+  "type": "linguistique — correction approuvée",
+  "champ": "context",
+  "before": "'May boyfriend na siya, sana all!' « Il a un copain, tout le monde ! »",
+  "after": "'May boyfriend na siya, sana all!' « Elle a un copain, la chance ! »",
+  "motif": "« sana all / sanaol / naol » exprime un souhait (« j'aimerais vivre la même chose »), pas une adresse à la foule ; la traduction « tout le monde ! » était trompeuse.",
+  "fondement": "RAPPORT-VALIDATION-LINGUISTIQUE.md §4.2 ; Inquirer Lifestyle https://lifestyle.inquirer.net/404824/sana-all-realigning-my-existence-with-its-true-purpose/ ; Rappler https://www.rappler.com/voices/thought-leaders/opinion-sabaok-national-reading-month-language/ ; Wiktionary https://en.wiktionary.org/wiki/sana_all"
+ }
+]

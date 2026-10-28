@@ -37,6 +37,7 @@ import {
 } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { useLocalizedText } from "@/lib/translate";
+import { displayContext } from "@/lib/pedagogicalContext";
 
 /* ═══════════════════════════════════════════════════════════════════
    ATLAS — Recherche + Ponts culturels dans une seule page.
@@ -174,8 +175,12 @@ function ExpressionCard({
         </div>
       </div>
       <p className="mt-1 text-sm text-ink-2">{row.meaning}</p>
-      {row.context && (
-        <p className="mt-1.5 line-clamp-2 text-xs text-ink-3">{row.context}</p>
+      {/* BOUCLIER — gabarit PURE/DIRECTIVE/AMBIGUOUS → masqué, MIXED →
+          exemple seul, LABEL/libre → intact. */}
+      {displayContext(row.context) && (
+        <p className="mt-1.5 line-clamp-2 text-xs text-ink-3">
+          {displayContext(row.context)}
+        </p>
       )}
       <p className="mt-3 font-mono text-[0.625rem] tracking-widest text-ink-3 uppercase">
         {lang?.flag ?? "🌐"} {row.region} · {rk ? t(`registers.${rk}`) : row.register}
@@ -563,8 +568,26 @@ export function Atlas() {
      texte original conservé en repli (italique gris).                  */
   const headSourceLang = head?.meaningLang ?? "fr";
   const headMeaning = useLocalizedText(head?.meaning, headSourceLang, defLang);
-  const exampleRaw = head && isRealSentence(head.example) ? head.example : undefined;
-  const contextRaw = head && !exampleRaw && isRealSentence(head.context) ? head.context : undefined;
+  /* BOUCLIER — seules les VALEURS DE PRÉSENTATION passent par
+     displayContext() : gabarit de provenance avec exemple complet (MIXED)
+     → l'exemple SEUL, gabarit sans exemple exploitable
+     (PURE/DIRECTIVE/AMBIGUOUS) → null — le bloc « Exemples » affiche
+     son repli propre, jamais un gabarit brut —, phrase libre / LABEL →
+     intacte. Les champs bruts head.example / head.context ne sont plus
+     rendus ici : leur valeur reste réservée à la logique métier. La
+     priorité exemple éditorial > contexte est conservée (le candidat
+     contexte n'est examiné qu'en l'absence d'exemple). */
+  const exampleCandidate = head ? displayContext(head.example) : null;
+  const contextCandidate =
+    head && !exampleCandidate ? displayContext(head.context) : null;
+  const exampleRaw =
+    head && exampleCandidate && isRealSentence(exampleCandidate)
+      ? exampleCandidate
+      : undefined;
+  const contextRaw =
+    head && !exampleRaw && contextCandidate && isRealSentence(contextCandidate)
+      ? contextCandidate
+      : undefined;
   const headExample = useLocalizedText(exampleRaw, headLang, defLang);
   const headContext = useLocalizedText(contextRaw, headLang, defLang);
   const exampleOriginal = exampleRaw ?? contextRaw;

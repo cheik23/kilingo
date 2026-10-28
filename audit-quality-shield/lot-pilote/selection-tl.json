@@ -1,0 +1,818 @@
+{
+ "lot": [
+  {
+   "key": "tl:Teks",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Teks mo ako pag nakauwi ka na' « Envoie-moi un texto quand tu seras rentré »]",
+   "ex": "'Teks mo ako pag nakauwi ka na' « Envoie-moi un texto quand tu seras rentré »",
+   "tokens": 7
+  },
+  {
+   "key": "tl:Wer na u?",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Guys, wer na u? Hir na me' « Vous êtes où les gars ? Moi je suis en place »]",
+   "ex": "'Guys, wer na u? Hir na me' « Vous êtes où les gars ? Moi je suis en place »",
+   "tokens": 7
+  },
+  {
+   "key": "tl:Hir na me",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Hir na me. Bakit ang tagal ninyo?' « Je suis arrivé. Vous prenez votre temps ! »]",
+   "ex": "'Hir na me. Bakit ang tagal ninyo?' « Je suis arrivé. Vous prenez votre temps ! »",
+   "tokens": 7
+  },
+  {
+   "key": "tl:Guize",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Guize, pasyal tayo' « Les gars, on va à Rain ! »]",
+   "ex": "'Guize, pasyal tayo' « Les gars, on va à Rain ! »",
+   "tokens": 3
+  },
+  {
+   "key": "tl:OTW / OMW",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Wait lang ha. OTW na' « Attendez s'il vous plaît, j'arrive »]",
+   "ex": "'Wait lang ha. OTW na' « Attendez s'il vous plaît, j'arrive »",
+   "tokens": 5
+  },
+  {
+   "key": "tl:OL ka ba?",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Oo, OL ako' « Oui, je suis en ligne »]",
+   "ex": "'Oo, OL ako' « Oui, je suis en ligne »",
+   "tokens": 3
+  },
+  {
+   "key": "tl:SLR",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Besh, SLR. Na-empty bat ako kanina' « Besh, désolé, mon tel a déchargé »]",
+   "ex": "'Besh, SLR. Na-empty bat ako kanina' « Besh, désolé, mon tel a déchargé »",
+   "tokens": 7
+  },
+  {
+   "key": "tl:Kyah",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Kyah, magkano po ang smartwatch?' « Monsieur, l'smartwatch, combien ? »]",
+   "ex": "'Kyah, magkano po ang smartwatch?' « Monsieur, l'smartwatch, combien ? »",
+   "tokens": 5
+  },
+  {
+   "key": "tl:PM is the key",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Buyer: HM po ang sweater? / You: PM is the key' « Le prix ? / Envoie-moi un DM pour les détails »]",
+   "ex": "'Buyer: HM po ang sweater? / You: PM is the key' « Le prix ? / Envoie-moi un DM pour les détails »",
+   "tokens": 10
+  },
+  {
+   "key": "tl:LP",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Hi po. LP po ng boots?' « Prix bas pour ces bottes ? »]",
+   "ex": "'Hi po. LP po ng boots?' « Prix bas pour ces bottes ? »",
+   "tokens": 6
+  },
+  {
+   "key": "tl:SKL",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'SKL bago kong halaman' « Je vous montre juste ma nouvelle plante »]",
+   "ex": "'SKL bago kong halaman' « Je vous montre juste ma nouvelle plante »",
+   "tokens": 4
+  },
+  {
+   "key": "tl:FKL",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'FKL itong bago kong Jordan shoes' « Jme flex mon nouveau Jordan shoes»]",
+   "ex": "'FKL itong bago kong Jordan shoes' « Jme flex mon nouveau Jordan shoes»",
+   "tokens": 6
+  },
+  {
+   "key": "tl:Rapsi",
+   "raw": "[Époque: 2010-2026+] | [Niveau: COMMUNAUTAIRE] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Rapsi nitong bagong armor ko!' « Mon nouveau bmw est trop bon ! »]",
+   "ex": "'Rapsi nitong bagong armor ko!' « Mon nouveau bmw est trop bon ! »",
+   "tokens": 5
+  },
+  {
+   "key": "tl:Ge",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Tol, teammates tayo. / Ge.' « On co-op ? / Ok vas-y ! »]",
+   "ex": "'Tol, teammates tayo. / Ge.' « On co-op ? / Ok vas-y ! »",
+   "tokens": 4
+  },
+  {
+   "key": "tl:Kati",
+   "raw": "[Époque: 2010-2026+] | [Niveau: COMMUNAUTAIRE] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Ang kati naman nito' « Ce type est coriace ! »]",
+   "ex": "'Ang kati naman nito' « Ce type est coriace ! »",
+   "tokens": 4
+  },
+  {
+   "key": "tl:Sharks",
+   "raw": "[Époque: 2010-2026+] | [Niveau: COMMUNAUTAIRE] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Ang bagong phone mo, sharks!' « Ton nouveau téléphone, montre-moi ! »]",
+   "ex": "'Ang bagong phone mo, sharks!' « Ton nouveau téléphone, montre-moi ! »",
+   "tokens": 5
+  },
+  {
+   "key": "tl:Sags",
+   "raw": "[Époque: 2010-2026+] | [Niveau: COMMUNAUTAIRE] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Huwag naman masyadong sags ang ngiti mo' « Pas trop d'sourire forcé »]",
+   "ex": "'Huwag naman masyadong sags ang ngiti mo' « Pas trop d'sourire forcé »",
+   "tokens": 7
+  },
+  {
+   "key": "tl:Scoobs",
+   "raw": "[Époque: 2010-2026+] | [Niveau: COMMUNAUTAIRE] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Scoobs, bro! Alaws arep' « Impossible bro, budget nul »]",
+   "ex": "'Scoobs, bro! Alaws arep' « Impossible bro, budget nul »",
+   "tokens": 4
+  },
+  {
+   "key": "tl:Forda ang ferson",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Presse (Inquirer, 2023)] | [Ex: 'forda Drag Race ang ferson' « Il est fan de Drag Race Philippines »]",
+   "ex": "'forda Drag Race ang ferson' « Il est fan de Drag Race Philippines »",
+   "tokens": 5
+  },
+  {
+   "key": "tl:Sana all",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (Foodega, 2024 ; fusion « sanaol » documentée par Inquirer 2023)] | [Ex: 'May boyfriend na siya, sana all!' « Il a un copain, tout le monde ! »]",
+   "ex": "'May boyfriend na siya, sana all!' « Il a un copain, tout le monde ! »",
+   "tokens": 6
+  }
+ ],
+ "presentes": [
+  {
+   "key": "tl:Dogshow",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (Foodega, 2024 ; popularisé par Sassa Gurl en 2021, via Ling)] | [Ex: 'Huwag masyadong dogshow, baka magalit siya!' « Trop de teasing, elle pourrait se fâcher »]",
+   "ex": "'Huwag masyadong dogshow, baka magalit siya!' « Trop de teasing, elle pourrait se fâcher »",
+   "tokens": 6
+  },
+  {
+   "key": "tl:Boogsh",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (Foodega, 2024)] | [Ex: 'Ang boogsh ng party ni Maria' « La soirée de Maria est trop glamorous ! »]",
+   "ex": "'Ang boogsh ng party ni Maria' « La soirée de Maria est trop glamorous ! »",
+   "tokens": 6
+  },
+  {
+   "key": "tl:Shot puno",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (Ling, 2024)] | [Ex: 'Iniwan ka niya? Tara, shot puno na yan!' « Elle t'a laissé ? Culs secs ! »]",
+   "ex": "'Iniwan ka niya? Tara, shot puno na yan!' « Elle t'a laissé ? Culs secs ! »",
+   "tokens": 8
+  },
+  {
+   "key": "tl:Budol",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (Foodega, 2024 ; usagé sur les réseaux de vente)] | [Ex: 'Huwag kang magpa-budol' « Ne te laisse pas tenter, en as-tu vraiment besoin ? »]",
+   "ex": "'Huwag kang magpa-budol' « Ne te laisse pas tenter, en as-tu vraiment besoin ? »",
+   "tokens": 4
+  },
+  {
+   "key": "tl:Lods",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (The Smart Local, maj 2024)] | [Ex: 'Grabe yun, lods' « C'est fort ça, mec »]",
+   "ex": "'Grabe yun, lods' « C'est fort ça, mec »",
+   "tokens": 3
+  }
+ ],
+ "exclus": [
+  {
+   "key": "tl:GBU",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Ingat. GBU.' « Prends soin de toi. GBU »]",
+   "ex": "'Ingat. GBU.' « Prends soin de toi. GBU »",
+   "tokens": 2,
+   "motif": "exemple trop court (< 3 tokens)"
+  },
+  {
+   "key": "tl:Besh",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Hi, besh!' « Hey, ma best ! »]",
+   "ex": "'Hi, besh!' « Hey, ma best ! »",
+   "tokens": 2,
+   "motif": "exemple trop court (< 3 tokens)"
+  },
+  {
+   "key": "tl:Salt",
+   "raw": "[Époque: 2010-2026+] | [Niveau: COMMUNAUTAIRE] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Salt!' « Franchement ! »]",
+   "ex": "'Salt!' « Franchement ! »",
+   "tokens": 1,
+   "motif": "exemple trop court (< 3 tokens)"
+  },
+  {
+   "key": "tl:Yarn",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (The Smart Local, maj 2024)] | [Ex: 'Ganda yarn?' « C'est beau, ça ! »]",
+   "ex": "'Ganda yarn?' « C'est beau, ça ! »",
+   "tokens": 2,
+   "motif": "exemple trop court (< 3 tokens)"
+  }
+ ],
+ "atypical": [
+  {
+   "key": "tl:Dot-dot",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (FilipinoPod101, 2019)] | [Ex: 'Dot-dot pa more! Bagsak ka tuloy sa exam!' « Encore ton dot-dot ! C'est pour ça que t'as coulé à l'examen ! » - reproche sarcastique]",
+   "motif": "Ex atypique: 'Dot-dot pa more! Bagsak ka tuloy sa exam!' « Encore ton dot-dot ! C'e…"
+  },
+  {
+   "key": "tl:Awit",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Presse (Inquirer, 2023)] | [Ex: 'Awit, dude' « Aïe, mec » - après une rupture ; le nom commun « awit » = « chanson »]",
+   "motif": "Ex atypique: 'Awit, dude' « Aïe, mec » - après une rupture ; le nom commun « awit »…"
+  },
+  {
+   "key": "tl:Eme",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Presse (Inquirer, 2023)] | [Ex: 'Eme!' « lol » - en partie sérieux après une déclaration gênante]",
+   "motif": "Ex atypique: 'Eme!' « lol » - en partie sérieux après une déclaration gênante…"
+  },
+  {
+   "key": "tl:Keri",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Presse (Inquirer, 2023)] | [Ex: 'Keri!' réponse au déménagement « Je peux le faire ! »]",
+   "motif": "Ex atypique: 'Keri!' réponse au déménagement « Je peux le faire ! »…"
+  },
+  {
+   "key": "tl:Titikman",
+   "raw": "[Époque: 2010-2026+] | [Niveau: COMMUNAUTAIRE] | [Source: Réseaux sociaux (Ling, 2024)] | [Ex: 'Chris Evans, titkman o tatakpan?' [sic] « Chris Evans, goûter ou couvrir ? » - le clin d'œil à double sens de Ling]",
+   "motif": "Ex atypique: 'Chris Evans, titkman o tatakpan?' [sic] « Chris Evans, goûter ou couv…"
+  },
+  {
+   "key": "tl:Amaccana accla",
+   "raw": "[Époque: 2010-2026+] | [Niveau: COMMUNAUTAIRE] | [Source: Réseaux sociaux (Ling, 2024)] | [Ex: 'Amaccana Accla, 2023 na!' « Arrête ! C'est déjà 2023 ! » - « accla » lié à « bakla », peut contraindre]",
+   "motif": "Ex atypique: 'Amaccana Accla, 2023 na!' « Arrête ! C'est déjà 2023 ! » - « accla » …"
+  },
+  {
+   "key": "tl:OMCM",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (The Smart Local, maj 2024)] | [Ex: 'SB19 is such a talented bunch' → « OMCM » de tweets d'approbation]",
+   "motif": "Ex atypique: 'SB19 is such a talented bunch' → « OMCM » de tweets d'approbation…"
+  },
+  {
+   "key": "tl:Aasawahin, Tito Boy",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (The Smart Local, maj 2024)] | [Ex: 'Aasawahin, Tito Boy.' « Je l'épouserai, Tito Boy ! » - le compliment démesuré des stans]",
+   "motif": "Ex atypique: 'Aasawahin, Tito Boy.' « Je l'épouserai, Tito Boy ! » - le compliment …"
+  },
+  {
+   "key": "tl:Pi",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (The Smart Local, maj 2024)] | [Ex: 'thanks pi' « merci pi ! » - grammaire de la politesse, ton mignon]",
+   "motif": "Ex atypique: 'thanks pi' « merci pi ! » - grammaire de la politesse, ton mignon…"
+  },
+  {
+   "key": "tl:Tama ka na ante",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux (The Smart Local, maj 2024)] | [Ex: 'Tama ka na ante.' « Arrête, tiens-toi tranquille » - piqué lancé à qui exagère en ligne]",
+   "motif": "Ex atypique: 'Tama ka na ante.' « Arrête, tiens-toi tranquille » - piqué lancé à qu…"
+  },
+  {
+   "key": "tl:Dasurv",
+   "raw": "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet PH] | [Ex: \"Dasurv niya\"]",
+   "motif": "Ex atypique: \"Dasurv niya\"…"
+  },
+  {
+   "key": "tl:Ems",
+   "raw": "[Époque: 2015+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Mahal kita, ems\"]",
+   "motif": "Ex atypique: \"Mahal kita, ems\"…"
+  },
+  {
+   "key": "tl:Forda",
+   "raw": "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet PH] | [Ex: \"Forda muna kain\"]",
+   "motif": "Ex atypique: \"Forda muna kain\"…"
+  },
+  {
+   "key": "tl:Shookt",
+   "raw": "[Époque: 2015+] | [Niveau: VÉRIFIÉ] | [Source: Internet PH] | [Ex: \"Shookt na shookt ako\"]",
+   "motif": "Ex atypique: \"Shookt na shookt ako\"…"
+  },
+  {
+   "key": "tl:Petiks",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Petiks lang yan\"]",
+   "motif": "Ex atypique: \"Petiks lang yan\"…"
+  },
+  {
+   "key": "tl:Kilig",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Kilig na kilig ako\"]",
+   "motif": "Ex atypique: \"Kilig na kilig ako\"…"
+  },
+  {
+   "key": "tl:Conyo",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Ang conyo mo kausap\"]",
+   "motif": "Ex atypique: \"Ang conyo mo kausap\"…"
+  },
+  {
+   "key": "tl:Marites",
+   "raw": "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet PH] | [Ex: \"Si Marites naman\"]",
+   "motif": "Ex atypique: \"Si Marites naman\"…"
+  },
+  {
+   "key": "tl:Bardagulan",
+   "raw": "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet PH] | [Ex: \"May bardagulan sa Twitter\"]",
+   "motif": "Ex atypique: \"May bardagulan sa Twitter\"…"
+  },
+  {
+   "key": "tl:Bes",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Kumusta bes\"]",
+   "motif": "Ex atypique: \"Kumusta bes\"…"
+  },
+  {
+   "key": "tl:Omsim",
+   "raw": "[Époque: 2015+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Omsim, ganun talaga\"]",
+   "motif": "Ex atypique: \"Omsim, ganun talaga\"…"
+  },
+  {
+   "key": "tl:Chariz",
+   "raw": "[Époque: 2015+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Akala ko totoo, chariz\"]",
+   "motif": "Ex atypique: \"Akala ko totoo, chariz\"…"
+  },
+  {
+   "key": "tl:Teki",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Teki lang, darating na\"]",
+   "motif": "Ex atypique: \"Teki lang, darating na\"…"
+  },
+  {
+   "key": "tl:Jowa-material",
+   "raw": "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Internet PH] | [Ex: \"Siya ay jowa-material\"]",
+   "motif": "Ex atypique: \"Siya ay jowa-material\"…"
+  },
+  {
+   "key": "tl:Ghosted",
+   "raw": "[Époque: 2015+] | [Niveau: VÉRIFIÉ] | [Source: Internet PH] | [Ex: \"Na-ghosted ako\"]",
+   "motif": "Ex atypique: \"Na-ghosted ako\"…"
+  },
+  {
+   "key": "tl:Sawi",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Sawi sa pag-ibig\"]",
+   "motif": "Ex atypique: \"Sawi sa pag-ibig\"…"
+  },
+  {
+   "key": "tl:Pak Ganern",
+   "raw": "[Époque: 2015+] | [Niveau: VÉRIFIÉ] | [Source: Internet PH] | [Ex: \"Pak ganern, kaya ko to\"]",
+   "motif": "Ex atypique: \"Pak ganern, kaya ko to\"…"
+  },
+  {
+   "key": "tl:Labyu",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Labyu talaga kita\"]",
+   "motif": "Ex atypique: \"Labyu talaga kita\"…"
+  },
+  {
+   "key": "tl:Tarantado",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Ang tarantado mo\"]",
+   "motif": "Ex atypique: \"Ang tarantado mo\"…"
+  },
+  {
+   "key": "tl:Bobo",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Ang bobo mo\"]",
+   "motif": "Ex atypique: \"Ang bobo mo\"…"
+  },
+  {
+   "key": "tl:Tanga",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Huwag kang tanga\"]",
+   "motif": "Ex atypique: \"Huwag kang tanga\"…"
+  },
+  {
+   "key": "tl:Grabe",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Grabe ang init\"]",
+   "motif": "Ex atypique: \"Grabe ang init\"…"
+  },
+  {
+   "key": "tl:Sarap",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Ang sarap ng pagkain\"]",
+   "motif": "Ex atypique: \"Ang sarap ng pagkain\"…"
+  },
+  {
+   "key": "tl:Ang mahal",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Ang mahal ng bilihin\"]",
+   "motif": "Ex atypique: \"Ang mahal ng bilihin\"…"
+  },
+  {
+   "key": "tl:Libre",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Libre mo ako\"]",
+   "motif": "Ex atypique: \"Libre mo ako\"…"
+  },
+  {
+   "key": "tl:Bayad",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Saan ang bayad\"]",
+   "motif": "Ex atypique: \"Saan ang bayad\"…"
+  },
+  {
+   "key": "tl:Utang",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"May utang ka saakin\"]",
+   "motif": "Ex atypique: \"May utang ka saakin\"…"
+  },
+  {
+   "key": "tl:Mahal kita",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: \"Mahal kita, mahal mo rin ba ako?\"]",
+   "motif": "Ex atypique: \"Mahal kita, mahal mo rin ba ako?\"…"
+  },
+  {
+   "key": "tl:Diskarte",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'May diskarte siya sa buhay' (Il a de la débrouillardise)]",
+   "motif": "Ex atypique: 'May diskarte siya sa buhay' (Il a de la débrouillardise)…"
+  },
+  {
+   "key": "tl:Tampo",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Nagtatampo siya ngayon' (Il/elle boude aujourd'hui)]",
+   "motif": "Ex atypique: 'Nagtatampo siya ngayon' (Il/elle boude aujourd'hui)…"
+  },
+  {
+   "key": "tl:Lambing",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Gusto ko ng lambing' (Je veux de l'affection)]",
+   "motif": "Ex atypique: 'Gusto ko ng lambing' (Je veux de l'affection)…"
+  },
+  {
+   "key": "tl:Sulit",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Sulit ang bayad' (Ça en vaut la peine)]",
+   "motif": "Ex atypique: 'Sulit ang bayad' (Ça en vaut la peine)…"
+  },
+  {
+   "key": "tl:Sayang",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Sayang ang pagkain' (Quel gâchis de nourriture)]",
+   "motif": "Ex atypique: 'Sayang ang pagkain' (Quel gâchis de nourriture)…"
+  },
+  {
+   "key": "tl:Naks",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Naks, ang ganda mo!' (Waouh, tu es magnifique!)]",
+   "motif": "Ex atypique: 'Naks, ang ganda mo!' (Waouh, tu es magnifique!)…"
+  },
+  {
+   "key": "tl:Ewan ko",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Ewan ko sa kanya' (Je n'en sais rien à son sujet)]",
+   "motif": "Ex atypique: 'Ewan ko sa kanya' (Je n'en sais rien à son sujet)…"
+  },
+  {
+   "key": "tl:Hugot",
+   "raw": "[Époque: 2015+] | [Niveau: VÉRIFIÉ] | [Source: Internet] | [Ex: 'Ang dami niyang hugot lines' (Il a tellement de répliques profondes)]",
+   "motif": "Ex atypique: 'Ang dami niyang hugot lines' (Il a tellement de répliques profondes)…"
+  },
+  {
+   "key": "tl:Bahala na",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Bahala na, susubukan ko' (Advienne que pourra, je vais essayer)]",
+   "motif": "Ex atypique: 'Bahala na, susubukan ko' (Advienne que pourra, je vais essayer)…"
+  },
+  {
+   "key": "tl:Kaya mo yan",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Kaya mo yan, laban lang!' (Tu peux le faire, ne lâche rien!)]",
+   "motif": "Ex atypique: 'Kaya mo yan, laban lang!' (Tu peux le faire, ne lâche rien!)…"
+  },
+  {
+   "key": "tl:Laban lang",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Laban lang sa buhay' (Ne lâche rien dans la vie)]",
+   "motif": "Ex atypique: 'Laban lang sa buhay' (Ne lâche rien dans la vie)…"
+  },
+  {
+   "key": "tl:Ingat",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Ingat ka palagi' (Prends toujours soin de toi)]",
+   "motif": "Ex atypique: 'Ingat ka palagi' (Prends toujours soin de toi)…"
+  },
+  {
+   "key": "tl:Bayanihan",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Ipakita ang bayanihan' (Montrons l'esprit d'entraide)]",
+   "motif": "Ex atypique: 'Ipakita ang bayanihan' (Montrons l'esprit d'entraide)…"
+  },
+  {
+   "key": "tl:Pakikisama",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Mahalaga ang pakikisama' (L'harmonie sociale est importante)]",
+   "motif": "Ex atypique: 'Mahalaga ang pakikisama' (L'harmonie sociale est importante)…"
+  },
+  {
+   "key": "tl:Hiya",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Nahihiya ako' (J'ai honte / Je suis timide)]",
+   "motif": "Ex atypique: 'Nahihiya ako' (J'ai honte / Je suis timide)…"
+  },
+  {
+   "key": "tl:Utang na loob",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'May utang na loob ako sa kanya' (Je lui ai une dette de gratitude)]",
+   "motif": "Ex atypique: 'May utang na loob ako sa kanya' (Je lui ai une dette de gratitude)…"
+  },
+  {
+   "key": "tl:Kwentong barbero",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Kwentong barbero lang yan' (Ce ne sont que des racontars)]",
+   "motif": "Ex atypique: 'Kwentong barbero lang yan' (Ce ne sont que des racontars)…"
+  },
+  {
+   "key": "tl:Walang forever",
+   "raw": "[Époque: 2015+] | [Niveau: VÉRIFIÉ] | [Source: Internet] | [Ex: 'Walang forever, mag-move on ka na' (Rien n'est éternel, passe à autre chose)]",
+   "motif": "Ex atypique: 'Walang forever, mag-move on ka na' (Rien n'est éternel, passe à autre…"
+  },
+  {
+   "key": "tl:Halo-halo",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Halo-halo ang pampalamig' (Le halo-halo rafraîchit)]",
+   "motif": "Ex atypique: 'Halo-halo ang pampalamig' (Le halo-halo rafraîchit)…"
+  },
+  {
+   "key": "tl:Sisig",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Sisig at beer, perfect' (Sisig et bière, parfait)]",
+   "motif": "Ex atypique: 'Sisig at beer, perfect' (Sisig et bière, parfait)…"
+  },
+  {
+   "key": "tl:Taho",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Taho na, taho!' (Cri du vendeur de taho)]",
+   "motif": "Ex atypique: 'Taho na, taho!' (Cri du vendeur de taho)…"
+  },
+  {
+   "key": "tl:Balut",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Matapang ka kung kumain ng balut' (Tu es courageux si tu manges du balut)]",
+   "motif": "Ex atypique: 'Matapang ka kung kumain ng balut' (Tu es courageux si tu manges du ba…"
+  },
+  {
+   "key": "tl:Kwek-kwek",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Gusto ko ng kwek-kwek' (Je veux du kwek-kwek)]",
+   "motif": "Ex atypique: 'Gusto ko ng kwek-kwek' (Je veux du kwek-kwek)…"
+  },
+  {
+   "key": "tl:Isaw",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Isaw ang paborito ko' (L'isaw est mon préféré)]",
+   "motif": "Ex atypique: 'Isaw ang paborito ko' (L'isaw est mon préféré)…"
+  },
+  {
+   "key": "tl:Palengke",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Bili tayo sa palengke' (Allons acheter au marché)]",
+   "motif": "Ex atypique: 'Bili tayo sa palengke' (Allons acheter au marché)…"
+  },
+  {
+   "key": "tl:Sari-sari store",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Bumili ako sa sari-sari store' (J'ai acheté à l'épicerie)]",
+   "motif": "Ex atypique: 'Bumili ako sa sari-sari store' (J'ai acheté à l'épicerie)…"
+  },
+  {
+   "key": "tl:Kumain ka na",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Kumain ka na ba?' (As-tu mangé ?)]",
+   "motif": "Ex atypique: 'Kumain ka na ba?' (As-tu mangé ?)…"
+  },
+  {
+   "key": "tl:Masarap",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Masarap ang pagkain' (La nourriture est délicieuse)]",
+   "motif": "Ex atypique: 'Masarap ang pagkain' (La nourriture est délicieuse)…"
+  },
+  {
+   "key": "tl:Umuwi ka na",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Umuwi ka na, late na' (Rentre, il est tard)]",
+   "motif": "Ex atypique: 'Umuwi ka na, late na' (Rentre, il est tard)…"
+  },
+  {
+   "key": "tl:Gising na",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Gising na, umaga na' (Réveille-toi, c'est le matin)]",
+   "motif": "Ex atypique: 'Gising na, umaga na' (Réveille-toi, c'est le matin)…"
+  },
+  {
+   "key": "tl:OFW",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Maraming OFW ang bayani' (Beaucoup d'OFW sont des héros)]",
+   "motif": "Ex atypique: 'Maraming OFW ang bayani' (Beaucoup d'OFW sont des héros)…"
+  },
+  {
+   "key": "tl:Balikbayan",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'May balikbayan box' (Il y a une boîte de retour)]",
+   "motif": "Ex atypique: 'May balikbayan box' (Il y a une boîte de retour)…"
+  },
+  {
+   "key": "tl:Pasalubong",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'May pasalubong ako para sa iyo' (J'ai un cadeau pour toi)]",
+   "motif": "Ex atypique: 'May pasalubong ako para sa iyo' (J'ai un cadeau pour toi)…"
+  },
+  {
+   "key": "tl:Chismosa",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Huwag maging chismosa' (Ne sois pas une commère)]",
+   "motif": "Ex atypique: 'Huwag maging chismosa' (Ne sois pas une commère)…"
+  },
+  {
+   "key": "tl:Matapang",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Matapang na tao siya' (C'est une personne courageuse)]",
+   "motif": "Ex atypique: 'Matapang na tao siya' (C'est une personne courageuse)…"
+  },
+  {
+   "key": "tl:Matalino",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Matalino ang bata' (L'enfant est intelligent)]",
+   "motif": "Ex atypique: 'Matalino ang bata' (L'enfant est intelligent)…"
+  },
+  {
+   "key": "tl:Tamad",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Tamad ka, gumalaw ka' (Tu es paresseux, bouge-toi)]",
+   "motif": "Ex atypique: 'Tamad ka, gumalaw ka' (Tu es paresseux, bouge-toi)…"
+  },
+  {
+   "key": "tl:Beh",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Beh, tara na!' (Sœur, on y va!)]",
+   "motif": "Ex atypique: 'Beh, tara na!' (Sœur, on y va!)…"
+  },
+  {
+   "key": "tl:Sis",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Sis, ang galing mo!' (Sœur, tu es trop forte!)]",
+   "motif": "Ex atypique: 'Sis, ang galing mo!' (Sœur, tu es trop forte!)…"
+  },
+  {
+   "key": "tl:Karaoke",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Magkakaroon tayo ng karaoke' (Nous allons faire du karaoke)]",
+   "motif": "Ex atypique: 'Magkakaroon tayo ng karaoke' (Nous allons faire du karaoke)…"
+  },
+  {
+   "key": "tl:Bahay kubo",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Culture locale] | [Ex: 'Bahay kubo, kahit munti' (Petite cabane, même si elle est petite)]",
+   "motif": "Ex atypique: 'Bahay kubo, kahit munti' (Petite cabane, même si elle est petite)…"
+  },
+  {
+   "key": "tl:Pare",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Kumusta pre?' (Ça va mon pote ?)]",
+   "motif": "Ex atypique: 'Kumusta pre?' (Ça va mon pote ?)…"
+  },
+  {
+   "key": "tl:Maraming salamat",
+   "raw": "[Époque: 2010+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: 'Maraming salamat sa tulong mo' (Merci beaucoup pour ton aide)]",
+   "motif": "Ex atypique: 'Maraming salamat sa tulong mo' (Merci beaucoup pour ton aide)…"
+  },
+  {
+   "key": "tl:Nakaka-crush",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux/Gaming] | [Ex: Nakaka-crush ang game na to]",
+   "motif": "Ex atypique: Nakaka-crush ang game na to…"
+  },
+  {
+   "key": "tl:Nakakapagpabago",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakapagpabago ng loob]",
+   "motif": "Ex atypique: Nakakapagpabago ng loob…"
+  },
+  {
+   "key": "tl:Nakakapadaldal",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakapadaldal ako]",
+   "motif": "Ex atypique: Nakakapadaldal ako…"
+  },
+  {
+   "key": "tl:Nakakapikon",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakapikon ang iba]",
+   "motif": "Ex atypique: Nakakapikon ang iba…"
+  },
+  {
+   "key": "tl:Nakakapagpagod",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakapagpagod ng work]",
+   "motif": "Ex atypique: Nakakapagpagod ng work…"
+  },
+  {
+   "key": "tl:Boost",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Gaming/Internet] | [Ex: Boost mo lang]",
+   "motif": "Ex atypique: Boost mo lang…"
+  },
+  {
+   "key": "tl:Nerf",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Gaming/Internet] | [Ex: Nerf sa weapon]",
+   "motif": "Ex atypique: Nerf sa weapon…"
+  },
+  {
+   "key": "tl:Buff",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Gaming/Internet] | [Ex: Buff sa skill]",
+   "motif": "Ex atypique: Buff sa skill…"
+  },
+  {
+   "key": "tl:Camp",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Gaming/Internet] | [Ex: Camp mo lang]",
+   "motif": "Ex atypique: Camp mo lang…"
+  },
+  {
+   "key": "tl:Noob",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Gaming/Internet] | [Ex: Pure noob]",
+   "motif": "Ex atypique: Pure noob…"
+  },
+  {
+   "key": "tl:AFK",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Gaming/Internet] | [Ex: AFK na ako]",
+   "motif": "Ex atypique: AFK na ako…"
+  },
+  {
+   "key": "tl:Carry",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Gaming/Internet] | [Ex: Carry tayo]",
+   "motif": "Ex atypique: Carry tayo…"
+  },
+  {
+   "key": "tl:Spawn",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Gaming/Internet] | [Ex: Spawn point]",
+   "motif": "Ex atypique: Spawn point…"
+  },
+  {
+   "key": "tl:Skin",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Gaming/Internet] | [Ex: New skin]",
+   "motif": "Ex atypique: New skin…"
+  },
+  {
+   "key": "tl:Clutch",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Gaming/Internet] | [Ex: Clutch win]",
+   "motif": "Ex atypique: Clutch win…"
+  },
+  {
+   "key": "tl:Nakakaaintindi",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakaaintindi tayo]",
+   "motif": "Ex atypique: Nakakaaintindi tayo…"
+  },
+  {
+   "key": "tl:Nakakapaglasing",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakapaglasing ng alak]",
+   "motif": "Ex atypique: Nakakapaglasing ng alak…"
+  },
+  {
+   "key": "tl:Nakakapaglait",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakapaglait ng joke]",
+   "motif": "Ex atypique: Nakakapaglait ng joke…"
+  },
+  {
+   "key": "tl:Nakakapagtataka",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakapagtataka ng sitwasyon]",
+   "motif": "Ex atypique: Nakakapagtataka ng sitwasyon…"
+  },
+  {
+   "key": "tl:Nakakabaliw",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakabaliw ang musika]",
+   "motif": "Ex atypique: Nakakabaliw ang musika…"
+  },
+  {
+   "key": "tl:Nakakapag-offer",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakapag-offer ng help]",
+   "motif": "Ex atypique: Nakakapag-offer ng help…"
+  },
+  {
+   "key": "tl:Nakakalimot",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakalimot ng worry]",
+   "motif": "Ex atypique: Nakakalimot ng worry…"
+  },
+  {
+   "key": "tl:Nakakapag-evaluate",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakapag-evaluate ang performance]",
+   "motif": "Ex atypique: Nakakapag-evaluate ang performance…"
+  },
+  {
+   "key": "tl:Nakakaglarawan",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakaglarawan ng sitwasyon]",
+   "motif": "Ex atypique: Nakakaglarawan ng sitwasyon…"
+  },
+  {
+   "key": "tl:Nakakapag-amin",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakapag-amin ng error]",
+   "motif": "Ex atypique: Nakakapag-amin ng error…"
+  },
+  {
+   "key": "tl:Nakakapag-sign",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage universel] | [Ex: Nakakapag-sign ng pact]",
+   "motif": "Ex atypique: Nakakapag-sign ng pact…"
+  },
+  {
+   "key": "tl:Kuya",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Vie familiale] | [Ex: Kuya mo]",
+   "motif": "Ex atypique: Kuya mo…"
+  },
+  {
+   "key": "tl:Ate",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Vie familiale] | [Ex: Ate ko]",
+   "motif": "Ex atypique: Ate ko…"
+  },
+  {
+   "key": "tl:Kuya-Kuya",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage social] | [Ex: Kuya-kuya tayo]",
+   "motif": "Ex atypique: Kuya-kuya tayo…"
+  },
+  {
+   "key": "tl:Barkada",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Vie sociale] | [Ex: Barkada natin]",
+   "motif": "Ex atypique: Barkada natin…"
+  },
+  {
+   "key": "tl:Issh",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux] | [Ex: Issh!]",
+   "motif": "Ex atypique: Issh!…"
+  },
+  {
+   "key": "tl:Agaw",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage social] | [Ex: Agaw ng idea]",
+   "motif": "Ex atypique: Agaw ng idea…"
+  },
+  {
+   "key": "tl:Pasok",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage social/Universel] | [Ex: Pasok sa party]",
+   "motif": "Ex atypique: Pasok sa party…"
+  },
+  {
+   "key": "tl:Dayaan",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage social] | [Ex: Dayaan mo lang]",
+   "motif": "Ex atypique: Dayaan mo lang…"
+  },
+  {
+   "key": "tl:Chikahan",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage social] | [Ex: Chikahan lang]",
+   "motif": "Ex atypique: Chikahan lang…"
+  },
+  {
+   "key": "tl:Salu-salo",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage social/famille] | [Ex: Salu-salo ng pamilya]",
+   "motif": "Ex atypique: Salu-salo ng pamilya…"
+  },
+  {
+   "key": "tl:Kwentuhan",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage social/famille] | [Ex: Kwentuhan tayo]",
+   "motif": "Ex atypique: Kwentuhan tayo…"
+  },
+  {
+   "key": "tl:Sangka",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Usage social/Combat] | [Ex: Sangka tayo]",
+   "motif": "Ex atypique: Sangka tayo…"
+  },
+  {
+   "key": "tl:Scoop",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux] | [Ex: Scoop lang]",
+   "motif": "Ex atypique: Scoop lang…"
+  },
+  {
+   "key": "tl:Cameo",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Culture pop/Cinéma] | [Ex: Cameo appearance]",
+   "motif": "Ex atypique: Cameo appearance…"
+  },
+  {
+   "key": "tl:Post-credits",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Cinéma] | [Ex: Post-credits scene]",
+   "motif": "Ex atypique: Post-credits scene…"
+  },
+  {
+   "key": "tl:Mid-credits",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Cinéma] | [Ex: Mid-credits scene]",
+   "motif": "Ex atypique: Mid-credits scene…"
+  },
+  {
+   "key": "tl:Fan theory",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux] | [Ex: Fan theory]",
+   "motif": "Ex atypique: Fan theory…"
+  },
+  {
+   "key": "tl:Ship",
+   "raw": "[Époque: 2010-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux] | [Ex: Ship mo sila]",
+   "motif": "Ex atypique: Ship mo sila…"
+  },
+  {
+   "key": "tl:OTP",
+   "raw": "[Époque: 2015-2026+] | [Niveau: VÉRIFIÉ] | [Source: Réseaux sociaux] | [Ex: OTP ko]",
+   "motif": "Ex atypique: OTP ko…"
+  }
+ ]
+}

@@ -1,4 +1,4 @@
-import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { SLANG_SEED, slangSlug } from "./slangSeed";
@@ -343,8 +343,17 @@ export const seedPlan = query({
  *
  * Appelé SANS `language`, le seed échoue franchement (il ne sèmerait qu'une
  * partie du catalogue — un demi-semis silencieux est pire qu'une erreur).
+ *
+ * ── INTERNE DEPUIS P0.2 ──────────────────────────────────────────────
+ * Cette mutation écrit le catalogue public : elle n'a AUCUN appelant dans
+ * l'application (uniquement le pilote d'exploitation et les tests). Exposée
+ * publiquement, elle laissait n'importe quel client HTTP — même anonyme —
+ * insérer ou réécrire des fiches. Elle est donc `internalMutation` : le CLI
+ * Convex authentifié par la clé admin du déploiement sait exécuter les
+ * fonctions internes (`npx convex run internal.slang.seed …`), un client de
+ * l'application non. Même chemin que `internal.crossSeed.seedCrossConcepts`.
  */
-export const seed = mutation({
+export const seed = internalMutation({
   args: { language: v.optional(languageValidator) },
   handler: async (ctx, args) => {
     const lang = args.language;
@@ -352,8 +361,8 @@ export const seed = mutation({
       throw new Error(
         "slang:seed ne sème plus tout le catalogue en une seule exécution " +
           "(limite Convex de 4096 lectures par transaction). Appelle-le langue " +
-          'par langue — npx convex run slang:seed \'{"language":"en"}\' — ou ' +
-          "utilise le pilote : node scripts/seed-backend.mjs.",
+          "par langue — npx convex run internal.slang.seed " +
+          '\'{"language":"en"}\' — ou utilise le pilote : node scripts/seed-backend.mjs.',
       );
     }
     const batch = SLANG_SEED.filter((item) => item.language === lang);
@@ -463,8 +472,13 @@ export const seed = mutation({
  * Les totaux globaux sont donc exacts dès que chaque langue a été recalculée
  * une fois — c'est exactement ce que fait le pilote de semis.
  * Idempotent : upsert des comptes, purge des registres et langues disparus.
+ *
+ * INTERNE DEPUIS P0.2 : même raison que `seed` — écriture de maintenance,
+ * aucun appelant dans l'application, exécution par le CLI Convex authentifié
+ * (`npx convex run internal.slang.recomputeAggregates …`) ou par le pilote
+ * `scripts/seed-backend.mjs`.
  */
-export const recomputeAggregates = mutation({
+export const recomputeAggregates = internalMutation({
   args: { language: languageValidator },
   handler: async (ctx, args) => {
     const lang = args.language;

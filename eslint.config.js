@@ -30,4 +30,14 @@ export default tseslint.config(
       ],
     },
   },
+  // Fixture d'archive historique (copie octet-pour-octet du snapshot
+  // audit-quality-shield/lot-pilote/avant/, SHA 7ea1f28f…). Les données
+  // ne doivent pas être retouchées, donc la fiche [Estetik] (71:323,
+  // fiche hors lot) porte un \| hérité du gabarit source. Dérogation
+  // placée APRÈS le bloc général, limitée à ce fichier et à cette seule
+  // règle.
+  {
+    files: ["tests/fixtures/slangSeedEnrichmentTl.before-pilot.ts"],
+    rules: { "no-useless-escape": "off" },
+  },
 );

@@ -20,6 +20,7 @@ import {
 } from "@/lib/subtitleParse";
 import { UI_LANGS, uiLangMeta, loadStoredTargetLang, storeTargetLang } from "@/lib/i18n";
 import type { UiLang } from "@/lib/i18n";
+import { displayContext } from "@/lib/pedagogicalContext";
 
 /* ═══════════════════════════════════════════════════════════════════════
    PANNEAU D'IMPORT SRT/VTT — porte de secours universelle (LOT B → LOT D)
@@ -417,8 +418,12 @@ export function SubtitleImportPanel({
                     <div className="min-w-0">
                       <p className="font-medium text-gold">{hit.expression}</p>
                       <p className="text-sm text-ink">{hit.meaning}</p>
-                      {hit.context && (
-                        <p className="mt-1 text-xs text-ink-3">{hit.context}</p>
+                      {/* BOUCLIER — gabarit PURE/DIRECTIVE/AMBIGUOUS → masqué,
+                          MIXED → exemple seul, LABEL/libre → intact. */}
+                      {displayContext(hit.context) && (
+                        <p className="mt-1 text-xs text-ink-3">
+                          {displayContext(hit.context)}
+                        </p>
                       )}
                     </div>
                     {added.has(hit.slangId) ? (

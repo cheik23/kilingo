@@ -1,0 +1,29 @@
+{
+  "genere_le": "2026-10-24T08:30:51.462Z",
+  "ecvoir_total_candidates": 20,
+  "bilan_rapports": {
+    "mecaniques_confirmees": 16,
+    "cas_resolus": 3,
+    "exclue_definitive": 1,
+    "inclus_lot_final": 19
+  },
+  "ecart_mission": {
+    "mission": {
+      "mecaniques": 14,
+      "resolues": 3,
+      "total": 17
+    },
+    "rapports": {
+      "mecaniques": 16,
+      "resolues": 3,
+      "total": 19
+    }
+  },
+  "sources_dautorite": [
+    "verdicts-20-fa.csv",
+    "avant-apres-20-fa.json",
+    "LIMITES.md (bilan 16/20)",
+    "revue-4-cas/verdicts-4-cas.csv (3/4 rejoignent, dahan servis exclue)"
+  ],
+  "conclusion_ecart": "L'énoncé de mission « 17 = 14 + 3 » ne correspond à aucune liste nommée des rapports ; l'autorité (LIMITES.md + revue-4-cas) donne 16 mécaniques : ni le CSV ni le JSON ni les rapports ne nommern une liste de 14."
+}

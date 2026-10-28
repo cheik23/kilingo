@@ -1,4 +1,12 @@
-import { useEffect, useRef, useState, lazy, Suspense } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  lazy,
+  Suspense,
+} from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
@@ -69,12 +77,41 @@ function prefersReducedMotion(): boolean {
   }
 }
 
+/* Horloge de la pilule : granularité minute (60 s). Le rendu doit rester pur
+   (react-hooks/purity) — Date.now() y est interdit — et une valeur figée au
+   montage deviendrait obsolète sur une session ouverte. Même idiome que
+   MemoryView : abonnement à un tick discret (60 s + retour au premier plan),
+   snapshot plafonné au créneau donc stable dans un même tick (aucun re-rendu
+   en boucle) et lu hors du fil du rendu. */
+const NOW_TICK_MS = 60_000;
+
+function useNow(): number {
+  const subscribe = useCallback((onStoreChange: () => void) => {
+    const id = setInterval(onStoreChange, NOW_TICK_MS);
+    const wake = () => onStoreChange();
+    document.addEventListener("visibilitychange", wake);
+    window.addEventListener("focus", wake);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", wake);
+      window.removeEventListener("focus", wake);
+    };
+  }, []);
+  const getSnapshot = useCallback(
+    () => Math.floor(Date.now() / NOW_TICK_MS) * NOW_TICK_MS,
+    [],
+  );
+  /* SPA 100 % client : pas de snapshot serveur utile — 0 avant hydratation. */
+  const getServerSnapshot = useCallback(() => 0, []);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
 export function StreakBanner() {
   const { t } = useI18n();
   // Jabari porte le rappel : sa tête annonce la threatens, sa bulle dit pourquoi.
   const mascot = useMascotSafe();
   const stats = useQuery(api.gamification.getUserStats);
-  const useFreeze = useMutation(api.gamification.freezeStreak);
+  const freezeStreak = useMutation(api.gamification.freezeStreak);
   const notifyStreak = useMutation(api.notifications.notifyStreak);
   const [dismissed, setDismissed] = useState(readDismissedToday);
   // Les cristaux de glace ne poussent qu'après un gel RÉELLEMENT réussi,
@@ -89,17 +126,16 @@ export function StreakBanner() {
     },
     [],
   );
-  // Tick d'une minute : le compteur d'heures restantes se met à jour tout
-  // seul (avant, il fallait un re-render pour voir le décompte bouger).
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const id = window.setInterval(() => setTick((t) => t + 1), 60_000);
-    return () => window.clearInterval(id);
-  }, []);
+  // Horloge d'état : l'heure courante est lue hors du fil du rendu (useNow),
+  // donc le décompte reste frais sans appeler Date.now() ici.
+  const now = useNow();
 
   const streak = stats?.currentStreak ?? 0;
   const lastActiveAt = stats?.lastActiveAt ?? 0;
-  const hoursLeft = Math.ceil((WINDOW_END - (Date.now() - lastActiveAt)) / 3_600_000);
+  /* Temps écoulé depuis la dernière activité, dérivé de l'horloge d'état :
+     aucun appel impur pendant le rendu (react-hooks/purity). */
+  const elapsed = now - lastActiveAt;
+  const hoursLeft = Math.ceil((WINDOW_END - elapsed) / 3_600_000);
 
   const visible =
     stats !== undefined &&
@@ -107,8 +143,8 @@ export function StreakBanner() {
     !dismissed &&
     streak > 0 &&
     lastActiveAt > 0 &&
-    Date.now() - lastActiveAt >= WINDOW_START &&
-    Date.now() - lastActiveAt < WINDOW_END;
+    elapsed >= WINDOW_START &&
+    elapsed < WINDOW_END;
 
   useEffect(() => {
     if (visible) {
@@ -131,7 +167,7 @@ export function StreakBanner() {
 
   const freeze = () => {
     toast.promise(
-      useFreeze({}),
+      freezeStreak({}),
       {
         loading: t("freeze.working"),
         success: (r) => {

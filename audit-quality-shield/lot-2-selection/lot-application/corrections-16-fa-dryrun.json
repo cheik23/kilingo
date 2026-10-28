@@ -1,0 +1,186 @@
+{
+  "genere_le": "2026-10-25T05:01:36.936Z",
+  "mode": "DRY-RUN",
+  "sha256_source": "9afd9f66fb03456196ee196d17f3939f9ba9c17376e914d9ee4859174e366b71",
+  "nb_fiches_testees": 16,
+  "nb_fiches_OK": 16,
+  "nb_aborts": 0,
+  "remplacements_simules": [
+    {
+      "key": "fa:پیچوندن (pichundan)",
+      "statut": "OK",
+      "ligne": 17,
+      "ancienne_longueur": 116,
+      "nouvelle_longueur": 43,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "منو پیچوند و نیومد",
+      "traduction_verbatim": "Il m'a posé un lapin"
+    },
+    {
+      "key": "fa:سه‌سوت (seh soot)",
+      "statut": "OK",
+      "ligne": 18,
+      "ancienne_longueur": 115,
+      "nouvelle_longueur": 42,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "سه‌سوت میام!",
+      "traduction_verbatim": "J'arrive en deux secondes"
+    },
+    {
+      "key": "fa:تیکه انداختن (tike andâkhtan)",
+      "statut": "OK",
+      "ligne": 19,
+      "ancienne_longueur": 126,
+      "nouvelle_longueur": 53,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "باز بهم تیکه انداخت",
+      "traduction_verbatim": "Il m'a encore lancé une pique"
+    },
+    {
+      "key": "fa:آویزون (âvizun)",
+      "statut": "OK",
+      "ligne": 20,
+      "ancienne_longueur": 119,
+      "nouvelle_longueur": 46,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "خیلی آویزون شده",
+      "traduction_verbatim": "Il est devenu très collant"
+    },
+    {
+      "key": "fa:سرِ کار گذاشتن (sar-e kâr gozâshtan)",
+      "statut": "OK",
+      "ligne": 21,
+      "ancienne_longueur": 117,
+      "nouvelle_longueur": 44,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "منو سرِ کار گذاشتی؟",
+      "traduction_verbatim": "Tu me fais marcher ?"
+    },
+    {
+      "key": "fa:تابلو (tâblo)",
+      "statut": "OK",
+      "ligne": 23,
+      "ancienne_longueur": 124,
+      "nouvelle_longueur": 51,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "تابلوئه که خسته‌ای",
+      "traduction_verbatim": "Ça se voit que tu es fatigué"
+    },
+    {
+      "key": "fa:سوتی (sooti)",
+      "statut": "OK",
+      "ligne": 24,
+      "ancienne_longueur": 109,
+      "nouvelle_longueur": 36,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Usage réseau] | [Ex: ]",
+      "persan_verbatim": "یه سوتی دادم",
+      "traduction_verbatim": "J'ai fait une gaffe"
+    },
+    {
+      "key": "fa:باحال (bâhâl)",
+      "statut": "OK",
+      "ligne": 26,
+      "ancienne_longueur": 124,
+      "nouvelle_longueur": 51,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "این کافه خیلی باحاله",
+      "traduction_verbatim": "Ce café est vraiment sympa"
+    },
+    {
+      "key": "fa:خفن (khafan)",
+      "statut": "OK",
+      "ligne": 27,
+      "ancienne_longueur": 112,
+      "nouvelle_longueur": 39,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "این آهنگ خفنه",
+      "traduction_verbatim": "Ce morceau est génial"
+    },
+    {
+      "key": "fa:ضایع (zâye)",
+      "statut": "OK",
+      "ligne": 28,
+      "ancienne_longueur": 110,
+      "nouvelle_longueur": 37,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "خیلی ضایع شد",
+      "traduction_verbatim": "C'était super gênant"
+    },
+    {
+      "key": "fa:خودمونی (khodemuni)",
+      "statut": "OK",
+      "ligne": 29,
+      "ancienne_longueur": 111,
+      "nouvelle_longueur": 38,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "خودمونی حرف بزن",
+      "traduction_verbatim": "Parle sans chichis"
+    },
+    {
+      "key": "fa:خز (khaz)",
+      "statut": "OK",
+      "ligne": 30,
+      "ancienne_longueur": 133,
+      "nouvelle_longueur": 52,
+      "delta": -81,
+      "gabarit_elimine": "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire/Usage jeune] | [Ex: ]",
+      "persan_verbatim": "این لباس یکم خزه",
+      "traduction_verbatim": "Cette tenue est un peu ringarde"
+    },
+    {
+      "key": "fa:اسکل (oskol)",
+      "statut": "OK",
+      "ligne": 31,
+      "ancienne_longueur": 113,
+      "nouvelle_longueur": 40,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "اسکل‌بازی درنیار",
+      "traduction_verbatim": "Ne fais pas l'idiot"
+    },
+    {
+      "key": "fa:کف کردم (kaf kardam)",
+      "statut": "OK",
+      "ligne": 32,
+      "ancienne_longueur": 130,
+      "nouvelle_longueur": 57,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "قیمتشو دیدم، کف کردم",
+      "traduction_verbatim": "J'ai vu son prix, j'étais sidéré"
+    },
+    {
+      "key": "fa:لش (lash)",
+      "statut": "OK",
+      "ligne": 33,
+      "ancienne_longueur": 132,
+      "nouvelle_longueur": 51,
+      "delta": -81,
+      "gabarit_elimine": "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire/Usage jeune] | [Ex: ]",
+      "persan_verbatim": "امروز فقط لش کردم",
+      "traduction_verbatim": "Aujourd'hui j'ai juste végété"
+    },
+    {
+      "key": "fa:جوگیر (jo-gir)",
+      "statut": "OK",
+      "ligne": 34,
+      "ancienne_longueur": 103,
+      "nouvelle_longueur": 30,
+      "delta": -73,
+      "gabarit_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ]",
+      "persan_verbatim": "جوگیر نشو",
+      "traduction_verbatim": "Ne t'emballe pas"
+    }
+  ]
+}

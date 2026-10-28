@@ -1582,7 +1582,12 @@ export const testAsrEngine = action({
             endpoint.kind === "groq"
               ? { Authorization: `Bearer ${endpoint.apiKey}` }
               : {},
-          body: buildTestAudioBlob(endpoint.model),
+          // Modèle réellement servi : un worker faster-whisper local refuse un
+          // nom de modèle Groq (`whisper-large-v3-turbo`), et le diagnostic
+          // doit tester le couple endpoint + modèle effectivement configuré.
+          body: buildTestAudioBlob(
+            endpoint.kind === "groq" ? GROQ_WHISPER_MODEL : endpoint.model,
+          ),
         }),
         15_000,
         `test ${endpoint.engine}`,
@@ -1665,7 +1670,7 @@ function buildTestAudioBlob(model: string): FormData {
 
   const formData = new FormData();
   formData.append("file", new Blob([buffer]), "test.wav");
-  formData.append("model", GROQ_WHISPER_MODEL);
+  formData.append("model", model);
   formData.append("response_format", "verbose_json");
   return formData;
 }

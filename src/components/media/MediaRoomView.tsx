@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Captions, Clapperboard, Languages, Layers, Loader2, Music } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { displayContext } from "@/lib/pedagogicalContext";
 import { useI18n, UI_LANGS, uiLangMeta, loadStoredTargetLang, storeTargetLang, type UiLang } from "@/lib/i18n";
 import { TiltCard } from "@/components/fx/interact";
 import {
@@ -963,7 +964,9 @@ export function MediaRoomView({
                         /* cache illisible — reprise serveur seule */
                       }
                       if (entries.length > 0)
-                        void seedCache({ id: job._id as never, entries });
+                        void seedCache({ id: job._id as never, entries }).catch(
+                          () => undefined,
+                        );
                       void retryJob({
                         jobId: job._id as never,
                         language: media.language as "en",
@@ -1327,8 +1330,12 @@ export function MediaRoomView({
                   >
                     <p className="font-medium text-gold">{h.expression}</p>
                     <p className="text-sm text-ink">{h.meaning}</p>
-                    {h.context && (
-                      <p className="mt-1 text-xs text-ink-3">{h.context}</p>
+                    {/* BOUCLIER — gabarit PURE/DIRECTIVE/AMBIGUOUS → masqué,
+                        MIXED → exemple seul, LABEL/libre → intact. */}
+                    {displayContext(h.context) && (
+                      <p className="mt-1 text-xs text-ink-3">
+                        {displayContext(h.context)}
+                      </p>
                     )}
                   </div>
                 ))}

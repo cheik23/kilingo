@@ -19,6 +19,7 @@ import { LANGUAGES } from "@/convex/languages";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
 import { getLandingCopy, type LandingSections } from "@/lib/i18n.landing";
+import { displayContext } from "@/lib/pedagogicalContext";
 import { formatEur, PREMIUM, premiumPerDayEur, premiumAnnualDiscountPct } from "@/lib/pricing";
 import { useOptionalQuery } from "@/lib/optionalQuery";
 import { MiniWorldHero } from "@/components/three/diorama/MiniWorldHero";
@@ -415,6 +416,11 @@ function ShowcaseSection({ s }: { s: LandingSections }) {
   const cards = state.data ?? [];
   const [activeIdx, setActiveIdx] = useState(0);
   const active = cards[activeIdx];
+  /* BOUCLIER — couche de présentation uniquement : la donnée API (active)
+     reste brute pour la phonétique/le SpeakButton, seul le texte affiché
+     passe par displayContext(). Gabarit MIXED → exemple seul, PURE
+     /DIRECTIVE/AMBIGUOUS → bloc masqué (jamais de fallback brut). */
+  const showcaseCtx = active ? displayContext(active.context) : null;
 
   if (state.unavailable || (state.data !== undefined && cards.length === 0)) return null;
 
@@ -471,10 +477,12 @@ function ShowcaseSection({ s }: { s: LandingSections }) {
                 <dt className="text-[0.7rem] uppercase tracking-widest text-ink-3">{s.showcase.meaningLabel}</dt>
                 <dd className="mt-1 text-ink">{active.meaning}</dd>
               </div>
-              <div>
-                <dt className="text-[0.7rem] uppercase tracking-widest text-ink-3">{s.showcase.contextLabel}</dt>
-                <dd className="mt-1 italic text-ink-2">{active.context}</dd>
-              </div>
+              {showcaseCtx && (
+                <div>
+                  <dt className="text-[0.7rem] uppercase tracking-widest text-ink-3">{s.showcase.contextLabel}</dt>
+                  <dd className="mt-1 italic text-ink-2">{showcaseCtx}</dd>
+                </div>
+              )}
             </dl>
             <div className="mt-5 flex flex-wrap gap-2 text-[0.7rem] text-ink-3">
               <span className="rounded-full border border-white/10 px-2.5 py-0.5">
@@ -593,6 +601,8 @@ function QuizSection({ s }: { s: LandingSections }) {
   if (state.unavailable) return null;
   const card = state.data;
   if (!card) return null;
+  // BOUCLIER — contexte d'affichage uniquement ; la donnée API reste brute.
+  const quizCtx = displayContext(card.context);
   const answered = chosen !== null;
 
   return (
@@ -657,9 +667,11 @@ function QuizSection({ s }: { s: LandingSections }) {
             ) : (
               <p className="text-ink-3">{s.quiz.incorrect}</p>
             )}
-            <p className="rounded-xl border border-white/10 bg-white/[0.02] p-3 text-xs text-ink-2">
-              <span className="font-semibold text-ink">{s.quiz.contextIntro} :</span> {card.context}
-            </p>
+            {quizCtx && (
+              <p className="rounded-xl border border-white/10 bg-white/[0.02] p-3 text-xs text-ink-2">
+                <span className="font-semibold text-ink">{s.quiz.contextIntro} :</span> {quizCtx}
+              </p>
+            )}
             <p className="text-xs text-ink-3">
               {isAuthenticated ? s.quiz.authedNote : s.quiz.guestNote}
             </p>

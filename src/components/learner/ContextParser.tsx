@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Info, Quote } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { displayContext } from "@/lib/pedagogicalContext";
 
 /* ═══════════════════════════════════════════════════════════════════
    SCALE CONTEXT — formatage élégant du champ `context` (PHASE 10-A)
@@ -81,14 +82,20 @@ type Props = {
 
 /** Le composant : rend élégant si structuré, brut si libre. */
 export function ContextParser({ context, className }: Props) {
-  const parsed = useMemo(() => parseContext(context), [context]);
+  /* BOUCLIER — tout le texte rendu passe par displayContext() : gabarit de
+     provenance PURE/DIRECTIVE/AMBIGUOUS → null (bloc masqué, jamais de
+     fallback brut) ; MIXED → l'exemple seul, sans le gabarit ; LABEL et
+     contexte libre → intacts. Le parse structuré opère ensuite sur la
+     valeur filtrée — la donnée brute n'est jamais rendue. */
+  const shown = displayContext(context);
+  const parsed = useMemo(() => parseContext(shown), [shown]);
 
-  if (!context) return null;
+  if (!shown) return null;
   if (!parsed) {
-    // Fallback sécurisé : affiche la chaîne exactement telle quelle.
+    // Fallback sécurisé : la valeur filtrée, jamais la chaîne brute.
     return (
       <p className={cn("text-sm leading-relaxed text-ink-2", className)}>
-        {context}
+        {shown}
       </p>
     );
   }

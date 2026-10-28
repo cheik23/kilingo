@@ -13,6 +13,7 @@ import {
 } from "@/convex/languages";
 import { UI_LANGS, uiLangMeta } from "@/lib/i18n";
 import { toast } from "sonner";
+import { displayContext } from "@/lib/pedagogicalContext";
 import {
   ChevronLeft,
   ChevronRight,
@@ -332,7 +333,12 @@ export function MemoryView() {
             expression: slang.expression,
             language: slang.language,
             meaning: slang.meaning,
-            example: slang.context ?? "",
+            /* BOUCLIER — colonne « example » uniquement : gabarit de
+               provenance → vide (null → "", jamais le gabarit) ;
+               displayContext n'agit que sur la VALEUR EXPORTÉE : le
+               contexte source et la recherche mémoire continuent de
+               filtrer sur le brut. */
+            example: displayContext(slang.context) ?? "",
             // Translation : le sens stocké EST le texte lisible de l'app
             // (déjà rendu tel quel dans les cartes) — pas d'appel réseau.
             translation: slang.meaning,
@@ -524,9 +530,12 @@ export function MemoryView() {
                     </button>
                   </div>
                   <p className="mt-2 text-sm text-ink-2">{slang.meaning}</p>
-                  {slang.context && (
+                  {/* BOUCLIER — rendu uniquement. La recherche locale
+                      continue de filtrer sur le contexte brut ; l'export,
+                      lui, applique displayContext() à la colonne exemple. */}
+                  {displayContext(slang.context) && (
                     <p className="mt-1 line-clamp-2 text-xs text-ink-3">
-                      {slang.context}
+                      {displayContext(slang.context)}
                     </p>
                   )}
                   <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-white/5 pt-2.5 font-mono text-[0.625rem] text-ink-3">

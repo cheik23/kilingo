@@ -9,15 +9,54 @@ import { subtitleValidator } from "./subtitles";
    via ctx.runMutation(internal.mediaJobOps.*)) — pas d'exposition client.
    ═══════════════════════════════════════════════════════════════════ */
 
-/** Démarre un job : status "chunking" + step i18n. */
+/**
+ * Fenêtre pendant laquelle un job « en cours » est considéré comme VIVANT.
+ * Elle doit dépasser la durée d'un chunk lent (téléchargement + ASR) pour
+ * qu'une relance ne double pas un run actif. Passé ce délai sans aucune
+ * écriture de progression, le job est réputé bloqué : il peut être repris.
+ */
+const RUNNING_FRESH_MS = 180_000;
+
+/** États dans lesquels un run travaille réellement sur le job. */
+const RUNNING_STATUSES = new Set(["chunking", "transcribing", "translating"]);
+
+/**
+ * Démarre (ou réserve) un run de transcription : status "chunking" + step.
+ *
+ * P0.2.3 — `requireIdle: true` (premier appel du run) applique la garde de
+ * relance : si un run est déjà en cours ET frais, la réservation est
+ * refusée. La lecture et le patch portent sur le MÊME document, donc deux
+ * relances concurrentes se départagent par un conflit OCC réel (la perdante
+ * est rejouée, relit `updatedAt` frais et refuse) — contrairement à un
+ * compteur lu puis incrémenté sur des documents différents.
+ *
+ * Un job `failed`, `completed` ou bloqué (aucune progression depuis
+ * RUNNING_FRESH_MS) reste relançable : la reprise légitime est préservée.
+ * Le second appel du run (étape de traduction) passe sans garde : il
+ * appartient au run déjà réservé.
+ */
 export const start = internalMutation({
-  args: { jobId: v.id("mediaJobs"), step: v.string() },
+  args: {
+    jobId: v.id("mediaJobs"),
+    step: v.string(),
+    requireIdle: v.optional(v.boolean()),
+  },
   handler: async (ctx, args) => {
+    const now = Date.now();
+    if (args.requireIdle) {
+      const job = await ctx.db.get(args.jobId);
+      if (!job) throw new Error("Tâche introuvable.");
+      if (RUNNING_STATUSES.has(job.status) && now - job.updatedAt < RUNNING_FRESH_MS) {
+        throw new Error(
+          "Transcription déjà en cours pour cette tâche : attends la fin du traitement en cours.",
+        );
+      }
+    }
     await ctx.db.patch(args.jobId, {
       status: "chunking",
       currentStep: args.step,
       error: undefined,
-      updatedAt: Date.now(),
+      updatedAt: now,
     });
   },
 });

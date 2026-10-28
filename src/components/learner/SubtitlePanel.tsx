@@ -11,6 +11,7 @@ import {
 import { SpeakButton } from "./SpeakButton";
 import { TiltCard } from "@/components/fx/interact";
 import { resolveInLang, type DictEntry } from "@/lib/dictionary";
+import { displayContext } from "@/lib/pedagogicalContext";
 import { useI18n, loadDefLang } from "@/lib/i18n";
 
 /**
@@ -72,15 +73,22 @@ function WordDefinition({
       {entry.example && (
         <p className="text-xs italic text-ink-2">{entry.example}</p>
       )}
-      {(entry.context || entry.region || entry.register) && (
-        <p className="font-mono text-[0.625rem] text-ink-3">
-          {entry.context}
-          {entry.context && (entry.region || entry.register) ? " · " : ""}
-          {entry.region}
-          {entry.region && entry.register ? " · " : ""}
-          {entry.register}
-        </p>
-      )}
+      {/* BOUCLIER — le contexte affiché passe par displayContext() ; la
+          région et le registre restent visibles même quand le contexte est
+          masqué (gabarit de provenance). */}
+      {(() => {
+        const shownContext = displayContext(entry.context);
+        if (!shownContext && !entry.region && !entry.register) return null;
+        return (
+          <p className="font-mono text-[0.625rem] text-ink-3">
+            {shownContext}
+            {shownContext && (entry.region || entry.register) ? " · " : ""}
+            {entry.region}
+            {entry.region && entry.register ? " · " : ""}
+            {entry.register}
+          </p>
+        );
+      })()}
     </div>
   );
 }
@@ -161,7 +169,10 @@ function KaraokeWords({
 /** Accordéon de contexte (dépliage animé max-height + opacity). */
 function ContextAccordion({ context }: { context?: string }) {
   const [open, setOpen] = useState(false);
-  if (!context) return null;
+  /* BOUCLIER — gabarit PURE/DIRECTIVE/AMBIGUOUS → aucun accordéon,
+     MIXED → le contenu filtré, LABEL/libre → intact. */
+  const shown = displayContext(context);
+  if (!shown) return null;
   return (
     <div>
       <button
@@ -175,7 +186,7 @@ function ContextAccordion({ context }: { context?: string }) {
       </button>
       {open && (
         <div className="ln-accordion mt-1.5 text-xs leading-relaxed text-ink-2">
-          {context}
+          {shown}
         </div>
       )}
     </div>

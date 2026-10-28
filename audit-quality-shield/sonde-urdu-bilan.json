@@ -1,0 +1,59 @@
+{
+  "bilan": {
+    "total": 198,
+    "detecte": 156,
+    "non_detecte": 42,
+    "fuite": 0,
+    "masque": 0
+  },
+  "nonDetectes": [
+    {
+      "id": "slangSeedEnrichmentUr2.ts:10",
+      "detecte": false,
+      "affiche": "« Aaj party scene on hai » — ce soir, la fête est lancée.",
+      "fuite": null
+    },
+    {
+      "id": "slangSeedEnrichmentUr2.ts:43",
+      "detecte": false,
+      "affiche": "« Boss, kya scene hai? » — chef, c'est quoi le programme ?",
+      "fuite": null
+    },
+    {
+      "id": "slangSeedEnrichmentUr4.ts:17",
+      "detecte": false,
+      "affiche": "[Pakistan Super League] | Tournoi national de cricket en format T20, lancé en 2016. Ex: 'PSL start ho rahi hai' (Le PSL commence). Note: Rendez-vous national de chaque printemps — franchises de villes (Lahore Qalandars, Karachi Kings…), hymnes de saison qui deviennent des tubes, et le pays entier branché sur la même émission.",
+      "fuite": null
+    },
+    {
+      "id": "slangSeedEnrichmentUr4.ts:20",
+      "detecte": false,
+      "affiche": "[Studio de Coke] | Émission musicale culte, lancée en 2008. Ex: 'Coke Studio episode' (Épisode de Coke Studio). Note: Phénomène culturel majeur au fier patrimoine national — la fusion de la musique traditionnelle (qawwali, sufiana kalam, folk) avec des arrangements pop modernes fait des dizaines de millions de vues par épisode.",
+      "fuite": null
+    },
+    {
+      "id": "slangSeedEnrichmentUr4.ts:21",
+      "detecte": false,
+      "affiche": "[Rap] | Rap en ourdou — la nouvelle vague pakistanaise. Ex: 'Pakistani rap' (Rap pakistanais). Note: La scène s'est imposée à la fin des années 2010 — Karachi (Young Stunners) en tête, thèmes de la rue et de la mère, extraits éternels du format reels.",
+      "fuite": null
+    },
+    {
+      "id": "slangSeedEnrichmentUr4.ts:22",
+      "detecte": false,
+      "affiche": "[Beat] | L'instrumentale — le cœur pulsant du hip-hop. Ex: 'Beat badha' (Le beat monte). Note: 'Beat girta hai' (le beat tombe) — le drop est l'instant physique des concerts et des reels, partagé des fan-familles comme du dancefloor.",
+      "fuite": null
+    },
+    {
+      "id": "slangSeedEnrichmentUr4.ts:23",
+      "detecte": false,
+      "affiche": "[Morceau] | Titre de musique — l'unité du streaming. Ex: 'New track release' (Nouveau morceau sorti). Note: 'Naya track nikla' (le nouveau morceau est sorti) est l'annonce standard de la génération YouTube/Spotify.",
+      "fuite": null
+    },
+    {
+      "id": "slangSeedEnrichmentUr4.ts:24",
+      "detecte": false,
+      "affiche": "[Album] | Le projet complet — geste solennel de la discographie. Ex: 'New album launch' (Lancement d'un album). Note: À l'ère des singles, l'album reste la consécration — en particulier dans la scène rap pakistanaise, où l'annonce de projet devient un événement médiatique.",
+      "fuite": null
+    }
+  ]
+}

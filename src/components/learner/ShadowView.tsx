@@ -5,6 +5,7 @@ import { LANGUAGES, type LanguageCode } from "@/convex/languages";
 import { activeSubtitle, formatTimestamp } from "@/convex/subtitles";
 import { toast } from "sonner";
 import { cn, friendlyError } from "@/lib/utils";
+import { displayContext } from "@/lib/pedagogicalContext";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BookOpen,
@@ -1788,9 +1789,12 @@ export function ShadowView() {
                           {hit.expression}
                         </p>
                         <p className="mt-1 text-sm text-gold">{hit.meaning}</p>
-                        {hit.context && (
+                        {/* BOUCLIER — affichage uniquement si displayContext() renvoie
+                            un texte : gabarit PURE/DIRECTIVE/AMBIGUOUS → masqué,
+                            MIXED → exemple seul, LABEL/libre → intact. */}
+                        {displayContext(hit.context) && (
                           <p className="mt-1 line-clamp-2 text-xs text-ink-3">
-                            {hit.context}
+                            {displayContext(hit.context)}
                           </p>
                         )}
                         {/* Flow Check : la prise de voix se fait sur

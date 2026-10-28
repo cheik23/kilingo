@@ -1,6 +1,7 @@
 import { internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { translateWithGroq } from "./connectors/groqTranslate";
+import { assertAudioSourceUrl, fetchAudioSource } from "./mediaUrlPolicy";
 
 /* ═══════════════════════════════════════════════════════════════════════
    OPENVERSE MEDIA — MOTEURS LOCAUX D'ABORD
@@ -145,7 +146,10 @@ export const transcribeRemote = internalAction({
       return { ok: false, engine: "unavailable", reason: "no_engine", segments: [] };
     }
 
-    const source = await fetch(args.audioUrl, {
+    // P0.2.3 — même politique d'adresse que le reste des téléchargements de
+    // médias : le studio reçoit aussi des URLs fournies par l'appelant.
+    const sourceUrl = assertAudioSourceUrl(args.audioUrl);
+    const source = await fetchAudioSource(sourceUrl, {
       headers: { "User-Agent": "OpenVerseMedia/0.1 (+https://openverse.media)" },
     });
     if (!source.ok) {
@@ -325,7 +329,10 @@ export const translateRemote = internalAction({
 export const fetchTextRemote = internalAction({
   args: { textUrl: v.string() },
   handler: async (_ctx, args): Promise<{ ok: boolean; text: string; reason?: string }> => {
-    const res = await fetch(args.textUrl, {
+    // P0.2.3 — même politique (le catalogue de textes est public, mais rien
+    // ne garantit que l'URL reçue l'est).
+    const textUrl = assertAudioSourceUrl(args.textUrl);
+    const res = await fetchAudioSource(textUrl, {
       headers: { "User-Agent": "OpenVerseMedia/0.1 (+https://openverse.media)" },
     });
     if (!res.ok) return { ok: false, text: "", reason: `HTTP ${res.status}` };

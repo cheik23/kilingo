@@ -1,5 +1,6 @@
 import { MapPin, Repeat2, Signal, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { displayContext } from "@/lib/pedagogicalContext";
 import { registerLabel } from "@/convex/languages";
 import { SpeakButton } from "./SpeakButton";
 import {
@@ -102,9 +103,14 @@ export function ExpressionCultureBlock({
   className,
 }: SlangFields & { className?: string }) {
   const culture = getSlangCulture(language, expression);
+  // BOUCLIER — `context` participe aussi à levelSource/resolveLevel (logique
+  // métier, doit rester brut) ; seul l'exemple rendu est filtré : gabarit de
+  // provenance PURE/DIRECTIVE/AMBIGUOUS → masqué, MIXED → exemple seul,
+  // LABEL/libre → intact. L'exemple éditorial (`culture.example`) prime et
+  // n'est jamais filtré.
   const level = resolveLevel({ expression, language, register, region, context }, culture);
-  // Exemple éditorial d'abord, puis l'exemple porté par la base.
-  const example = culture?.example ?? context;
+  // Exemple éditorial d'abord, puis l'exemple filtré porté par la base.
+  const example = culture?.example ?? displayContext(context);
   if (!culture && !level && !example) return null;
 
   return (

@@ -1,0 +1,22 @@
+{
+  "genere_le": "2026-10-25T05:01:49.593Z",
+  "mode": "APPLIQUÉ (--write)",
+  "fiche": "fa:کِرم ریختن (kerm rikhtan)",
+  "ligne": 22,
+  "champ_modifie": "context (sous-chaîne traduction de l'exemple uniquement)",
+  "fragment_avant": "'کرم نریز!' - Arrête de me chercher",
+  "fragment_apres": "'کرم نریز!' - Arrête de m'embêter",
+  "sha256_avant": "e8d0ef60ddcaae2086fc9bbfa8239eaaab160c4f258b24965de913b4dde80f3d",
+  "sha256_apres": "fca95f0c3e1d0e7eef398e60b5d2f9d992660bc23588d95a3cb93f55a6f791ab",
+  "champs_intacts": [
+    "language",
+    "expression",
+    "literal",
+    "meaning",
+    "register",
+    "region",
+    "popularity",
+    "validated",
+    "template provenance [Époque|Niveau|Source]"
+  ]
+}

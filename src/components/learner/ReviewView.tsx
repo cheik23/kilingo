@@ -2,13 +2,29 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { LANGUAGES } from "@/convex/languages";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, Layers } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { CheckCircle2, CloudOff, Eye, Layers, Loader2, RefreshCw } from "lucide-react";
+import { displayContext } from "@/lib/pedagogicalContext";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { SpeakButton } from "./SpeakButton";
 import { AdultContentBadge } from "./AdultContentBadge";
 import { UnverifiedBadge } from "./UnverifiedBadge";
 import { GoldBurst } from "@/components/fx/rewards";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  createReviewSessionSaver,
+  createReviewSessionTracker,
+  firstPendingCard,
+  needsNewBatch,
+  takeIfComplete,
+} from "@/lib/reviewSessionTracker";
+import { createUserReviewSessionPersistence } from "@/lib/reviewSessionPersistence";
 
 type Rating = "again" | "hard" | "good" | "easy";
 
@@ -81,6 +97,9 @@ type Feedback = {
   text: string;
 };
 
+/** Référence stable : évite de recréer `cards` à chaque rendu avant le query. */
+const EMPTY_QUEUE: QueueItem[] = [];
+
 function feedbackText(
   t: (k: string, p?: Record<string, string | number>) => string,
   rating: Rating,
@@ -130,25 +149,69 @@ const STATUS_BADGE: Record<string, { label: string; className: string }> = {
 
 export function ReviewView() {
   const { t } = useI18n();
+  // `RequireAuth` attend `users.currentUser` avant de monter cette vue : la
+  // file persistée est donc toujours celle du compte réellement connecté.
+  const { user } = useAuth();
+  const sessionUserKey = user?._id ?? null;
   const queue = useQuery(api.learning.reviewQueue, {});
   const drawNew = useMutation(api.learning.drawNewCards);
   const reviewMutation = useMutation(api.learning.reviewCardMutation);
   const recordSession = useMutation(api.learning.recordSession);
 
-  const [index, setIndex] = useState(0);
-  const [revealed, setRevealed] = useState(false);
-  const [reviewed, setReviewed] = useState(0);
+  // Le tracker porte le compteur SYNCHRONE et l'identité de session : une
+  // closure React `reviewed` ne peut plus sauvegarder N−1 (ou 0 pour une
+  // session d'une seule carte).
+  const [tracker] = useState(createReviewSessionTracker);
+  // La file survit à un rechargement : un lot non confirmé est rejoué avec
+  // la même clé, donc le serveur reconnaît l'opération au lieu de recréer
+  // une session.
+  const [saver] = useState(() =>
+    createReviewSessionSaver(async (pending) => {
+      // Le résultat serveur est conservé tel quel dans le reçu du saver :
+      // l'interface n'a jamais à recalculer l'XP localement.
+      return await recordSession({
+        language: pending.language as never,
+        kind: "srs",
+        durationSeconds: pending.snapshot.durationSeconds,
+        itemsLearned: pending.snapshot.itemsLearned,
+        // Clé stable du lot : le saver peut rejouer CE snapshot après une
+        // réponse perdue, le serveur reconnaîtra la même session logique.
+        sessionKey: pending.snapshot.sessionKey,
+      });
+    }, sessionUserKey
+      ? createUserReviewSessionPersistence(sessionUserKey)
+      : undefined),
+  );
+  // `useSyncExternalStore` expose les états du saver sans dupliquer sa file
+  // dans un state React : pending, requête en vol, erreur et reçus serveur.
+  const saveState = useSyncExternalStore(
+    saver.subscribe,
+    saver.state,
+    saver.state,
+  );
+  // La révélation appartient à UNE carte d'UNE session précise. Un booléen
+  // global laissait la carte suivante apparaître déjà révélée si la file
+  // était remplacée pendant que l'ancienne carte était ouverte.
+  const [revealState, setRevealState] = useState<{
+    cardId: string;
+    sessionId: number;
+  } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [sessionReceiptKey, setSessionReceiptKey] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [burst, setBurst] = useState(0);
-  const startedAt = useRef(Date.now());
-  const sessionSaved = useRef(false);
+  const [lastRated, setLastRated] = useState<QueueItem | null>(null);
   const drawAttempted = useRef(false);
+  const mountedRef = useRef(true);
+  const sessionLanguageRef = useRef<string | null>(null);
   // Garde anti double-soumission : un seul rate() en vol à la fois.
-  // Sans elle, deux clics rapprochés ciblent cards[index] avant que
-  // setIndex(next) ne s'applique — la même carte est notée deux fois
-  // (double avancement + double XP). Un ref (et non un state) pour
-  // éviter tout re-rendu au moment du blocage.
+  // Un ref (et non un state) est synchrone : deux clics dans la même frame
+  // ne peuvent pas cibler deux fois la même carte.
   const submittingRef = useRef(false);
+  // Cartes du lot courant : permet de distinguer un rafraîchissement de la
+  // file (cartes déjà revues qui disparaissent) d'un NOUVEAU lot, même si
+  // Convex remplace la file sans rendre un état vide intermédiaire.
+  const batchIdsRef = useRef<ReadonlySet<string> | null>(null);
 
   // Tire les nouvelles cartes du jour (plafond 10/jour) au montage.
   useEffect(() => {
@@ -157,41 +220,102 @@ export function ReviewView() {
     void drawNew({}).catch(() => undefined);
   }, [drawNew]);
 
-  const cards = queue ?? [];
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
-  const saveSession = async () => {
-    if (sessionSaved.current || reviewed === 0) return;
-    sessionSaved.current = true;
-    const first = cards[0];
-    if (!first) return;
-    const duration = Math.max(
-      1,
-      Math.round((Date.now() - startedAt.current) / 1000),
-    );
-    try {
-      await recordSession({
-        language: first.card.language as never,
-        kind: "srs",
-        durationSeconds: duration,
-        itemsLearned: reviewed,
-      });
-    } catch {
-      // ignore
+  const cards = queue ?? EMPTY_QUEUE;
+  const acceptedIds = tracker.acceptedIds();
+  const pendingCount = cards.reduce(
+    (n, item) => n + (acceptedIds.has(item.card._id) ? 0 : 1),
+    0,
+  );
+  const current = firstPendingCard(cards, acceptedIds);
+  const finished = queue !== undefined && current === undefined;
+
+  // Ouvre un lot : identité + horloge du tracker, remise à zéro du résumé
+  // précédent. Le compteur affiché et le total final vivent dans le tracker.
+  const beginSession = useCallback(
+    (language: string, items: readonly QueueItem[]) => {
+      tracker.start();
+      batchIdsRef.current = new Set(items.map((item) => item.card._id));
+      sessionLanguageRef.current = language;
+      // Pas de setState ici : cette fonction est appelée depuis un effet.
+      // La révélation est déjà invalidée par l'identité de carte/session, et
+      // le reçu XP est remplacé dans `rate()` au moment d'enfiler le nouveau
+      // lot — aucun reçu de la session précédente ne peut donc être réutilisé.
+    },
+    [tracker],
+  );
+
+  // Garantit qu'une session est ouverte pour `active`. Même lot → no-op ;
+  // lot remplacé → nouvelle session si aucun résultat n'attend, sinon on
+  // rattache le nouveau lot au compteur existant pour ne rien effacer.
+  const ensureSessionFor = useCallback(
+    (
+      items: readonly QueueItem[],
+      active: QueueItem,
+      accepted: ReadonlySet<string>,
+    ) => {
+      if (
+        !needsNewBatch(
+          batchIdsRef.current,
+          items,
+          accepted,
+          active.card._id,
+        )
+      ) {
+        return;
+      }
+      // Des cartes acceptées ne sont pas encore persistées (file remplacée
+      // par un autre onglet avant la fin du lot) : on les rattache au lot
+      // suivant au lieu de les effacer avec un nouveau `start()`.
+      if (tracker.count() > 0) {
+        const merged = new Set(batchIdsRef.current ?? []);
+        for (const item of items) merged.add(item.card._id);
+        batchIdsRef.current = merged;
+        return;
+      }
+      beginSession(active.card.language, items);
+    },
+    [beginSession, tracker],
+  );
+
+  // Restaure la file locale au montage, avec UNE tentative automatique.
+  // Après un échec, aucune boucle : c'est le bouton de reprise qui rejoue
+  // la même file et la même clé.
+  useEffect(() => {
+    void saver.flush();
+  }, [saver]);
+
+  // Une session commence quand une carte apparaît après une fin de session
+  // (chargement initial ou nouveau lot). Une file vide clôt le lot : un lot
+  // identique rechargé plus tard ne sera pas absorbé par l'ancienne session.
+  useEffect(() => {
+    if (queue === undefined) return;
+    if (current === undefined) {
+      batchIdsRef.current = null;
+      return;
     }
-  };
+    ensureSessionFor(cards, current, acceptedIds);
+  }, [queue, cards, current, acceptedIds, ensureSessionFor]);
 
   const rate = async (rating: Rating) => {
     // Anti double-soumission : si une mutation est déjà en vol, on ignore
-    // le clic (pas de file d'attente — l'utilisateur doit attendre le
-    // feedback). Un state serait asynchrone ; un ref est synchrone ici.
+    // le clic. La carte déjà acceptée est également refusée, même si un
+    // re-render n'a pas encore eu lieu.
     if (submittingRef.current) return;
-    const card = cards[index];
-    if (!card) return;
+    const card = current;
+    if (!card || tracker.isAccepted(card.card._id)) return;
+    // Filet de sécurité si l'utilisateur clique avant l'effet de démarrage :
+    // la première revue d'un nouveau lot ouvre explicitement sa session.
+    ensureSessionFor(cards, card, acceptedIds);
     submittingRef.current = true;
-    // `accepted` = la mutation a-t-elle VRAIMENT enregistré la revue ?
-    // Un rejet (stale_review, réseau) ne change rien en base : la session
-    // ne doit pas le compter comme une carte consolidée.
-    let accepted = false;
+    setSubmitting(true);
+    const sessionId = tracker.sessionId();
     try {
       const res = await reviewMutation({
         cardId: card.card._id as never,
@@ -200,23 +324,42 @@ export function ReviewView() {
         // depuis que cette carte a été affichée (lastReview périmé).
         expectedLastReview: card.card.lastReview ?? null,
       });
-      accepted = true;
+      // Réponse tardive d'une session remplacée (ou composant démonté) :
+      // ne jamais créditer la nouvelle session avec l'ancienne réponse.
+      if (!mountedRef.current || sessionId !== tracker.sessionId()) return;
+      const accepted = tracker.accept(card.card._id, sessionId);
+      if (!accepted.counted) return;
+      // Le compteur vient du tracker ; `setFeedback` provoque le re-rendu.
+      setLastRated(card);
       setFeedback(feedbackText(t, rating, res.intervalDays, res.justMastered));
       if (res.justMastered) setBurst((b) => b + 1);
+      // Une réponse tardive d'une autre carte ne doit jamais refermer la
+      // révélation de la carte affichée à cet instant.
+      setRevealState((state) =>
+        state?.cardId === card.card._id ? null : state,
+      );
+      // Dernière carte du lot : takeIfComplete() consomme le compteur
+      // synchrone exactement une fois et renvoie itemsLearned = N.
+      const snapshot = takeIfComplete(cards, tracker);
+      if (snapshot) {
+        setSessionReceiptKey(snapshot.sessionKey);
+        saver.enqueue({
+          snapshot,
+          language: sessionLanguageRef.current ?? card.card.language,
+        });
+        // Une seule tentative automatique après l'enqueue. En cas d'échec,
+        // le bouton de reprise est le seul chemin de retry.
+        void saver.flush();
+      }
     } catch {
+      if (!mountedRef.current) return;
+      // Échec de la mutation principale : la carte reste courante (elle
+      // n'entre pas dans acceptedIds), le compteur ne bouge pas, la garde
+      // se libère dans finally et une nouvelle tentative est possible.
       setFeedback({ kind: "again", text: t("review.fbError") });
     } finally {
       submittingRef.current = false;
-    }
-    // Seule une revue acceptée par le backend compte dans la session : le
-    // résumé « +N XP » et le nombre de cartes consolidées reflètent ainsi
-    // l'XP réellement crédité.
-    if (accepted) setReviewed((r) => r + 1);
-    setRevealed(false);
-    const next = index + 1;
-    setIndex(next);
-    if (next >= cards.length) {
-      await saveSession();
+      setSubmitting(false);
     }
   };
 
@@ -228,9 +371,33 @@ export function ReviewView() {
     );
   }
 
-  const finished = index >= cards.length;
-  const current: QueueItem | undefined = cards[index];
-  const last = index > 0 ? cards[index - 1] : undefined;
+  // Pendant un lot, le compteur affiché vient du tracker (synchrone) ; le
+  // résumé final lit le total du dernier lot consommé, mémorisé par take().
+  const reviewed = tracker.lastItemsLearned();
+  const reviewedNow = current ? tracker.count() : reviewed;
+  const totalNow = reviewedNow + pendingCount;
+  // Reçu serveur de LA session affichée, jamais un total local recalculé.
+  const activeReceipt = sessionReceiptKey
+    ? saveState.receipts[sessionReceiptKey]
+    : undefined;
+  const saveError = saveState.error !== null;
+  const savePending = saveState.pending > 0;
+  // La révélation n'est valide que pour cette carte et cette identité de
+  // session. Dès que `current` change, la nouvelle carte est masquée au
+  // premier rendu, sans attendre un effet.
+  const revealed =
+    current !== undefined &&
+    revealState !== null &&
+    revealState.cardId === current.card._id &&
+    revealState.sessionId === tracker.sessionId();
+  // Le badge « carte précédente » n'a de sens qu'après au moins une réussite
+  // du lot courant (pas de statut périmé au début d'un nouveau lot).
+  const last = tracker.count() > 0 ? lastRated : null;
+  /* BOUCLIER — l'indice assisté et la révélation affichent le contexte
+     filtré (MIXED → exemple seul, PURE/DIRECTIVE/AMBIGUOUS → masqué).
+     La logique SRS (queue, ratings,.breakpoints) reste sur les données
+     brutes. */
+  const shownContext = current ? displayContext(current.slang.context) : null;
 
   return (
     <div className="space-y-6">
@@ -245,14 +412,58 @@ export function ReviewView() {
         </div>
         {cards.length > 0 && (
           <span className="rounded-full border border-white/10 px-4 py-1.5 font-mono text-xs text-ink-2">
-            {Math.min(index + 1, cards.length)} / {cards.length}
+            {Math.min(reviewedNow + 1, totalNow)} / {totalNow}
           </span>
         )}
       </div>
 
+      {savePending && (
+        <div
+          role={saveError ? "alert" : "status"}
+          aria-live="polite"
+          data-save-state={
+            saveError ? "error" : saveState.inFlight ? "saving" : "pending"
+          }
+          className={`mx-auto flex max-w-md items-start gap-3 rounded-xl border px-4 py-3 text-sm ${
+            saveError
+              ? "border-red-400/40 bg-red-400/5 text-red-200"
+              : "border-amber-400/30 bg-amber-400/5 text-amber-200"
+          }`}
+        >
+          {saveError ? (
+            <CloudOff className="mt-0.5 size-4 shrink-0" />
+          ) : saveState.inFlight ? (
+            <Loader2 className="mt-0.5 size-4 shrink-0 animate-spin" />
+          ) : (
+            <CloudOff className="mt-0.5 size-4 shrink-0" />
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="font-medium">
+              {saveError
+                ? t("review.saveFailed")
+                : t("review.savePending")}
+            </p>
+            <p className="mt-1 text-xs opacity-75">
+              {t("review.savePendingCount", { n: saveState.pending })}
+            </p>
+          </div>
+          {!saveState.inFlight && (
+            <button
+              type="button"
+              onClick={() => void saver.retry()}
+              data-qa="retry-save"
+              className="flex shrink-0 items-center gap-1.5 rounded-full border border-current/30 px-3 py-1.5 text-xs font-medium hover:bg-current/10 disabled:opacity-50"
+            >
+              <RefreshCw className="size-3.5" />
+              {t("review.retrySave")}
+            </button>
+          )}
+        </div>
+      )}
+
       {feedback && (
         <motion.div
-          key={`${feedback.kind}-${feedback.text}-${index}`}
+          key={`${feedback.kind}-${feedback.text}-${current?.card._id ?? "done"}`}
           initial={{ opacity: 0, x: 16 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
@@ -275,12 +486,43 @@ export function ReviewView() {
         <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-noir-2 p-10 text-center">
           {reviewed > 0 ? (
             <>
-              <p className="text-gradient-gold font-display text-5xl font-semibold">
-                +{reviewed * 5} XP
-              </p>
+              {activeReceipt ? (
+                <>
+                  {/* Aucun XP inventé : si le serveur n'a pas renvoyé de
+                      gain, on confirme la sauvegarde sans afficher de nombre. */}
+                  {activeReceipt.xpGain !== null && (
+                    <p
+                      className="text-gradient-gold font-display text-5xl font-semibold"
+                      data-qa="session-xp"
+                      data-xp-gain={activeReceipt.xpGain}
+                    >
+                      +{activeReceipt.xpGain} XP
+                    </p>
+                  )}
+                  <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-emerald-300">
+                    <CheckCircle2 className="size-3.5" />
+                    {t("review.saveConfirmed")}
+                  </p>
+                </>
+              ) : (
+                <p className="font-display text-2xl text-ink-2">
+                  {saveError
+                    ? t("review.saveNotConfirmed")
+                    : t("review.savePending")}
+                </p>
+              )}
               <p className="mt-3 text-sm text-ink-2">
-                {reviewed} carte{reviewed > 1 ? "s" : ""} consolidée
-                {reviewed > 1 ? "s" : ""}. Ton cerveau fait le reste cette nuit.
+                {t("review.done", { n: reviewed })}
+              </p>
+            </>
+          ) : savePending ? (
+            <>
+              <CloudOff className="mx-auto size-10 text-amber-300" />
+              <p className="mt-4 font-display text-2xl">
+                {t("review.savePending")}
+              </p>
+              <p className="mt-2 text-sm text-ink-2">
+                {t("review.savePendingCount", { n: saveState.pending })}
               </p>
             </>
           ) : (
@@ -303,14 +545,16 @@ export function ReviewView() {
               exit={{ opacity: 0, y: -20 }}
               className="ln-glow rounded-3xl border border-gold/20 bg-gradient-to-br from-noir-3 via-noir-2 to-noir p-8 text-center"
             >
-              {/* Mode assisté anti-acharnement : contexte + exemple AVANT la réponse */}
-              {current!.assisted && !revealed && (
+              {/* Mode assisté anti-acharnement : contexte + exemple AVANT la réponse.
+                  Bouclier : si displayContext() renvoie null, aucun indice n'est
+                  affiché (ni template, ni chaîne vide). */}
+              {current!.assisted && !revealed && shownContext && (
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="mx-auto mb-4 max-w-xs rounded-lg border border-amber-400/25 bg-amber-400/5 px-3 py-2 text-xs text-amber-200/90"
                 >
-                  {t("review.hintAssisted", { c: current!.slang.context })}
+                  {t("review.hintAssisted", { c: shownContext })}
                 </motion.p>
               )}
 
@@ -354,14 +598,23 @@ export function ReviewView() {
                   <p className="text-lg font-medium text-gold">
                     {current!.slang.meaning}
                   </p>
-                  <p className="text-sm text-ink-2">{current!.slang.context}</p>
+                  {shownContext && (
+                    <p className="text-sm text-ink-2">{shownContext}</p>
+                  )}
                   <p className="text-xs italic text-ink-3">
                     litt. « {current!.slang.literal} »
                   </p>
                 </motion.div>
               ) : (
                 <button
-                  onClick={() => setRevealed(true)}
+                  type="button"
+                  onClick={() => {
+                    if (!current) return;
+                    setRevealState({
+                      cardId: current.card._id,
+                      sessionId: tracker.sessionId(),
+                    });
+                  }}
                   className="mx-auto flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-5 py-2 text-sm text-gold hover:bg-gold/20"
                 >
                   <Eye className="size-4" /> {t("review.reveal")}
@@ -373,8 +626,11 @@ export function ReviewView() {
                   {RATING_META.map((r) => (
                     <button
                       key={r.key}
+                      type="button"
+                      disabled={submitting}
+                      aria-busy={submitting}
                       onClick={() => rate(r.key)}
-                      className={`rounded-xl border px-3 py-2.5 text-sm transition-colors ${r.className}`}
+                      className={`rounded-xl border px-3 py-2.5 text-sm transition-colors disabled:cursor-wait disabled:opacity-50 ${r.className}`}
                     >
                       <span className="block font-medium">{t(`review.rating${r.key === "again" ? "Again" : r.key === "hard" ? "Hard" : r.key === "good" ? "Good" : "Easy"}`)}</span>
                       <span className="block text-[0.625rem] opacity-70">
@@ -382,6 +638,15 @@ export function ReviewView() {
                       </span>
                     </button>
                   ))}
+                  {submitting && (
+                    <p
+                      role="status"
+                      className="col-span-2 flex items-center justify-center gap-1.5 text-xs text-ink-3"
+                    >
+                      <Loader2 className="size-3.5 animate-spin" />
+                      {t("review.savingCard")}
+                    </p>
+                  )}
                 </div>
               )}
 

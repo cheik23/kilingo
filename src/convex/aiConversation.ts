@@ -14,6 +14,7 @@ import {
 } from "./gamification";
 import { ensureCharactersFor } from "./aiCharacters";
 import { ensureScenariosFor } from "./aiScenarios";
+import { LANGUAGE_CODES } from "./languages";
 import { chatWithGroq, type ChatMessage } from "./connectors/groqChat";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -94,10 +95,35 @@ function parseCorrections(reply: string): {
 
 /* ── Seeds + listes (écran d'accueil) ───────────────────────────────── */
 
+/**
+ * Périmètre de langues semables par la salle de conversation : exactement
+ * les langues de contenu (`LANGUAGE_CODES`) plus « fr », la langue
+ * d'interface historique. Cette liste est DÉRIVÉE du catalogue, jamais
+ * écrite deux fois.
+ *
+ * Pourquoi ce périmètre (P0.2) : `language` était un `v.string()` libre et
+ * chaque appel même raté insère jusqu'à 8 personnages + 15 scénarios. Une
+ * chaîne arbitraire (« x1 », puis « x2 », …) créait donc un jeu de lignes
+ * par valeur inventée — une amplification d'écriture pilotée par le client.
+ */
+const ROOM_LANGUAGE_CODES: ReadonlySet<string> = new Set([...LANGUAGE_CODES, "fr"]);
+
+/** Rejette toute langue hors catalogue, sans relayer la chaîne reçue. */
+function assertRoomLanguage(language: string): void {
+  if (!ROOM_LANGUAGE_CODES.has(language)) {
+    throw new Error("Langue non prise en charge par la conversation.");
+  }
+}
+
 /** Garantit personnages + scénarios d'une langue (appelé au montage UI). */
 export const ensureSeeds = mutation({
   args: { language: v.string() },
   handler: async (ctx, args) => {
+    // P0.2 — la salle est un écran de compte : un appel anonyme ne doit pas
+    // pouvoir écrire le catalogue de personnages d'une langue.
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) throw new Error("Not signed in");
+    assertRoomLanguage(args.language);
     await ensureCharactersFor(ctx, args.language);
     await ensureScenariosFor(ctx, args.language);
   },
@@ -271,6 +297,10 @@ export const startConversation = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) throw new Error("Not signed in");
+    // P0.2 — même périmètre que `ensureSeeds` : `startConversation` sème
+    // aussi la langue reçue quand elle est vide (8 + 15 lignes), donc une
+    // chaîne libre y aurait laissé exactement le même trou.
+    assertRoomLanguage(args.language);
 
     // 1.1 — auto-ensure idempotent AVANT le lookup : si la langue n'a
     // encore AUCUN personnage, on sème personnages + scénarios puis on

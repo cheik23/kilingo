@@ -1,0 +1,247 @@
+{
+  "source": "bundle esbuild de src/convex/slangSeed.ts (SLANG_SEED)",
+  "fichesScannees": 6601,
+  "categories": {
+    "PURE": 1,
+    "MIXED": 1184,
+    "DIRECTIVE": 13,
+    "EMPTY_EX": 0,
+    "LABEL": 5397,
+    "AMBIGUOUS": 6
+  },
+  "signatures": {
+    "(non-gabarit)": {
+      "total": 4859,
+      "langs": {
+        "es": 128,
+        "fr": 201,
+        "en": 310,
+        "ru": 179,
+        "ar": 131,
+        "zh": 196,
+        "sw": 243,
+        "ln": 231,
+        "ha": 228,
+        "yo": 222,
+        "zu": 227,
+        "wo": 239,
+        "de": 299,
+        "pt": 200,
+        "it": 300,
+        "ko": 200,
+        "ja": 200,
+        "tr": 200,
+        "pl": 200,
+        "hi": 62,
+        "bn": 12,
+        "ur": 12,
+        "id": 138,
+        "th": 62,
+        "vi": 132,
+        "fa": 12,
+        "tl": 12,
+        "el": 200,
+        "am": 71,
+        "ig": 12
+      },
+      "example": "es:molar un huevo :: « Tu regalo mola un huevo » — intensificateur quotidien des chats de groupe."
+    },
+    "Époque+Niveau+Source+Ex": {
+      "total": 923,
+      "langs": {
+        "ig": 30,
+        "tl": 160,
+        "hi": 50,
+        "ru": 30,
+        "ar": 68,
+        "zh": 77,
+        "th": 50,
+        "fa": 203,
+        "bn": 157,
+        "ur": 98
+      },
+      "example": "ig:Wusa arụ :: [Époque: 2010-2026] | [Niveau: COMMUNAUTAIRE] | [Source: Usage (étude Otu-Onitsha 2011, corroborée par Nairaland 2015)] | [Ex: usage Onitsha classique ; « wusa » vaut « déposer » —"
+    },
+    "(sans segment)": {
+      "total": 537,
+      "langs": {
+        "fa": 18,
+        "bn": 77,
+        "ur": 40,
+        "tl": 138,
+        "id": 77,
+        "zh": 70,
+        "ig": 75,
+        "am": 42
+      },
+      "example": "fa:Taarof :: [Politesse ritualisée] | Système complexe d'étiquette et de politesse ritualisée en Iran : offrir, refuser, insister. Ex: 'Ba taarof kon' (Fais du taarof). Note: Le taarof est un p"
+    },
+    "Époque+Niveau+Source": {
+      "total": 222,
+      "langs": {
+        "pt": 100,
+        "es": 122
+      },
+      "example": "pt:Credo :: [Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Aulete, article « credo »] | [« Credo, que cheiro é esse? » — Aulete enregistre explicitement l'emploi populaire d'étonnement et "
+    },
+    "Epoque+Niveau+Source+Ex": {
+      "total": 58,
+      "langs": {
+        "ur": 58
+      },
+      "example": "ur:Chill maro :: [Epoque: 2010+] | [Niveau: VERIFIE] | [Source: Usage universel] | [Ex: Tension na lo, chill maro]"
+    },
+    "Époque+Niveau+Source+Époque": {
+      "total": 1,
+      "langs": {
+        "bn": 1
+      },
+      "example": "bn:ছাপড়ি (chhapri) :: [Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire Wiktionary] | [Époque: 2020+]"
+    },
+    "Chiffon, au sens gaulois": {
+      "total": 1,
+      "langs": {
+        "id": 1
+      },
+      "example": "id:Gombal :: [Chiffon, au sens gaulois : « folâtre »] | Un esprit sans filtre, déjanté. Ex: 'Lu gombal banget si' (T'es trop fou). Note: Le sens standard est « chiffon » ; le sens largement dom"
+    }
+  },
+  "perLang": {
+    "es": {
+      "total": 250,
+      "LABEL": 128,
+      "MIXED": 122
+    },
+    "fr": {
+      "total": 201,
+      "LABEL": 201
+    },
+    "en": {
+      "total": 310,
+      "LABEL": 310
+    },
+    "ru": {
+      "total": 209,
+      "LABEL": 179,
+      "MIXED": 30
+    },
+    "ar": {
+      "total": 199,
+      "LABEL": 131,
+      "MIXED": 68
+    },
+    "zh": {
+      "total": 343,
+      "LABEL": 266,
+      "MIXED": 77
+    },
+    "sw": {
+      "total": 243,
+      "LABEL": 243
+    },
+    "ln": {
+      "total": 231,
+      "LABEL": 231
+    },
+    "ha": {
+      "total": 228,
+      "LABEL": 228
+    },
+    "yo": {
+      "total": 222,
+      "LABEL": 222
+    },
+    "zu": {
+      "total": 227,
+      "LABEL": 227
+    },
+    "wo": {
+      "total": 239,
+      "LABEL": 239
+    },
+    "de": {
+      "total": 299,
+      "LABEL": 299
+    },
+    "pt": {
+      "total": 300,
+      "LABEL": 200,
+      "MIXED": 100
+    },
+    "it": {
+      "total": 300,
+      "LABEL": 300
+    },
+    "ko": {
+      "total": 200,
+      "LABEL": 200
+    },
+    "ja": {
+      "total": 200,
+      "LABEL": 200
+    },
+    "tr": {
+      "total": 200,
+      "LABEL": 200
+    },
+    "pl": {
+      "total": 200,
+      "LABEL": 200
+    },
+    "hi": {
+      "total": 112,
+      "LABEL": 62,
+      "MIXED": 50
+    },
+    "bn": {
+      "total": 247,
+      "LABEL": 89,
+      "MIXED": 156,
+      "PURE": 1,
+      "AMBIGUOUS": 1
+    },
+    "ur": {
+      "total": 208,
+      "LABEL": 52,
+      "MIXED": 156
+    },
+    "id": {
+      "total": 216,
+      "LABEL": 216
+    },
+    "th": {
+      "total": 112,
+      "LABEL": 62,
+      "MIXED": 50
+    },
+    "vi": {
+      "total": 132,
+      "LABEL": 132
+    },
+    "fa": {
+      "total": 233,
+      "LABEL": 30,
+      "MIXED": 203
+    },
+    "tl": {
+      "total": 310,
+      "LABEL": 150,
+      "MIXED": 155,
+      "AMBIGUOUS": 5
+    },
+    "el": {
+      "total": 200,
+      "LABEL": 200
+    },
+    "am": {
+      "total": 113,
+      "LABEL": 113
+    },
+    "ig": {
+      "total": 117,
+      "LABEL": 87,
+      "DIRECTIVE": 13,
+      "MIXED": 17
+    }
+  }
+}

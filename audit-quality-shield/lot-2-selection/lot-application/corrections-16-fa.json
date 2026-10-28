@@ -1,0 +1,465 @@
+{
+  "genere_le": "2026-10-24T08:18:01.435Z",
+  "lot": "LOT PERSAN — 16 corrections sûres (context uniquement)",
+  "origine": "validation-finale/avant-apres-20-fa.json (20 candidates - 4 cas revue humaine exclues)",
+  "exclues_revue_humaine": [
+    "fa:خالی بستن (khâli bastan)",
+    "fa:کِرم ریختن (kerm rikhtan)",
+    "fa:دهن سرویس کردن (dahan servis kardan)",
+    "fa:فاز (fâz)"
+  ],
+  "condition_d_application": "validation humaine explicite requise — non donnée à ce jour ; ce JSON est PREPARE, non appliqué",
+  "sha256_source_avant": "9afd9f66fb03456196ee196d17f3939f9ba9c17376e914d9ee4859174e366b71",
+  "nb_corrections": 16,
+  "regle": "remplacement strict de context : '[' Époque | Niveau | Source | [Ex: …] ' → corps Ex (persan verbatim + ' - ' + traduction verbatim)",
+  "corrections": [
+    {
+      "key": "fa:پیچوندن (pichundan)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 17,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'منو پیچوند و نیومد' - Il m'a posé un lapin]",
+      "context_apres": "'منو پیچوند و نیومد' - Il m'a posé un lapin",
+      "corrections_ok": {
+        "persan_verbatim": "منو پیچوند و نیومد",
+        "traduction_verbatim": "Il m'a posé un lapin",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:سه‌سوت (seh soot)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 18,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'سه‌سوت میام!' - J'arrive en deux secondes]",
+      "context_apres": "'سه‌سوت میام!' - J'arrive en deux secondes",
+      "corrections_ok": {
+        "persan_verbatim": "سه‌سوت میام!",
+        "traduction_verbatim": "J'arrive en deux secondes",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "U+200C présent et conservé",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:تیکه انداختن (tike andâkhtan)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 19,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'باز بهم تیکه انداخت' - Il m'a encore lancé une pique]",
+      "context_apres": "'باز بهم تیکه انداخت' - Il m'a encore lancé une pique",
+      "corrections_ok": {
+        "persan_verbatim": "باز بهم تیکه انداخت",
+        "traduction_verbatim": "Il m'a encore lancé une pique",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:آویزون (âvizun)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 20,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'خیلی آویزون شده' - Il est devenu très collant]",
+      "context_apres": "'خیلی آویزون شده' - Il est devenu très collant",
+      "corrections_ok": {
+        "persan_verbatim": "خیلی آویزون شده",
+        "traduction_verbatim": "Il est devenu très collant",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:سرِ کار گذاشتن (sar-e kâr gozâshtan)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 21,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'منو سرِ کار گذاشتی؟' - Tu me fais marcher ?]",
+      "context_apres": "'منو سرِ کار گذاشتی؟' - Tu me fais marcher ?",
+      "corrections_ok": {
+        "persan_verbatim": "منو سرِ کار گذاشتی؟",
+        "traduction_verbatim": "Tu me fais marcher ?",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:تابلو (tâblo)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 23,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'تابلوئه که خسته‌ای' - Ça se voit que tu es fatigué]",
+      "context_apres": "'تابلوئه که خسته‌ای' - Ça se voit que tu es fatigué",
+      "corrections_ok": {
+        "persan_verbatim": "تابلوئه که خسته‌ای",
+        "traduction_verbatim": "Ça se voit que tu es fatigué",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "U+200C présent et conservé",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:سوتی (sooti)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 24,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Usage réseau] | [Ex: 'یه سوتی دادم' - J'ai fait une gaffe]",
+      "context_apres": "'یه سوتی دادم' - J'ai fait une gaffe",
+      "corrections_ok": {
+        "persan_verbatim": "یه سوتی دادم",
+        "traduction_verbatim": "J'ai fait une gaffe",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Usage réseau] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:باحال (bâhâl)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 26,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'این کافه خیلی باحاله' - Ce café est vraiment sympa]",
+      "context_apres": "'این کافه خیلی باحاله' - Ce café est vraiment sympa",
+      "corrections_ok": {
+        "persan_verbatim": "این کافه خیلی باحاله",
+        "traduction_verbatim": "Ce café est vraiment sympa",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:خفن (khafan)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 27,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'این آهنگ خفنه' - Ce morceau est génial]",
+      "context_apres": "'این آهنگ خفنه' - Ce morceau est génial",
+      "corrections_ok": {
+        "persan_verbatim": "این آهنگ خفنه",
+        "traduction_verbatim": "Ce morceau est génial",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:ضایع (zâye)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 28,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'خیلی ضایع شد' - C'était super gênant]",
+      "context_apres": "'خیلی ضایع شد' - C'était super gênant",
+      "corrections_ok": {
+        "persan_verbatim": "خیلی ضایع شد",
+        "traduction_verbatim": "C'était super gênant",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:خودمونی (khodemuni)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 29,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'خودمونی حرف بزن' - Parle sans chichis]",
+      "context_apres": "'خودمونی حرف بزن' - Parle sans chichis",
+      "corrections_ok": {
+        "persan_verbatim": "خودمونی حرف بزن",
+        "traduction_verbatim": "Parle sans chichis",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:خز (khaz)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 30,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire/Usage jeune] | [Ex: 'این لباس یکم خزه' - Cette tenue est un peu ringarde]",
+      "context_apres": "'این لباس یکم خزه' - Cette tenue est un peu ringarde",
+      "corrections_ok": {
+        "persan_verbatim": "این لباس یکم خزه",
+        "traduction_verbatim": "Cette tenue est un peu ringarde",
+        "prefixe_elimine": "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire/Usage jeune] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:اسکل (oskol)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 31,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'اسکل‌بازی درنیار' - Ne fais pas l'idiot]",
+      "context_apres": "'اسکل‌بازی درنیار' - Ne fais pas l'idiot",
+      "corrections_ok": {
+        "persan_verbatim": "اسکل‌بازی درنیار",
+        "traduction_verbatim": "Ne fais pas l'idiot",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "U+200C présent et conservé",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:کف کردم (kaf kardam)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 32,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'قیمتشو دیدم، کف کردم' - J'ai vu son prix, j'étais sidéré]",
+      "context_apres": "'قیمتشو دیدم، کف کردم' - J'ai vu son prix, j'étais sidéré",
+      "corrections_ok": {
+        "persan_verbatim": "قیمتشو دیدم، کف کردم",
+        "traduction_verbatim": "J'ai vu son prix, j'étais sidéré",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:لش (lash)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 33,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire/Usage jeune] | [Ex: 'امروز فقط لش کردم' - Aujourd'hui j'ai juste végété]",
+      "context_apres": "'امروز فقط لش کردم' - Aujourd'hui j'ai juste végété",
+      "corrections_ok": {
+        "persan_verbatim": "امروز فقط لش کردم",
+        "traduction_verbatim": "Aujourd'hui j'ai juste végété",
+        "prefixe_elimine": "[Époque: 2020+] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire/Usage jeune] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    },
+    {
+      "key": "fa:جوگیر (jo-gir)",
+      "fichier": "slangSeedEnrichmentFa.ts",
+      "ligne": 34,
+      "champs_modifies": [
+        "context"
+      ],
+      "champs_intacts": [
+        "language",
+        "expression",
+        "literal",
+        "meaning",
+        "register",
+        "region",
+        "popularity",
+        "validated"
+      ],
+      "context_avant": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: 'جوگیر نشو' - Ne t'emballe pas]",
+      "context_apres": "'جوگیر نشو' - Ne t'emballe pas",
+      "corrections_ok": {
+        "persan_verbatim": "جوگیر نشو",
+        "traduction_verbatim": "Ne t'emballe pas",
+        "prefixe_elimine": "[Époque: classique] | [Niveau: VÉRIFIÉ] | [Source: Dictionnaire] | [Ex: ",
+        "suffixe_elimine": "]",
+        "zwnj_preserve": "pas de ZWNJ dans cette fiche",
+        "residus_gabarit": []
+      }
+    }
+  ]
+}

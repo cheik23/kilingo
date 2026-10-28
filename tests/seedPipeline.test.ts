@@ -12,7 +12,7 @@
  * isolée).
  */
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { SLANG_SEED, slangSlug } from "../src/convex/slangSeed";
 import { normalizeRegion } from "../src/convex/languages";
@@ -154,16 +154,18 @@ describe("Seed Pipeline — sécurité du pilote (mode standard)", () => {
    * en statique — ici, la décision produit « ponts non semés par défaut ».
    * La preuve dynamique (aucune ligne en base de test) est dans le fichier
    * d'intégration convex-test. */
-  test("le pilote N'appelle les ponts CULTURELS qu'Avec l'opt-in explicite", () => {
+  test("le pilote N'appelle les ponts CULTURELS qu'AVEC l'opt-in explicite", () => {
     const src = read("scripts/seed-backend.mjs");
-    // L'appel seedCrossConceptsPublic n'existe qu'à un seul endroit.
-    const call = src.indexOf('runFn("crossSeed:seedCrossConceptsPublic"');
+    // L'appel du seed des ponts n'existe qu'à un seul endroit, et il vise la
+    // fonction INTERNE : aucune mutation publique n'expose la purge.
+    const call = src.indexOf('runFn("internal.crossSeed.seedCrossConcepts"');
     expect(call, "l'appel des ponts doit être unique").toBeGreaterThanOrEqual(0);
-    expect(src.indexOf('runFn("crossSeed:', call + 1)).toBe(-1);
-    // et il se trouve APRÈS le gardes opt-in strict (--include-cross-concepts).
+    expect(src.indexOf('runFn("internal.crossSeed:', call + 1)).toBe(-1);
+    expect(src).not.toMatch(/seedCrossConceptsPublic/);
+    // et il se trouve APRÈS le garde opt-in strict (--include-cross-concepts).
     const guard = src.indexOf("if (includeCross)");
     expect(guard, "la garde d'opt-in doit exister").toBeGreaterThan(-1);
-    expect(call, "l'appel des ponts doit être DANS plan a drapeau explicite").toBeGreaterThan(guard);
+    expect(call, "l'appel des ponts doit être DANS le bloc à drapeau explicite").toBeGreaterThan(guard);
     // Sans opt-in : message "SAUTÉS" — pas d'appel, pas de mutation.
     expect(src).toMatch(/SAUTÉS.*include-cross-concepts/);
   });
@@ -173,10 +175,55 @@ describe("Seed Pipeline — sécurité du pilote (mode standard)", () => {
     expect(src).not.toMatch(/crossConcepts/);
   });
 
-  test("le dry-run liste explicitement ses opérations (lectures ici, écritures = 9 done)", () => {
+  test("le dry-run liste explicitement ses opérations (lectures ici, écritures = 0)", () => {
     const src = read("scripts/seed-dry-run.mjs");
     expect(src).toContain('"écritures_ici": []');
     expect(src).toMatch(/ponts culturels crossConcepts — SAUTÉS par défaut/);
+    // Lecture seule prouvée par les routes réellement appelées : uniquement
+    // `/api/query`. Aucune route de mutation, aucun appel crossSeed : le
+    // dry-run ne peut donc ni insérer, ni mettre à jour, ni supprimer.
+    expect(src).toMatch(/\/api\/query/);
+    expect(src).not.toMatch(/\/api\/mutation/);
+    expect(src).not.toMatch(/seedCrossConcepts/);
+  });
+});
+
+describe("Seed Pipeline — sécurité crossConcepts (surface publique)", () => {
+  const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
+
+  test("le seed des ponts est INTERNE et n'a AUCUN export public", async () => {
+    const mod = (await import("../src/convex/crossSeed")) as Record<string, unknown>;
+    expect(mod.seedCrossConceptsPublic).toBeUndefined();
+    const seed = mod.seedCrossConcepts as { isInternal?: boolean } | undefined;
+    expect(seed, "le seed interne doit rester exporté").toBeDefined();
+    expect(seed?.isInternal, "internalMutation est la seule surface d'écriture").toBe(true);
+  });
+
+  test("crossSeed.ts ne déclare AUCUNE mutation publique", () => {
+    const src = read("src/convex/crossSeed.ts");
+    // Un import `mutation` résiduel serait le signe d'un wrapper public
+    // réintroduit : le seed des ponts ne doit être qu'un internalMutation.
+    expect(src).not.toMatch(/\bmutation\s*\(/);
+    expect(src).toMatch(/seedCrossConcepts\s*=\s*internalMutation\(/);
+    expect(src).not.toMatch(/seedCrossConceptsPublic/);
+  });
+
+  test("aucun code exécutable (src/ ou scripts/) ne référence un wrapper public de semis", () => {
+    const walk = (dir: string): string[] =>
+      readdirSync(join(process.cwd(), dir), { withFileTypes: true }).flatMap((entry) =>
+        entry.isDirectory()
+          ? walk(join(dir, entry.name))
+          : [join(dir, entry.name)],
+      );
+    const files = ["src", "scripts"]
+      .flatMap(walk)
+      .filter((f) => /\.(ts|tsx|js|mjs|cjs)$/.test(f));
+    expect(files.length).toBeGreaterThan(50);
+    for (const file of files) {
+      expect(read(file), `${file} ne doit pas exposer le seed des ponts`).not.toMatch(
+        /\bseedCrossConceptsPublic\b/,
+      );
+    }
   });
 });
 

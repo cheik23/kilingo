@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { useOptionalQuery } from "@/lib/optionalQuery";
 import { cn } from "@/lib/utils";
+import { displayContext } from "@/lib/pedagogicalContext";
 import { SpeakButton } from "./SpeakButton";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -140,9 +141,11 @@ export function DailySlangCard({ className }: { className?: string }) {
       ) : (
         <p className="mt-2 text-sm">
           <span className="font-medium text-gold">{card.meaning}</span>
-          {card.context && (
+          {/* BOUCLIER — gabarit PURE/DIRECTIVE/AMBIGUOUS → masqué, MIXED →
+              exemple seul, LABEL/libre → intact. */}
+          {displayContext(card.context) && (
             <span className="mt-0.5 block text-xs text-ink-3 italic">
-              « {card.context} »
+              « {displayContext(card.context)} »
             </span>
           )}
         </p>

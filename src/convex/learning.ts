@@ -633,6 +633,20 @@ export const removeFromSrs = mutation({
   },
 });
 
+/**
+ * Clé d'idempotence d'une session SRS : identifiant d'OPÉRATION, jamais une
+ * preuve d'identité. On refuse les clés vides, trop longues ou contenant des
+ * caractères hors de l'alphabet UUID/opaque attendu, pour éviter qu'une
+ * valeur accidentellement vide ne désactive silencieusement la protection.
+ */
+const SESSION_KEY_RE = /^[A-Za-z0-9_-]{8,128}$/;
+
+function readSessionKey(raw: string | undefined): string | undefined {
+  if (raw === undefined) return undefined;
+  if (!SESSION_KEY_RE.test(raw)) throw new Error("Invalid sessionKey");
+  return raw;
+}
+
 /** Record a completed session (shadowing / discovery / sleep / srs). */
 export const recordSession = mutation({
   args: {
@@ -640,19 +654,43 @@ export const recordSession = mutation({
     kind: v.string(),
     durationSeconds: v.optional(v.number()),
     itemsLearned: v.optional(v.number()),
+    /** Présent pour les sessions SRS ; les autres appelants restent legacy. */
+    sessionKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) throw new Error("Not signed in");
-    await ctx.db.insert("learningSessions", {
-      userId,
-      language: args.language,
-      kind: args.kind,
-      durationSeconds: args.durationSeconds,
-      itemsLearned: args.itemsLearned ?? 0,
-      completedAt: Date.now(),
-    });
-    // XP + streak for the language
+    const sessionKey = readSessionKey(args.sessionKey);
+
+    // Idempotence : une même clé, pour le même utilisateur, désigne UNE
+    // session logique. Le lookup et toutes les écritures ci-dessous vivent
+    // dans la même transaction Convex : un retry après réponse perdue ne
+    // recrée rien et ne recrédite aucun XP/streak. L'index composé est la
+    // seule source de vérité ; le client ne peut pas contourner ce contrôle.
+    //
+    // Les appels sans clé (découverte, sleep, shadowing, flowcheck et
+    // clients historiques) conservent exactement l'ancien contrat : ils ne
+    // bénéficient pas de cette protection.
+    if (sessionKey !== undefined) {
+      const existing = await ctx.db
+        .query("learningSessions")
+        .withIndex("by_user_session_key", (q) =>
+          q.eq("userId", userId).eq("sessionKey", sessionKey),
+        )
+        .unique();
+      if (existing) {
+        // Résultat de la première exécution, pas le streak courant : un
+        // retry tardif ne doit pas réécrire l'histoire de la session.
+        return {
+          xpGain: existing.xpAwarded ?? 0,
+          streak: existing.streakAfter ?? 0,
+        };
+      }
+    }
+
+    const now = Date.now();
+    // XP + streak for the language. On calcule AVANT l'insertion pour
+    // stocker le résultat original avec la clé, dans la même transaction.
     const langRows = await ctx.db
       .query("userLanguages")
       .withIndex("by_user_language", (q) =>
@@ -660,27 +698,50 @@ export const recordSession = mutation({
       )
       .collect();
     const row = langRows[0];
+    // Une session SRS keyed doit avoir une ligne de langue : c'est cette
+    // ligne que la transaction patche, ce qui force la sérialisation OCC de
+    // deux appels concurrents portant la même clé. Sans elle, on refuse
+    // d'écrire une session que rien ne protégerait d'un doublon.
+    if (sessionKey !== undefined && !row) {
+      throw new Error("Language not initialized");
+    }
+    let xpGain = 0;
+    let streak = 0;
     if (row) {
-      const now = Date.now();
       const last = row.lastActivity ?? 0;
       const dayMs = 86_400_000;
-      const sameDay = now - last < dayMs && new Date(last).getDate() === new Date(now).getDate();
-      let streak = row.streak;
+      const sameDay =
+        now - last < dayMs && new Date(last).getDate() === new Date(now).getDate();
+      streak = row.streak;
       if (!sameDay) {
         const yesterday =
           now - last < 2 * dayMs &&
           new Date(last).getDate() === new Date(now).getDate() - 1;
         streak = yesterday ? streak + 1 : 1;
       }
-      const xpGain = 10 + (args.itemsLearned ?? 0) * 2;
+      xpGain = 10 + (args.itemsLearned ?? 0) * 2;
+    }
+
+    await ctx.db.insert("learningSessions", {
+      userId,
+      language: args.language,
+      kind: args.kind,
+      durationSeconds: args.durationSeconds,
+      itemsLearned: args.itemsLearned ?? 0,
+      completedAt: now,
+      ...(sessionKey !== undefined
+        ? { sessionKey, xpAwarded: xpGain, streakAfter: streak }
+        : {}),
+    });
+
+    if (row) {
       await ctx.db.patch(row._id, {
         xp: row.xp + xpGain,
         streak,
         lastActivity: now,
       });
-      return { xpGain, streak };
     }
-    return { xpGain: 0, streak: 0 };
+    return { xpGain, streak };
   },
 });
 

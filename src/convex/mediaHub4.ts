@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { runSharedPipeline, transcribeAudio } from "./youtubePipeline";
+import { assertAudioSourceUrl, fetchAudioSource } from "./mediaUrlPolicy";
 import {
   fetchLyricsById,
   searchGenius,
@@ -362,7 +363,10 @@ export const analyzeTrack = action({
         "Analyse vocale indisponible pour ce titre (pas d'extrait audio fourni).",
       );
     }
-    const audioRes = await fetch(args.previewUrl, {
+    // P0.2.3 — la politique d'adresse partagée s'applique aussi à l'extrait
+    // audio fourni par le client (Spotify/Deezer le passent en argument).
+    const previewUrl = assertAudioSourceUrl(args.previewUrl);
+    const audioRes = await fetchAudioSource(previewUrl, {
       signal: AbortSignal.timeout(30_000),
     }).catch(() => null);
     if (!audioRes || !audioRes.ok) {

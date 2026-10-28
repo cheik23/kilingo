@@ -1,0 +1,162 @@
+[
+ {
+  "key": "tl:Teks",
+  "tokens": 7,
+  "ex": "'Teks mo ako pag nakauwi ka na' « Envoie-moi un texto quand tu seras rentré »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 43
+ },
+ {
+  "key": "tl:Wer na u?",
+  "tokens": 7,
+  "ex": "'Guys, wer na u? Hir na me' « Vous êtes où les gars ? Moi je suis en place »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 44
+ },
+ {
+  "key": "tl:Hir na me",
+  "tokens": 7,
+  "ex": "'Hir na me. Bakit ang tagal ninyo?' « Je suis arrivé. Vous prenez votre temps ! »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 45
+ },
+ {
+  "key": "tl:Guize",
+  "tokens": 3,
+  "ex": "'Guize, pasyal tayo' « Les gars, on va à Rain ! »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 46
+ },
+ {
+  "key": "tl:OTW / OMW",
+  "tokens": 5,
+  "ex": "'Wait lang ha. OTW na' « Attendez s'il vous plaît, j'arrive »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 47
+ },
+ {
+  "key": "tl:OL ka ba?",
+  "tokens": 3,
+  "ex": "'Oo, OL ako' « Oui, je suis en ligne »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 49
+ },
+ {
+  "key": "tl:SLR",
+  "tokens": 7,
+  "ex": "'Besh, SLR. Na-empty bat ako kanina' « Besh, désolé, mon tel a déchargé »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 50
+ },
+ {
+  "key": "tl:Kyah",
+  "tokens": 5,
+  "ex": "'Kyah, magkano po ang smartwatch?' « Monsieur, l'smartwatch, combien ? »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 52
+ },
+ {
+  "key": "tl:PM is the key",
+  "tokens": 10,
+  "ex": "'Buyer: HM po ang sweater? / You: PM is the key' « Le prix ? / Envoie-moi un DM pour les détails »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 53
+ },
+ {
+  "key": "tl:LP",
+  "tokens": 6,
+  "ex": "'Hi po. LP po ng boots?' « Prix bas pour ces bottes ? »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 54
+ },
+ {
+  "key": "tl:SKL",
+  "tokens": 4,
+  "ex": "'SKL bago kong halaman' « Je vous montre juste ma nouvelle plante »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 55
+ },
+ {
+  "key": "tl:FKL",
+  "tokens": 6,
+  "ex": "'FKL itong bago kong Jordan shoes' « Jme flex mon nouveau Jordan shoes»",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 56
+ },
+ {
+  "key": "tl:Rapsi",
+  "tokens": 5,
+  "ex": "'Rapsi nitong bagong armor ko!' « Mon nouveau bmw est trop bon ! »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 58
+ },
+ {
+  "key": "tl:Ge",
+  "tokens": 4,
+  "ex": "'Tol, teammates tayo. / Ge.' « On co-op ? / Ok vas-y ! »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 59
+ },
+ {
+  "key": "tl:Kati",
+  "tokens": 4,
+  "ex": "'Ang kati naman nito' « Ce type est coriace ! »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 60
+ },
+ {
+  "key": "tl:Sharks",
+  "tokens": 5,
+  "ex": "'Ang bagong phone mo, sharks!' « Ton nouveau téléphone, montre-moi ! »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 61
+ },
+ {
+  "key": "tl:Sags",
+  "tokens": 7,
+  "ex": "'Huwag naman masyadong sags ang ngiti mo' « Pas trop d'sourire forcé »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 63
+ },
+ {
+  "key": "tl:Scoobs",
+  "tokens": 4,
+  "ex": "'Scoobs, bro! Alaws arep' « Impossible bro, budget nul »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 64
+ },
+ {
+  "key": "tl:Forda ang ferson",
+  "tokens": 5,
+  "ex": "'forda Drag Race ang ferson' « Il est fan de Drag Race Philippines »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 68
+ },
+ {
+  "key": "tl:Sana all",
+  "tokens": 6,
+  "ex": "'May boyfriend na siya, sana all!' « Il a un copain, tout le monde ! »",
+  "occurrences": 1,
+  "file": "src/convex/slangSeedEnrichmentTl.ts",
+  "line": 70
+ }
+]

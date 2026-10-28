@@ -682,11 +682,18 @@ export function TalkTab({
       if (!size.okForUpload) {
         // > 25 Mo : job chunked — plus jamais d'erreur bloquante, la
         // progression est suivie en direct dans la MediaRoom.
-        const jobId = await createJob({
+        // P0.2.2 — création idempotente : `created: false` = un job tourne
+        // déjà pour ce même audio. On ouvre la salle sans relancer le
+        // pipeline (sinon la transcription serait payée deux fois).
+        const { jobId, created } = await createJob({
           title: `${show?.collectionName ?? "Podcast"} — ${ep.title}`,
           sourceUrl: ep.audioUrl,
         });
-        toast.success("Fichier long — transcription par extraits lancée.");
+        if (created) {
+          toast.success("Fichier long — transcription par extraits lancée.");
+        } else {
+          toast.info("Transcription déjà en cours pour cet extrait.");
+        }
         onOpenRoom({
           kind: "podcast",
           title: `${show?.collectionName ?? "Podcast"} — ${ep.title}`,
@@ -696,7 +703,9 @@ export function TalkTab({
           language,
           jobId,
         });
-        void runLong({ jobId: jobId as never, language: language as "en" });
+        if (created) {
+          void runLong({ jobId: jobId as never, language: language as "en" });
+        }
         return;
       }
       const title = `${show?.collectionName ?? "Podcast"} — ${ep.title}`;

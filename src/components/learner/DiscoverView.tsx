@@ -10,9 +10,10 @@ import {
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Brain, Globe, Heart, Info, Search, Volume2, X, Filter, Shuffle } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SpeakButton } from "./SpeakButton";
 import { ContextParser } from "./ContextParser";
+import { displayContext } from "@/lib/pedagogicalContext";
 import { AdultContentBadge } from "./AdultContentBadge";
 import { UnverifiedBadge } from "./UnverifiedBadge";
 import { GoldBurst } from "@/components/fx/rewards";
@@ -26,6 +27,16 @@ import {
   writeDiscoverRegionPref,
 } from "@/lib/discoverRegion";
 import { useSwipe, type SwipeDirection } from "@/hooks/useSwipe";
+import {
+  commitDeckSwipe,
+  createCommitGuard,
+  filterExcludedFavorites,
+  initialExcludeList,
+  pushHistoryId,
+  shuffledExclusion,
+  withSwipedRight,
+  type CommitGuard,
+} from "@/lib/discoverDeckState";
 
 const REGISTER_STYLES: Record<string, string> = {
   street: "border-orange-400/40 bg-orange-400/10 text-orange-300",
@@ -193,9 +204,9 @@ export function DiscoverView() {
     langFilter !== "all" && languageIsComingSoon(langFilter) ? langFilter : null;
 
   /* ── Historique d'exposition (FIFO 300, rechargé au mount) ────────── */
-  const [excludeList, setExcludeList] = useState<string[]>(() => [
-    ...new Set([...readIds("discover_shown"), ...readIds("discover_swiped")]),
-  ]);
+  const [excludeList, setExcludeList] = useState<string[]>(() =>
+    initialExcludeList(),
+  );
 
   // Le deck HÉRITE des filtres — c'était le bug : aucun filtre ne le
   // traversait, d'où des cartes US alors qu'Espagne était sélectionnée.
@@ -224,7 +235,18 @@ export function DiscoverView() {
   const toggleFavorite = useMutation(api.favorites.toggleSlangFavorite);
   const favorites = useMemo(() => new Set(favoriteIds ?? []), [favoriteIds]);
 
-  const deckItems = useMemo(() => deck ?? [], [deck]);
+  /* D-B — favoris swipés MIS DE CÔTÉ en session : Set React (état, jamais
+     un ref — sa lecture doit être valide au rendu). Rempli UNIQUEMENT après
+     confirmation backend (voir commitSwipe), il filtre le deck AFFICHÉ ci-
+     dessous. Volontairement hors `deckArgs` : un refetch Convex en pleine
+     session décalerait la pile à venir (carte sautée). */
+  const [favoritedSwiped, setFavoritedSwiped] = useState<ReadonlySet<string>>(
+    () => new Set<string>(),
+  );
+  const deckItems = useMemo(
+    () => filterExcludedFavorites(deck ?? [], favoritedSwiped),
+    [deck, favoritedSwiped],
+  );
   const [deckIndex, setDeckIndex] = useState(0);
 
   /* Changement de filtre (langue, pays ou registre) : la pile REPART DU
@@ -248,8 +270,24 @@ export function DiscoverView() {
      exhaustive-deps demande l'objet `current` entier (déclencheur trop
      large) tout en gardant exactement le même comportement. */
   const currentId = current?._id;
+  /* Dernière carte réellement affichée. La réponse d'un favori peut arriver
+     APRÈS un changement de filtre ou un remélange : le commit ne doit
+     avancer l'index que si la carte concernée est encore celle du deck. */
+  const currentIdRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    currentIdRef.current = currentId;
+  }, [currentId]);
+  /* Génération du deck : tout changement de filtre ou remélange l'incrémente.
+     Une réponse tardive ne doit pas avancer un index formé sur l'ancien deck,
+     même si la même carte se retrouve en tête du nouveau. */
+  const deckEpochRef = useRef(0);
+  useEffect(() => {
+    deckEpochRef.current += 1;
+  }, [filtersKey]);
   const behind = deckItems.slice(deckIndex + 1, deckIndex + 3);
   const [burst, setBurst] = useState(0);
+  /* D-T — verrou anti double-commit : un seul commit en vol PAR CARTE. */
+  const commitGuardRef = useRef<CommitGuard>(createCommitGuard());
 
   /* ── Actions de swipe ─────────────────────────────────────────────── */
 
@@ -261,25 +299,34 @@ export function DiscoverView() {
   const commitSwipe = useCallback(
     (dir: SwipeDirection) => {
       if (!current) return;
-      if (dir === "right") {
-        setBurst((n) => n + 1);
-        pushId("discover_swiped", current._id);
-        void (async () => {
-          try {
-            const res = await toggleFavorite({ slangId: current._id as never });
-            if (res.favorite) {
-              toast.success(t("discover.favoriteAdded", { e: current.expression }));
-            } else {
-              toast.info(t("discover.favoriteRemoved", { e: current.expression }));
-            }
-          } catch {
-            toast.error(t("errors.generic"));
-          }
-        })();
-      }
-      // Swipe gauche : vu uniquement (discover_shown via l'effet ci-dessous),
-      // reproposable plus tard une fois le FIFO 300 tourné.
-      setDeckIndex((i) => i + 1);
+      const id = current._id;
+      const expression = current.expression;
+      const deckEpoch = deckEpochRef.current;
+      if (dir === "right") setBurst((n) => n + 1);
+      /* D-T/D1 — la garde et toutes les transitions sont dans
+         `commitDeckSwipe` (testé sans DOM). En particulier, l'index n'avance
+         plus avant la réponse : une erreur laisse la carte affichée et
+         réessayable, et seuls les chemins confirmés touchent au deck. */
+      void commitDeckSwipe({
+        id,
+        direction: dir,
+        guard: commitGuardRef.current,
+        toggleFavorite: (slangId) => toggleFavorite({ slangId: slangId as never }),
+        isStillCurrent: () =>
+          currentIdRef.current === id && deckEpochRef.current === deckEpoch,
+        onFavorite: () => {
+          setFavoritedSwiped((prev) => withSwipedRight(prev, id));
+          pushHistoryId("discover_swiped", id);
+          toast.success(t("discover.favoriteAdded", { e: expression }));
+        },
+        onNotFavorite: () => {
+          toast.info(t("discover.favoriteRemoved", { e: expression }));
+        },
+        onError: () => {
+          toast.error(t("errors.generic"));
+        },
+        advance: () => setDeckIndex((i) => i + 1),
+      });
     },
     [current, toggleFavorite, t],
   );
@@ -338,13 +385,10 @@ export function DiscoverView() {
   }, [setHasTouched]);
 
   const reshuffle = useCallback(() => {
+    deckEpochRef.current += 1;
     setDeckIndex(0);
-    setExcludeList((prev) => {
-      const mixed = [...prev];
-      // Petite rotation FIFO : libère les plus anciennes cartes après un cycle.
-      if (mixed.length > 40) return mixed.slice(20);
-      return mixed;
-    });
+    // Rotation FIFO testée côté lib : libère les 20 plus anciens au-delà de 40.
+    setExcludeList((prev) => shuffledExclusion(prev));
   }, []);
 
   // Les chips "TOUTES" (langue) et "Tous" (registre) de la ligne langue
@@ -779,9 +823,13 @@ export function DiscoverView() {
                     <UnverifiedBadge validated={e.validated} />
                     <AdultContentBadge isAdult={e.isAdult} />
                   </div>
-                  <p className="mt-2 line-clamp-2 text-xs text-ink-3">
-                    {e.context}
-                  </p>
+                  {/* BOUCLIER — gabarit PURE/DIRECTIVE/AMBIGUOUS → masqué,
+                      MIXED → exemple seul, LABEL/libre → intact. */}
+                  {displayContext(e.context) && (
+                    <p className="mt-2 line-clamp-2 text-xs text-ink-3">
+                      {displayContext(e.context)}
+                    </p>
+                  )}
                   <div className="mt-3 flex items-center gap-2">
                     <button
                       onClick={() =>

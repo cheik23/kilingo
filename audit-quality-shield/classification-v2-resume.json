@@ -1,0 +1,102 @@
+{
+  "detected": 1204,
+  "cats": {
+    "A": 253,
+    "B": 826,
+    "C": 0,
+    "D": 125
+  },
+  "perLang": {
+    "ig": {
+      "A": 7,
+      "B": 22,
+      "C": 0,
+      "D": 1,
+      "total": 30
+    },
+    "tl": {
+      "A": 1,
+      "B": 110,
+      "C": 0,
+      "D": 49,
+      "total": 160
+    },
+    "hi": {
+      "A": 3,
+      "B": 42,
+      "C": 0,
+      "D": 5,
+      "total": 50
+    },
+    "pt": {
+      "A": 100,
+      "B": 0,
+      "C": 0,
+      "D": 0,
+      "total": 100
+    },
+    "es": {
+      "A": 122,
+      "B": 0,
+      "C": 0,
+      "D": 0,
+      "total": 122
+    },
+    "ru": {
+      "A": 0,
+      "B": 30,
+      "C": 0,
+      "D": 0,
+      "total": 30
+    },
+    "ar": {
+      "A": 0,
+      "B": 68,
+      "C": 0,
+      "D": 0,
+      "total": 68
+    },
+    "zh": {
+      "A": 18,
+      "B": 57,
+      "C": 0,
+      "D": 2,
+      "total": 77
+    },
+    "th": {
+      "A": 0,
+      "B": 46,
+      "C": 0,
+      "D": 4,
+      "total": 50
+    },
+    "fa": {
+      "A": 0,
+      "B": 201,
+      "C": 0,
+      "D": 2,
+      "total": 203
+    },
+    "bn": {
+      "A": 2,
+      "B": 156,
+      "C": 0,
+      "D": 0,
+      "total": 158
+    },
+    "ur": {
+      "A": 0,
+      "B": 94,
+      "C": 0,
+      "D": 62,
+      "total": 156
+    }
+  },
+  "signatures": {
+    "[B] segment Ex contient une citation réelle → exemple à extraire": 826,
+    "[A] segment Ex = consigne interne (« à composer », « non fourni »…), aucune citation": 10,
+    "[D] segment Ex ambigu (ni citation nette ni directive) → revue humaine": 125,
+    "[A] 3 segments de provenance, AUCUN segment Ex": 242,
+    "[A] 4 segments de provenance, AUCUN segment Ex": 1
+  }
+}

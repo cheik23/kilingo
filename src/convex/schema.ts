@@ -80,7 +80,14 @@ const schema = defineSchema(
        */
       timezone: v.optional(v.string()),
       displayName: v.optional(v.string()),
-    }).index("email", ["email"]), // index for the email. do not remove or modify
+    })
+      .index("email", ["email"]) // index for the email. do not remove or modify
+      /* P0.2 — l'amorçage administrateur doit savoir s'il existe DÉJÀ un
+         administrateur sans balayer les 200 premiers comptes (un admin
+         au-delà de cette fenêtre était invisible, et un compte ordinaire
+         pouvait alors s'élever). Index de fait partiel : les comptes sans
+         rôle n'y figurent pas. */
+      .index("role", ["role"]),
 
     // add other tables here
 
@@ -314,7 +321,24 @@ const schema = defineSchema(
       durationSeconds: v.optional(v.number()),
       itemsLearned: v.number(),
       completedAt: v.number(),
-    }).index("by_user", ["userId"]),
+      /**
+       * Clé d'idempotence fournie par le client SRS pour cette session
+       * logique. Optionnelle : les lignes historiques et les autres
+       * appelants (découverte, sleep, shadowing…) n'en ont pas. La clé est
+       * liée à l'utilisateur par l'index `by_user_session_key`.
+       */
+      sessionKey: v.optional(v.string()),
+      /**
+       * Résultat de la PREMIÈRE exécution de la session. Conservé pour
+       * qu'un retry après réponse perdue restitue exactement le même
+       * `xpGain`/`streak` sans recréditer les effets de bord. Absent des
+       * lignes historiques et des appels sans clé.
+       */
+      xpAwarded: v.optional(v.number()),
+      streakAfter: v.optional(v.number()),
+    })
+      .index("by_user", ["userId"])
+      .index("by_user_session_key", ["userId", "sessionKey"]),
 
     /**
      * Objectifs d'apprentissage (dashboard Analytics).

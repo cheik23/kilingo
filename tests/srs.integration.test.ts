@@ -22,6 +22,10 @@ import { convexTest } from "convex-test";
 import schema from "../src/convex/schema";
 import { api } from "../src/convex/_generated/api";
 import { newCardDefaults } from "../src/convex/languages";
+import {
+  createReviewSessionTracker,
+  takeIfComplete,
+} from "../src/lib/reviewSessionTracker";
 import type { Id } from "../src/convex/_generated/dataModel";
 
 const DAY_MS = 86_400_000;
@@ -471,5 +475,428 @@ describe("SRS intégration — reviewCardMutation réelle (convex-test)", () => 
     expect(queue).toHaveLength(1);
     expect(queue[0]?.card.status).toBe("confirming");
     expect(queue[0]?.card.lastReview).toBe(persisted.card.lastReview);
+  });
+});
+
+describe("SRS intégration — session de révision (tracker + recordSession)", () => {
+  type SessionCard = { card: { _id: string; language: string } };
+  const sessionCards = (ids: string[]): SessionCard[] =>
+    ids.map((id) => ({ card: { _id: id, language: "en" } }));
+
+  async function savedSessions(t: App) {
+    return await t.run(async (ctx) =>
+      await ctx.db.query("learningSessions").collect(),
+    );
+  }
+
+  test("une session d'une seule carte enregistre exactement itemsLearned=1", async () => {
+    const t = makeApp();
+    const seeds = await seedDeck(t);
+    const asUser = t.withIdentity({ subject: seeds.userId });
+
+    const tracker = createReviewSessionTracker();
+    tracker.start();
+    const cards = sessionCards(["a"]);
+    tracker.accept("a", tracker.sessionId());
+    const snapshot = takeIfComplete(cards, tracker);
+    expect(snapshot?.itemsLearned).toBe(1);
+
+    await asUser.mutation(api.learning.recordSession, {
+      language: "en",
+      kind: "srs",
+      durationSeconds: snapshot!.durationSeconds,
+      itemsLearned: snapshot!.itemsLearned,
+      sessionKey: snapshot!.sessionKey,
+    });
+
+    const rows = await savedSessions(t);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.kind).toBe("srs");
+    expect(rows[0]?.itemsLearned).toBe(1);
+    // recordSession : 10 XP + 2 XP par carte consolidée.
+    const state = await readState(t, seeds.cardId);
+    expect(state.xp).toBe(12);
+    expect(state.streak).toBe(1);
+  });
+
+  test("une session de N cartes enregistre le total N, dernière incluse", async () => {
+    const t = makeApp();
+    const seeds = await seedDeck(t);
+    const asUser = t.withIdentity({ subject: seeds.userId });
+
+    const tracker = createReviewSessionTracker();
+    tracker.start();
+    const cards = sessionCards(["a", "b", "c"]);
+    tracker.accept("a", tracker.sessionId());
+    tracker.accept("b", tracker.sessionId());
+    expect(takeIfComplete(cards, tracker)).toBeNull();
+    tracker.accept("c", tracker.sessionId());
+    const snapshot = takeIfComplete(cards, tracker);
+    expect(snapshot?.itemsLearned).toBe(3);
+
+    await asUser.mutation(api.learning.recordSession, {
+      language: "en",
+      kind: "srs",
+      durationSeconds: snapshot!.durationSeconds,
+      itemsLearned: snapshot!.itemsLearned,
+      sessionKey: snapshot!.sessionKey,
+    });
+
+    const rows = await savedSessions(t);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.itemsLearned).toBe(3);
+    const state = await readState(t, seeds.cardId);
+    expect(state.xp).toBe(16); // 10 + 3 × 2
+  });
+
+  test("un échec de revue ne sauvegarde aucune session et ne consomme pas le lot", async () => {
+    const t = makeApp();
+
+    const tracker = createReviewSessionTracker();
+    tracker.start();
+    const cards = sessionCards(["a", "b"]);
+    // Aucun accept : la mutation a rejeté.
+    expect(takeIfComplete(cards, tracker)).toBeNull();
+    expect(tracker.count()).toBe(0);
+    expect(await savedSessions(t)).toHaveLength(0);
+
+    // La même carte reste la carte courante et une tentative réussie compte 1.
+    tracker.accept("a", tracker.sessionId());
+    const snapshot = takeIfComplete(cards, tracker);
+    expect(snapshot).toBeNull(); // b reste à revoir
+    tracker.accept("b", tracker.sessionId());
+    expect(takeIfComplete(cards, tracker)?.itemsLearned).toBe(2);
+  });
+
+  test("deux clics sur la même carte ne comptent qu'une seule révision", async () => {
+    const tracker = createReviewSessionTracker();
+    tracker.start();
+    const id = tracker.sessionId();
+    expect(tracker.accept("a", id).count).toBe(1);
+    expect(tracker.accept("a", id).counted).toBe(false);
+    expect(takeIfComplete(sessionCards(["a"]), tracker)?.itemsLearned).toBe(1);
+
+    const snapshot = tracker.take();
+    expect(snapshot.itemsLearned).toBe(0); // lot déjà consommé
+  });
+
+  test("deux sessions successives restent indépendantes", async () => {
+    const t = makeApp();
+    const seeds = await seedDeck(t);
+    const asUser = t.withIdentity({ subject: seeds.userId });
+
+    const tracker = createReviewSessionTracker();
+    tracker.start();
+    tracker.accept("a", tracker.sessionId());
+    const first = takeIfComplete(sessionCards(["a"]), tracker)!;
+    await asUser.mutation(api.learning.recordSession, {
+      language: "en",
+      kind: "srs",
+      durationSeconds: first.durationSeconds,
+      itemsLearned: first.itemsLearned,
+      sessionKey: first.sessionKey,
+    });
+
+    tracker.start();
+    expect(tracker.count()).toBe(0);
+    tracker.accept("b", tracker.sessionId());
+    const second = takeIfComplete(sessionCards(["b"]), tracker)!;
+    expect(second.itemsLearned).toBe(1);
+    expect(second.sessionId).not.toBe(first.sessionId);
+    await asUser.mutation(api.learning.recordSession, {
+      language: "en",
+      kind: "srs",
+      durationSeconds: second.durationSeconds,
+      itemsLearned: second.itemsLearned,
+      sessionKey: second.sessionKey,
+    });
+
+    const rows = await savedSessions(t);
+    expect(rows).toHaveLength(2);
+    expect(rows.map((r) => r.itemsLearned).sort()).toEqual([1, 1]);
+  });
+
+  test("une réponse tardive d'une ancienne session ne crédite pas la nouvelle", async () => {
+    const t = makeApp();
+
+    const tracker = createReviewSessionTracker();
+    tracker.start();
+    const oldSession = tracker.sessionId();
+    tracker.accept("a", oldSession);
+    takeIfComplete(sessionCards(["a"]), tracker);
+    tracker.start();
+
+    const late = tracker.accept("late", oldSession);
+    expect(late.staleSession).toBe(true);
+    expect(tracker.count()).toBe(0);
+    expect(takeIfComplete(sessionCards(["late"]), tracker)).toBeNull();
+    expect(await savedSessions(t)).toHaveLength(0);
+  });
+});
+
+describe("SRS intégration — idempotence de recordSession", () => {
+  const KEY_A = "srs-test-idem-session-0001";
+  const KEY_B = "srs-test-idem-session-0002";
+
+  async function sessionsOf(t: App) {
+    return await t.run(async (ctx) =>
+      await ctx.db.query("learningSessions").collect(),
+    );
+  }
+
+  function args(sessionKey: string, overrides: Record<string, unknown> = {}) {
+    return {
+      language: "en" as const,
+      kind: "srs",
+      durationSeconds: 3,
+      itemsLearned: 1,
+      sessionKey,
+      ...overrides,
+    };
+  }
+
+  async function secondUser(t: App) {
+    return await t.run(async (ctx) => {
+      const userId = await ctx.db.insert("users", { name: "Second testeur" });
+      await ctx.db.insert("userLanguages", {
+        userId,
+        language: "en",
+        active: true,
+        level: "A1",
+        xp: 0,
+        streak: 0,
+      });
+      return userId;
+    });
+  }
+
+  test("test 1 — une première sauvegarde avec clé crée une seule session et crédite une fois", async () => {
+    const t = makeApp();
+    const seeds = await seedDeck(t);
+    const asUser = t.withIdentity({ subject: seeds.userId });
+
+    const res = await asUser.mutation(api.learning.recordSession, args(KEY_A));
+    expect(res).toEqual({ xpGain: 12, streak: 1 });
+
+    const rows = await sessionsOf(t);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.sessionKey).toBe(KEY_A);
+    expect(rows[0]?.itemsLearned).toBe(1);
+    expect(rows[0]?.xpAwarded).toBe(12);
+    expect(rows[0]?.streakAfter).toBe(1);
+
+    const state = await readState(t, seeds.cardId);
+    expect(state.xp).toBe(12);
+    expect(state.streak).toBe(1);
+    expect(state.sessionsCount).toBe(1);
+  });
+
+  test("test 2 — un retry avec la même clé ne recrée rien et restitue le résultat original", async () => {
+    const t = makeApp();
+    const seeds = await seedDeck(t);
+    const asUser = t.withIdentity({ subject: seeds.userId });
+
+    const first = await asUser.mutation(api.learning.recordSession, args(KEY_A));
+    const before = await readState(t, seeds.cardId);
+    const firstRow = (await sessionsOf(t))[0];
+
+    // Simule un client qui n'a pas reçu la première réponse et rejoue le lot.
+    const retry = await asUser.mutation(api.learning.recordSession, args(KEY_A));
+    const after = await readState(t, seeds.cardId);
+    const rows = await sessionsOf(t);
+
+    expect(retry).toEqual(first);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?._id).toBe(firstRow?._id);
+    expect(rows[0]?.completedAt).toBe(firstRow?.completedAt);
+    expect(after.xp).toBe(before.xp);
+    expect(after.streak).toBe(before.streak);
+    expect(after.lastActivity).toBe(before.lastActivity);
+    expect(after.sessionsCount).toBe(1);
+  });
+
+  test("test 3 — une nouvelle clé crée une seconde session et crédite ses XP une fois", async () => {
+    const t = makeApp();
+    const seeds = await seedDeck(t);
+    const asUser = t.withIdentity({ subject: seeds.userId });
+
+    const first = await asUser.mutation(api.learning.recordSession, args(KEY_A));
+    const second = await asUser.mutation(api.learning.recordSession, args(KEY_B));
+    const rows = await sessionsOf(t);
+    const state = await readState(t, seeds.cardId);
+
+    expect(first).toEqual({ xpGain: 12, streak: 1 });
+    expect(second).toEqual({ xpGain: 12, streak: 1 });
+    expect(rows).toHaveLength(2);
+    expect(rows.map((row) => row.sessionKey).sort()).toEqual([KEY_A, KEY_B]);
+    expect(state.xp).toBe(24); // 12 + 12, une seule fois par session
+    expect(state.streak).toBe(1); // même journée
+    expect(state.sessionsCount).toBe(2);
+  });
+
+  test("test 4 — deux utilisateurs peuvent réutiliser la même clé sans se bloquer", async () => {
+    const t = makeApp();
+    const seeds = await seedDeck(t);
+    const asFirst = t.withIdentity({ subject: seeds.userId });
+    const userIdB = await secondUser(t);
+    const asSecond = t.withIdentity({ subject: userIdB });
+
+    const first = await asFirst.mutation(api.learning.recordSession, args(KEY_A));
+    const second = await asSecond.mutation(api.learning.recordSession, args(KEY_A));
+    const rows = await sessionsOf(t);
+
+    expect(first).toEqual({ xpGain: 12, streak: 1 });
+    expect(second).toEqual({ xpGain: 12, streak: 1 });
+    expect(rows).toHaveLength(2);
+    expect(rows.filter((row) => row.userId === seeds.userId)).toHaveLength(1);
+    expect(rows.filter((row) => row.userId === userIdB)).toHaveLength(1);
+
+    const stateB = await t.run(async (ctx) =>
+      await ctx.db
+        .query("userLanguages")
+        .withIndex("by_user_language", (q) =>
+          q.eq("userId", userIdB).eq("language", "en"),
+        )
+        .unique(),
+    );
+    expect(stateB?.xp).toBe(12);
+    expect(stateB?.streak).toBe(1);
+  });
+
+  test("test 5 — deux appels concurrents avec la même clé restent une seule session", async () => {
+    const t = makeApp();
+    const seeds = await seedDeck(t);
+    const asUser = t.withIdentity({ subject: seeds.userId });
+
+    // convex-test sérialise les mutations de premier niveau ; en production,
+    // Convex rejoue la transaction en conflit sur un état frais. Dans les deux
+    // cas le handler relit la clé avant d'écrire et restitue le même résultat.
+    const settled = await Promise.allSettled([
+      asUser.mutation(api.learning.recordSession, args(KEY_A)),
+      asUser.mutation(api.learning.recordSession, args(KEY_A)),
+    ]);
+    expect(settled.every((result) => result.status === "fulfilled")).toBe(true);
+
+    const values = settled.map((result) =>
+      result.status === "fulfilled" ? result.value : null,
+    );
+    expect(values[0]).toEqual(values[1]);
+    expect(values[0]).toEqual({ xpGain: 12, streak: 1 });
+
+    const rows = await sessionsOf(t);
+    expect(rows).toHaveLength(1);
+    const state = await readState(t, seeds.cardId);
+    expect(state.xp).toBe(12);
+    expect(state.streak).toBe(1);
+  });
+
+  test("test 6 — clé absente ou invalide : legacy explicite, clé malformée refusée", async () => {
+    const t = makeApp();
+    const seeds = await seedDeck(t);
+    const asUser = t.withIdentity({ subject: seeds.userId });
+
+    const short = await captureError(
+      asUser.mutation(api.learning.recordSession, args("short")),
+    );
+    expect(short).toContain("Invalid sessionKey");
+
+    const malformed = await captureError(
+      asUser.mutation(api.learning.recordSession, args("bad key with spaces")),
+    );
+    expect(malformed).toContain("Invalid sessionKey");
+    expect(await sessionsOf(t)).toHaveLength(0);
+
+    // Appel historique explicitement supporté, mais SANS protection retry.
+    const legacy = await asUser.mutation(api.learning.recordSession, {
+      language: "en",
+      kind: "srs",
+      durationSeconds: 3,
+      itemsLearned: 1,
+    });
+    expect(legacy).toEqual({ xpGain: 12, streak: 1 });
+    const rows = await sessionsOf(t);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.sessionKey).toBeUndefined();
+    expect(rows[0]?.xpAwarded).toBeUndefined();
+  });
+
+  test("test 7 — les sessions historiques sans clé restent lisibles et intactes", async () => {
+    const t = makeApp();
+    const seeds = await seedDeck(t);
+    const asUser = t.withIdentity({ subject: seeds.userId });
+
+    const historical = await t.run(async (ctx) =>
+      await ctx.db.insert("learningSessions", {
+        userId: seeds.userId,
+        language: "en",
+        kind: "srs",
+        durationSeconds: 2,
+        itemsLearned: 1,
+        completedAt: 1,
+      }),
+    );
+
+    const res = await asUser.mutation(api.learning.recordSession, args(KEY_A));
+    expect(res).toEqual({ xpGain: 12, streak: 1 });
+
+    const rows = await sessionsOf(t);
+    expect(rows).toHaveLength(2);
+    const old = rows.find((row) => row._id === historical);
+    expect(old?.sessionKey).toBeUndefined();
+    expect(old?.itemsLearned).toBe(1);
+    expect(old?.completedAt).toBe(1);
+
+    const stats = await asUser.query(api.learning.myStats, {});
+    expect(stats?.totalSessions).toBe(2);
+  });
+
+  test("test 8 — XP, streak, lastActivity et compteurs restent cohérents", async () => {
+    const t = makeApp();
+    const seeds = await seedDeck(t);
+    const asUser = t.withIdentity({ subject: seeds.userId });
+
+    const first = await asUser.mutation(api.learning.recordSession, args(KEY_A));
+    const retry = await asUser.mutation(api.learning.recordSession, args(KEY_A));
+    const second = await asUser.mutation(api.learning.recordSession, args(KEY_B));
+    const state = await readState(t, seeds.cardId);
+
+    expect(first).toEqual(retry);
+    expect(second).toEqual({ xpGain: 12, streak: 1 });
+    expect(state.xp).toBe(24);
+    expect(state.streak).toBe(1);
+    expect(state.sessionsCount).toBe(2);
+    expect(state.lastActivity).not.toBeNull();
+
+    const rows = await sessionsOf(t);
+    expect(rows).toHaveLength(2);
+    expect(rows.every((row) => row.xpAwarded === 12)).toBe(true);
+    expect(rows.every((row) => row.streakAfter === 1)).toBe(true);
+  });
+
+  test("test 9 — une clé sans ligne de langue est refusée sans écriture", async () => {
+    const t = makeApp();
+    const userId = await t.run(async (ctx) =>
+      await ctx.db.insert("users", { name: "Sans focus" }),
+    );
+    const asUser = t.withIdentity({ subject: userId });
+
+    // Sans `userLanguages`, le patch concurrent qui sérialise deux appels
+    // portant la même clé n'existe pas : on refuse plutôt que d'écrire une
+    // session non protégée. L'appel legacy sans clé reste, lui, accepté.
+    const err = await captureError(
+      asUser.mutation(api.learning.recordSession, args(KEY_A)),
+    );
+    expect(err).toContain("Language not initialized");
+    expect(await sessionsOf(t)).toHaveLength(0);
+
+    // Le contrat historique sans clé n'est pas modifié par ce garde.
+    const legacy = await asUser.mutation(api.learning.recordSession, {
+      language: "en",
+      kind: "sleep",
+      durationSeconds: 60,
+      itemsLearned: 0,
+    });
+    expect(legacy).toEqual({ xpGain: 0, streak: 0 });
+    expect(await sessionsOf(t)).toHaveLength(1);
   });
 });

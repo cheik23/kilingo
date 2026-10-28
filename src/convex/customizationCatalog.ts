@@ -1,5 +1,7 @@
 import { v } from "convex/values";
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
 
 export type CustomizationType = "avatar" | "hat" | "glasses" | "background";
 export type CustomizationRarity = "common" | "rare" | "epic" | "legendary";
@@ -132,23 +134,79 @@ if (avatars.length !== 50 || hats.length !== 15 || glasses.length !== 10 || back
   throw new Error(`Customization catalog must contain 50/15/10/10 items, got ${avatars.length}/${hats.length}/${glasses.length}/${backgrounds.length}`);
 }
 
-/** Seed idempotent : patch par itemId, jamais de doublon. */
+/** Traductions identiques, clé par clé (les deux cartes doivent être présentes). */
+function sameTranslations(
+  stored: Record<string, string> | undefined,
+  expected: Record<string, string>,
+): boolean {
+  if (!stored) return false;
+  const storedKeys = Object.keys(stored);
+  const expectedKeys = Object.keys(expected);
+  if (storedKeys.length !== expectedKeys.length) return false;
+  return expectedKeys.every((key) => stored[key] === expected[key]);
+}
+
+/** Le document stocké porte-t-il EXACTEMENT la définition attendue ? */
+function matchesDefinition(
+  stored: Doc<"customizationCatalog">,
+  definition: CustomizationDefinition,
+): boolean {
+  return (
+    stored.type === definition.type &&
+    stored.name === definition.name &&
+    stored.description === definition.description &&
+    stored.rarity === definition.rarity &&
+    stored.priceGems === definition.priceGems &&
+    stored.previewUrl === definition.previewUrl &&
+    (stored.achievementId ?? null) === (definition.achievementId ?? null) &&
+    sameTranslations(stored.nameTranslations, definition.nameTranslations) &&
+    sameTranslations(stored.descriptionTranslations, definition.descriptionTranslations)
+  );
+}
+
+/**
+ * Seed idempotent : patch par itemId, jamais de doublon.
+ *
+ * Public à dessein : l'interface s'auto-amorce au premier affichage du
+ * sélecteur d'avatar (`AvatarPicker`), sans intervention d'exploitation.
+ * Depuis P0.2, l'appel exige un COMPTE : le catalogue est global, et un
+ * client anonyme pouvait le réécrire à volonté (85 lectures + jusqu'à 85
+ * écritures par appel) sans jamais rien voir de l'application. Le sélecteur
+ * vit dans « Mon espace » / le profil, tous deux derrière RequireAuth.
+ *
+ * P0.2.1 — écriture seulement en cas de DÉRIVE : un appel répété sur un
+ * catalogue déjà conforme n'écrit plus rien (`skipped`), au lieu de rejouer
+ * 85 patches. Le seed reste strictement idempotent, mais un compte ne peut
+ * plus forcer 85 écritures par appel.
+ */
 export const seedCatalog = mutation({
   args: {},
   handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) throw new Error("Not signed in");
     let inserted = 0;
     let updated = 0;
+    let skipped = 0;
     for (const definition of CUSTOMIZATION_DEFINITIONS) {
       const existing = await ctx.db.query("customizationCatalog").withIndex("by_item", (q) => q.eq("itemId", definition.itemId)).unique();
-      if (existing) {
-        await ctx.db.patch(existing._id, definition);
-        updated += 1;
-      } else {
+      if (!existing) {
         await ctx.db.insert("customizationCatalog", definition);
         inserted += 1;
+        continue;
       }
+      if (matchesDefinition(existing, definition)) {
+        skipped += 1;
+        continue;
+      }
+      await ctx.db.patch(existing._id, definition);
+      updated += 1;
     }
-    return { inserted, updated, total: CUSTOMIZATION_DEFINITIONS.length };
+    return { inserted, updated, skipped, total: CUSTOMIZATION_DEFINITIONS.length };
   },
-  returns: v.object({ inserted: v.number(), updated: v.number(), total: v.number() }),
+  returns: v.object({
+    inserted: v.number(),
+    updated: v.number(),
+    skipped: v.number(),
+    total: v.number(),
+  }),
 });

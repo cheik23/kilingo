@@ -26,7 +26,6 @@ function Stat({ label, value, hint }: { label: string; value: number | string; h
 
 export function AdminView() {
   const access = useQuery(api.ovAdmin.amIAdmin);
-  const claim = useMutation(api.ovAdmin.claimAdmin);
   const review = useMutation(api.ovAdmin.reviewRights);
   const dashboard = useQuery(api.ovAdmin.dashboard, access?.admin ? {} : "skip");
   // Technique d'exploitation : registre des sources et état des moteurs.
@@ -48,15 +47,16 @@ export function AdminView() {
           Cette section liste les contenus, les sources, les licences, les erreurs et les alertes de droits.
           Elle est réservée aux comptes administrateurs.
         </p>
-        {access.claimable && (
-          <button
-            type="button"
-            onClick={() => void claim()}
-            className="mt-4 h-10 rounded-xl bg-gradient-to-r from-gold to-gold-soft px-4 text-sm font-semibold text-noir"
-          >
-            Revendiquer l'administration (premier compte)
-          </button>
-        )}
+        {/* P0.2 — plus aucun bouton d'auto-élévation : le premier
+            administrateur se crée par l'exploitation, avec la clé admin du
+            déploiement. L'interface explique la commande au lieu de laisser
+            croire que le premier inscrit peut s'attribuer le rôle. */}
+        <p className="mt-4 rounded-xl border border-white/10 bg-noir/60 px-4 py-3 font-mono text-[0.6875rem] leading-relaxed text-ink-3">
+          Amorçage réservé à l'exploitation :{" "}
+          <code className="text-gold">npx convex run internal.ovAdmin.bootstrapAdmin</code>{" "}
+          avec la clé admin du déploiement. Aucun compte ne peut s'élever lui-même
+          depuis l'application.
+        </p>
       </div>
     );
   }

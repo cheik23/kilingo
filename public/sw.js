@@ -16,8 +16,8 @@
 
    3. JAMAIS DE CACHE — la liste NEVER_CACHE
       Convex, le studio Ready Player Me, les CDNs : ce sont des données
-      vivantes ou desqsources tierces. Les mettre en cache promettrait des
-      scores périmés ou un avatar fantôme, et gonflerait le quota pour rien.
+      vivantes ou des sources tierces. Les mettre en cache promettrait des
+      scores périmés ou un avatar fantôme, et gonfleraient le quota pour rien.
       On les laisse toujours passer au réseau.
 
    Le nom du cache porte un TIMESTAMP : changer la version suffit à purger
@@ -27,7 +27,7 @@
 /** Préfixe de tous nos caches. VERSION en dérive : impossible de faire diverger
  *  le nom du cache courant et le filtre de purge (cf. `activate`). */
 const CACHE_PREFIX = "kilingo-";
-const VERSION = `${CACHE_PREFIX}v1-2026-09-26`;
+const VERSION = `${CACHE_PREFIX}v1-2026-10-24`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const PAGE_CACHE = `${VERSION}-pages`;
 
@@ -72,6 +72,25 @@ function isNeverCache(url) {
 
 /* ── Installation ────────────────────────────────────────────────────── */
 
+/* ON NE SAUTE PAS EN ATTENTE ICI.
+ *
+ * Ancien comportement : `skipWaiting()` à l'installation. Un SW remplaçant
+ * prenait alors le contrôle TOUT DE SUITE, purgeait les anciens caches
+ * (cf. `activate`) pendant qu'un onglet ouvert exécutait encore l'ancien
+ * bundle → les chunks paresseux (hash obsolète) disparaissaient du cache
+ * et le serveur ne les sert plus : écran blanc pendant une mise à jour.
+ *
+ * Nouveau comportement : le SW remplaçant reste en ATTENTE. L'ancien SW
+ * continue de servir un cache cohérent (même VERSION) indéfiniment, sans
+ * blocage : l'app déployée reste disponible et le client détecte le SW en
+ * attente (PwaRuntime → bandeau « nouvelle version »). L'activation ne se
+ * fait que si l'utilisateur le demande (message SKIP_WAITING, cf. plus bas)
+ * — auquel cas on recharge aussitôt, à la demande, jamais en pleine
+ * session d'apprentissage.
+ *
+ * Premier install (aucun SW actif) : le navigateur active le SW directement
+ * — `skipWaiting()` n'était donc jamais nécessaire à l'installation.
+ */
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
@@ -80,7 +99,6 @@ self.addEventListener("install", (event) => {
       // premier lancement), l'installation ne doit pas être annulée — on
       // reste installable, l'app se remplira au fur et à mesure.
       await Promise.allSettled(PRECACHE_URLS.map((url) => cache.add(url)));
-      await self.skipWaiting();
     })(),
   );
 });
@@ -172,7 +190,13 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
-/* ── Message depuis l'app (bouton « Mettre à jour ») ────────────────── */
+/* ── Message depuis l'app (bandeau « Mettre à jour ») ─────────────────────
+ *
+ * SEULE porte d'activation d'un SW remplaçant. `PwaRuntime` n'envoie ce
+ * message qu'après un clic explicite de l'utilisateur, puis recharge la
+ * page sur `controllerchange` : la purge des anciens caches et le nouveau
+ * bundle ne rencontrent jamais un onglet qui exécute l'ancien code.
+ */
 
 self.addEventListener("message", (event) => {
   if (event.data === "SKIP_WAITING") self.skipWaiting();

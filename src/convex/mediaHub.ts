@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { assertAudioSourceUrl, fetchAudioSource } from "./mediaUrlPolicy";
 
 /* ═══════════════════════════════════════════════════════════════════
    Media Hub — actions keyless (iTunes, TVmaze, Archive.org, Open
@@ -264,8 +265,11 @@ export const podcastEpisodes = action({
 export const audioSizeCheck = action({
   args: { url: v.string() },
   handler: async (_ctx, args) => {
+    // P0.2.3 — adresse contrôlée AVANT toute requête : un refus est
+    // explicite et ne se déguise pas en « taille inconnue ».
+    const sourceUrl = assertAudioSourceUrl(args.url);
     try {
-      const res = await fetch(args.url, {
+      const res = await fetchAudioSource(sourceUrl, {
         method: "HEAD",
         signal: AbortSignal.timeout(8_000),
       });

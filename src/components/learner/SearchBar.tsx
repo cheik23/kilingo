@@ -3,6 +3,7 @@ import { api } from "@/convex/_generated/api";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { normWord, resolveInLang, type LocalizedEntry } from "@/lib/dictionary";
+import { displayContext } from "@/lib/pedagogicalContext";
 import {
   useI18n,
   UI_LANGS,
@@ -424,7 +425,11 @@ export function SearchBar() {
                       {row.example && (
                         <p className="italic text-ink-2">{row.example}</p>
                       )}
-                      {row.context && <p className="text-ink-2">{row.context}</p>}
+                      {/* BOUCLIER — affichage filtré ; le mapping des rows et
+                          la condition méta restent sur les données brutes. */}
+                      {displayContext(row.context) && (
+                        <p className="text-ink-2">{displayContext(row.context)}</p>
+                      )}
                       {row.fallback && (
                         <p className="text-[0.625rem] text-ink-3">
                           {t("errors.defNote")}

@@ -6,16 +6,27 @@
  *
  *   1. `slang:seedPlan`      → les langues réellement présentes dans le seed
  *                              (source de vérité unique, aucune liste à
- *                              maintenir dans ce script) ;
- *   2. `slang:seed`          → UNE langue par appel (idempotent) ;
- *   3. `slang:recomputeAggregates` → une langue par appel (compteurs par
- *                              langue + registres + total du catalogue) ;
+ *                              maintenir dans ce script) — seule étape
+ *                              PUBLIQUE, en lecture seule ;
+ *   2. `internal.slang.seed` → UNE langue par appel (idempotent) ;
+ *   3. `internal.slang.recomputeAggregates` → une langue par appel
+ *                              (compteurs par langue + registres + total du
+ *                              catalogue) ;
  *   4. rapport : compteurs par langue, mesurés par les agrégats.
+ *
+ * Depuis P0.2, les étapes d'ÉCRITURE (2 et 3) sont des fonctions INTERNES :
+ * le CLI Convex authentifié par la clé admin du déploiement sait les
+ * exécuter, un client HTTP de l'application non. Le script doit donc être
+ * lancé avec les identifiants d'exploitation (`.env.local` / `.env.production`),
+ * exactement comme l'étape 4 des ponts culturels.
  *
  * Ponts culturels (crossConcepts) : SAUTÉS par défaut — décision produit.
  * Ils ne sont semés qu'avec l'opt-in explicite `--include-cross-concepts`,
- * qui appelle `crossSeed:seedCrossConceptsPublic` (upsert purgent scoped
- * à la table crossConcepts uniquement.
+ * qui appelle la fonction INTERNE `internal.crossSeed.seedCrossConcepts`
+ * (upsert purgent scoped à la table crossConcepts uniquement). Aucune
+ * mutation publique équivalente n'existe : le CLI Convex authentifié sait
+ * exécuter les fonctions internes, un client de l'application non — même
+ * règle que pour les étapes de semis et d'agrégats.
  *
  * Usage :
  *   node scripts/seed-backend.mjs                 # backend local (.env.local)
@@ -117,7 +128,7 @@ let updated = 0;
 let skipped = 0;
 const perLanguage = [];
 for (const language of languages) {
-  const r = runFn("slang:seed", { language });
+  const r = runFn("internal.slang.seed", { language });
   inserted += r.inserted;
   updated += r.updated;
   skipped += r.skipped;
@@ -133,20 +144,21 @@ console.log(`\nSemis : ${inserted} insérées, ${updated} rafraîchies, ${skippe
 const aggregates = new Map();
 let catalogTotal = 0;
 for (const language of languages) {
-  const r = runFn("slang:recomputeAggregates", { language });
+  const r = runFn("internal.slang.recomputeAggregates", { language });
   aggregates.set(language, r.inLanguage);
   catalogTotal = r.catalogTotal;
 }
 console.log(`Agrégats recalculés (${perLanguage.size} langues) — catalogue : ${catalogTotal} fiches\n`);
 
 // 4. Ponts entre langues — OPT-IN STRICT (--include-cross-concepts) --------
-/* Sans opt-in : AUCUN appel crossSeed (décision produit). Avec opt-in, le
- * CLI ne peut exécuter que des fonctions PUBLIQUES, d'où le wrapper public
- * `seedCrossConceptsPublic` (même handler que l'interne, mêmes règles
- * upsert + purge scoped à crossConcepts). */
+/* Sans opt-in : AUCUN appel crossSeed (décision produit). Avec opt-in, on
+ * appelle la fonction INTERNE `seedCrossConcepts` : le CLI Convex
+ * authentifié exécute les fonctions internes (docs.convex.dev/cli/overview),
+ * tandis qu'aucune mutation publique n'expose la purge à l'application.
+ * Mêmes règles upsert + purge scoped à crossConcepts que l'historique. */
 let cross = null;
 if (includeCross) {
-  cross = runFn("crossSeed:seedCrossConceptsPublic", {});
+  cross = runFn("internal.crossSeed.seedCrossConcepts", {});
   console.log(
     `Ponts entre langues (crossSeed) : ${cross.concepts} concepts ` +
       `(+${cross.created} créés, ${cross.updated} rafraîchis)\n`,
