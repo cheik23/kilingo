@@ -30,6 +30,12 @@ export default tseslint.config(
       ],
     },
   },
+  // Fixtures Playwright : le second paramètre de `test.extend` s'appelle
+  // `use` par convention — ce n'est pas un Hook React.
+  {
+    files: ["tests/e2e-preview/**/*.ts"],
+    rules: { "react-hooks/rules-of-hooks": "off" },
+  },
   // Fixture d'archive historique (copie octet-pour-octet du snapshot
   // audit-quality-shield/lot-pilote/avant/, SHA 7ea1f28f…). Les données
   // ne doivent pas être retouchées, donc la fiche [Estetik] (71:323,

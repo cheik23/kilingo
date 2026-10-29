@@ -1,6 +1,12 @@
 .env.local
 # Clés de déploiement (CONVEX_DEPLOY_KEY) : jamais versionnées.
 .env.production
+# Variables locales de la recette E2E Preview (bypass Vercel, boîte de test).
+.env.preview.e2e.local
+# Artefacts Playwright : hors dépôt, jamais commités.
+test-results/
+playwright-report/
+blob-report/
 node_modules
 dist
 src/convex/_generated

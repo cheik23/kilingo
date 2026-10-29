@@ -1,0 +1,233 @@
+# ═══════════════════════════════════════════════════════════════════════
+# RECETTES PREVIEW APRÈS DÉPLOIEMENT — P0.3.11
+#
+# Déclencheur : `deployment_status`, émis par l'intégration GitHub de
+# Vercel. On ne teste QUE les déploiements Preview réussis.
+#
+# Constats vérifiés sur ce dépôt (API GitHub, 29/10/2026) :
+#   - `deployment.ref` contient le SHA du commit, PAS le nom de branche ;
+#     le filtre de branche ne peut donc pas être un simple `if` d'événement.
+#   - `deployment_status.environment_url` contient bien l'URL du déploiement
+#     (`https://kilingo-50xuh7gpo-g-c35c.vercel.app`).
+#   - un déploiement PRODUCTION expose lui aussi une URL immuable
+#     `kilingo-<id>-g-c35c.vercel.app` : l'hôte seul ne prouve pas qu'on est
+#     sur une Preview. C'est `environment` qui tranche, puis le garde-fou
+#     `scripts/preview/guard-deployment.mjs`.
+#
+# Activation : à confirmer par un premier run réel. La documentation
+# actuelle de `deployment_status` ne restreint pas l'événement à la branche
+# par défaut ; si aucun run n'apparaît, merger d'abord ce fichier dans
+# `main` (voir docs/ci-preview-e2e.md et RAPPORT-P0.3.11.md).
+#
+# Aucun secret n'est interpolé dans un `run:` ; ils sont passés par `env:`
+# et jamais journalisés. Aucun artefact n'est publié.
+# ═══════════════════════════════════════════════════════════════════════
+name: preview-e2e
+
+on:
+  deployment_status:
+
+# Lecture seule : ni écriture de contenu, ni commentaire, ni déploiement.
+permissions:
+  contents: read
+
+# Un nouvel événement pour le même commit annule l'exécution précédente.
+concurrency:
+  group: preview-e2e-${{ github.event.deployment.sha }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: Preview — recette API + navigateur
+    # Filtre d'événement volontairement strict : statut réussi + Preview.
+    # Toute Production est exclue AVANT le moindre checkout ou requête.
+    if: >-
+      github.event.deployment_status.state == 'success' &&
+      startsWith(github.event.deployment_status.environment, 'Preview') &&
+      github.event.deployment.environment != 'Production' &&
+      github.event.deployment_status.environment != 'Production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    env:
+      AUTHORIZED_BRANCH: work/p034-shadow-privacy
+      DEFAULT_BRANCH: main
+      PREVIEW_CONVEX_URL: https://neat-wombat-556.convex.cloud
+      DEPLOY_STATE: ${{ github.event.deployment_status.state }}
+      DEPLOY_ENVIRONMENT: ${{ github.event.deployment_status.environment }}
+      DEPLOYMENT_ENVIRONMENT: ${{ github.event.deployment.environment }}
+      DEPLOY_URL: ${{ github.event.deployment_status.environment_url }}
+      DEPLOY_TARGET_URL: ${{ github.event.deployment_status.target_url }}
+      DEPLOY_SHA: ${{ github.event.deployment.sha }}
+
+    steps:
+      - name: Checkout du commit réellement déployé
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+          fetch-depth: 0
+          # Aucun jeton laissé dans .git/config : le dépôt est public et le
+          # fetch de branche ci-dessous n'a pas besoin d'authentification.
+          persist-credentials: false
+
+      # Refuse Production, un environnement inconnu, un statut non réussi,
+      # HTTP, un hôte hors liste blanche, ou un SHA invalide. Sortie 2 =
+      # aucune requête émise.
+      - name: Garde-fou — cible Preview autorisée
+        id: guard
+        shell: bash
+        run: node scripts/preview/guard-deployment.mjs
+
+      # `deployment.ref` étant un SHA, l'appartenance à la branche autorisée
+      # est prouvée par l'historique Git, pas par le nom fourni. Un commit
+      # déjà présent sur `main` est refusé : une Preview de `main` ne prouve
+      # rien sur la branche autorisée.
+      - name: Vérifier que le commit appartient à la branche autorisée
+        id: branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          for ref in "$AUTHORIZED_BRANCH" "$DEFAULT_BRANCH"; do
+            if ! git fetch --no-tags --prune origin \
+              "+refs/heads/${ref}:refs/remotes/origin/${ref}"; then
+              echo "::error title=Branche introuvable::refs/heads/${ref}"
+              exit 1
+            fi
+          done
+
+          if ! git merge-base --is-ancestor "$DEPLOY_SHA" "refs/remotes/origin/${AUTHORIZED_BRANCH}"; then
+            echo "on_branch=false" >> "$GITHUB_OUTPUT"
+            echo "reason=commit absent de ${AUTHORIZED_BRANCH}" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Hors branche::${DEPLOY_SHA:0:7} absent de ${AUTHORIZED_BRANCH} — aucun test exécuté"
+            exit 0
+          fi
+
+          if git merge-base --is-ancestor "$DEPLOY_SHA" "refs/remotes/origin/${DEFAULT_BRANCH}"; then
+            echo "on_branch=false" >> "$GITHUB_OUTPUT"
+            echo "reason=commit déjà sur ${DEFAULT_BRANCH} (Preview non spécifique à la branche)" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Hors branche::${DEPLOY_SHA:0:7} est déjà sur ${DEFAULT_BRANCH} — aucun test exécuté"
+            exit 0
+          fi
+
+          echo "on_branch=true" >> "$GITHUB_OUTPUT"
+          echo "reason=commit propre à ${AUTHORIZED_BRANCH}" >> "$GITHUB_OUTPUT"
+          echo "OK | ${DEPLOY_SHA:0:7} est propre à ${AUTHORIZED_BRANCH}"
+
+      - name: Installer Bun 1.4.4
+        id: bun
+        if: ${{ !cancelled() && steps.branch.outputs.on_branch == 'true' }}
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.4"
+
+      - name: Installer les dépendances et Chromium
+        id: deps
+        if: ${{ !cancelled() && steps.branch.outputs.on_branch == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun install --frozen-lockfile
+          bunx playwright install --with-deps chromium
+          bunx playwright --version
+
+      - name: Recette API (P0.3.9) — backend Preview
+        id: api
+        if: ${{ !cancelled() && steps.branch.outputs.on_branch == 'true' && steps.deps.outcome == 'success' }}
+        shell: bash
+        env:
+          PREVIEW_CI: "1"
+          PREVIEW_RESULTS_DIR: ${{ runner.temp }}
+          PREVIEW_BASE_URL: ${{ steps.guard.outputs.base_url }}
+          PREVIEW_TEST_EMAIL: ${{ secrets.PREVIEW_TEST_EMAIL }}
+          MAILTM_ADDRESS: ${{ secrets.MAILTM_ADDRESS }}
+          MAILTM_PASSWORD: ${{ secrets.MAILTM_PASSWORD }}
+          MAILTM_API_TOKEN: ${{ secrets.MAILTM_API_TOKEN }}
+        run: |
+          set -o pipefail
+          set +e
+          bun run verify:preview -- --api-only --json "$PREVIEW_RESULTS_DIR/api.json" 2>&1 \
+            | tee "$PREVIEW_RESULTS_DIR/api.log"
+          code=${PIPESTATUS[0]}
+          echo "$code" > "$PREVIEW_RESULTS_DIR/api.status"
+          exit "$code"
+
+      # Ne dit JAMAIS si un secret est présent autrement que par son nom.
+      - name: Vérifier la disponibilité des secrets CI
+        id: secrets
+        if: ${{ !cancelled() && steps.branch.outputs.on_branch == 'true' }}
+        shell: bash
+        env:
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          TEST_EMAIL: ${{ secrets.PREVIEW_TEST_EMAIL }}
+          MAIL_ADDRESS: ${{ secrets.MAILTM_ADDRESS }}
+          MAIL_PASSWORD: ${{ secrets.MAILTM_PASSWORD }}
+        run: |
+          set -uo pipefail
+          missing=()
+          [ -n "${BYPASS:-}" ] || missing+=("VERCEL_AUTOMATION_BYPASS_SECRET")
+          [ -n "${TEST_EMAIL:-}" ] || missing+=("PREVIEW_TEST_EMAIL")
+          [ -n "${MAIL_ADDRESS:-}" ] || missing+=("MAILTM_ADDRESS")
+          [ -n "${MAIL_PASSWORD:-}" ] || missing+=("MAILTM_PASSWORD")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "state=blocked" >> "$GITHUB_OUTPUT"
+            echo "missing=${missing[*]}" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Secrets E2E absents::${missing[*]} — étape navigateur BLOQUÉE (pas un succès)"
+          else
+            echo "state=ready" >> "$GITHUB_OUTPUT"
+            echo "Tous les secrets E2E sont configurés."
+          fi
+
+      # Sans secrets : échec explicite « BLOCKED », jamais un vert silencieux.
+      - name: Recette navigateur (P0.3.10) — échoue si bloquée
+        id: e2e
+        if: ${{ !cancelled() && steps.branch.outputs.on_branch == 'true' && steps.deps.outcome == 'success' }}
+        shell: bash
+        env:
+          PREVIEW_CI: "1"
+          PREVIEW_RESULTS_DIR: ${{ runner.temp }}
+          PREVIEW_E2E_BASE_URL: ${{ steps.guard.outputs.base_url }}
+          PREVIEW_E2E_JSON_OUT: ${{ runner.temp }}/playwright.json
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          PREVIEW_TEST_EMAIL: ${{ secrets.PREVIEW_TEST_EMAIL }}
+          MAILTM_ADDRESS: ${{ secrets.MAILTM_ADDRESS }}
+          MAILTM_PASSWORD: ${{ secrets.MAILTM_PASSWORD }}
+        run: |
+          set -o pipefail
+          if [ "${{ steps.secrets.outputs.state }}" != "ready" ]; then
+            echo "blocked" > "$PREVIEW_RESULTS_DIR/e2e.state"
+            echo "1" > "$PREVIEW_RESULTS_DIR/e2e.status"
+            echo "::error title=E2E BLOQUÉE::secrets CI absents (${{ steps.secrets.outputs.missing }}) — aucun test navigateur exécuté ; voir docs/ci-preview-e2e.md"
+            exit 1
+          fi
+          set +e
+          bun run test:e2e:preview 2>&1 | tee "$PREVIEW_RESULTS_DIR/e2e.log"
+          code=${PIPESTATUS[0]}
+          echo "ran" > "$PREVIEW_RESULTS_DIR/e2e.state"
+          echo "$code" > "$PREVIEW_RESULTS_DIR/e2e.status"
+          exit "$code"
+
+      - name: Résumé (API et navigateur séparés)
+        if: ${{ always() }}
+        shell: bash
+        env:
+          PREVIEW_RESULTS_DIR: ${{ runner.temp }}
+          PREVIEW_TARGET_HOST: ${{ steps.guard.outputs.host }}
+          PREVIEW_TARGET_SHA: ${{ steps.guard.outputs.sha }}
+          PREVIEW_TARGET_ENV: ${{ steps.guard.outputs.environment }}
+          PREVIEW_ON_BRANCH: ${{ steps.branch.outputs.on_branch }}
+          PREVIEW_BRANCH_REASON: ${{ steps.branch.outputs.reason }}
+        run: |
+          if [ -f scripts/preview/summary.mjs ]; then
+            node scripts/preview/summary.mjs
+          else
+            echo "### Recette Preview" >> "$GITHUB_STEP_SUMMARY"
+            echo "Script de résumé absent (checkout échoué) : aucun test validé." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+# ═══════════════════════════════════════════════════════════════════════
+# CE WORKFLOW NE DÉPLOIE RIEN :
+#   - aucun `vercel` CLI, aucun `convex deploy`, aucun `git push` ;
+#   - aucun artefact de session uploadé (traces/screenshots désactivés) ;
+#   - aucun fichier local de variables E2E n'est lu en CI (absent du
+#     checkout : il est ignoré par Git).
+# ═══════════════════════════════════════════════════════════════════════
