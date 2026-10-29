@@ -432,6 +432,36 @@ export const kickPipeline = mutation({
 });
 
 /**
+ * Marque un échec du moteur navigateur SANS lancer le pipeline serveur.
+ *
+ * Utilisé en mode hébergé (preview/production) : après l'échec de Whisper
+ * ONNX, l'audio ne doit pas partir silencieusement vers un worker ou un
+ * service externe. Le média reste reprenable côté client (bouton
+ * « Réessayer dans le navigateur ») ; cette mutation évite simplement de le
+ * laisser « pending » jusqu'au watchdog.
+ */
+export const markLocalTranscriptionFailed = mutation({
+  args: {
+    mediaId: v.id("userMedia"),
+    error: v.string(),
+    errorKind: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) throw new Error("Not signed in");
+    const media = await ctx.db.get(args.mediaId);
+    if (!media || media.userId !== userId) throw new Error("Média introuvable");
+    if (media.status === "completed") return { ok: true as const };
+    await ctx.db.patch(args.mediaId, {
+      status: "failed",
+      error: args.error.slice(0, 1000),
+      errorKind: args.errorKind ?? "local_engine",
+    });
+    return { ok: true as const };
+  },
+});
+
+/**
  * Persiste la cible de traduction choisie dans le sélecteur « TRADUIRE
  * VERS » (LOT UI 2). La prochaine relance de pipeline (kick, retry) part
  * sur cette cible — la re-traduction immédiate passe par l'action

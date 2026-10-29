@@ -82,8 +82,11 @@ import {
   LOCAL_ASR_ENGINE,
   MAX_LOCAL_BYTES,
   MAX_LOCAL_SECONDS,
+  MAX_SERVER_BYTES,
   baseLang,
+  canFallbackToServer,
   decodeToPcm16k,
+  isLocalHostname,
   probeLocalAsr,
   transcribeLocal,
   translateLocal,
@@ -111,6 +114,9 @@ export function ShadowView() {
   const resolveMediaUrl = useAction(api.media.resolveMediaUrl);
   const createTextMedia = useMutation(api.media.createTextMedia);
   const kickPipeline = useMutation(api.media.kickPipeline);
+  // Échec navigateur en mode hébergé : marque le média sans lancer le
+  // pipeline serveur (aucun envoi silencieux de l'audio).
+  const markLocalFailure = useMutation(api.media.markLocalTranscriptionFailed);
   // Transcript produit par le moteur local du déploiement (§7).
   const ingestLocalTranscript = useAction(api.mediaHub2.ingestLocalTranscript);
   // Porte de secours SRT/VTT (LOT B) : création média sans pipeline +
@@ -143,6 +149,14 @@ export function ShadowView() {
   // Étape du moteur local (téléchargement du modèle, transcription,
   // traduction) — affichée à l'utilisateur, jamais un spinner muet.
   const [localStage, setLocalStage] = useState<string | null>(null);
+  // Dernier échec du moteur navigateur : permet une reprise locale sans
+  // proposer « Relancer » (qui appellerait le pipeline serveur).
+  const [localFailure, setLocalFailure] = useState<{
+    mediaId: Id<"userMedia">;
+    file: File;
+    language: string;
+    message: string;
+  } | null>(null);
   const [inputMode, setInputMode] = useState<
     "file" | "url" | "text" | "subs"
   >("file");
@@ -569,8 +583,18 @@ export function ShadowView() {
       });
     } catch (e) {
       console.error("[ui] moteur local indisponible:", e);
-      // Repli : on interroge l'ancien moteur serveur pour dire à
-      // l'utilisateur ce qui prendra le relais, sans jamais mentir.
+      // En preview/production, ne pas interroger le moteur serveur : le
+      // diagnostic ne doit pas devenir un appel externe silencieux.
+      if (typeof window !== "undefined" && !isLocalHostname(window.location.hostname)) {
+        setAsrCheck({
+          success: false,
+          error:
+            "Le moteur local n'est pas disponible dans ce navigateur. Aucun audio ne sera transmis à un moteur de transcription serveur depuis cette version hébergée.",
+        });
+        return;
+      }
+      // Installation locale : on interroge l'ancien moteur serveur pour dire
+      // à l'utilisateur ce qui prendra le relais, sans jamais mentir.
       try {
         const server = await testAsrEngine({});
       setAsrCheck({
@@ -601,10 +625,13 @@ export function ShadowView() {
     mediaId: Id<"userMedia">,
     file: File,
     sourceLanguage: string,
+    preparedPcm?: Float32Array,
   ) => {
     try {
       setLocalStage("Lecture de l'audio…");
-      const pcm = await decodeToPcm16k(await file.arrayBuffer());
+      // La reprise relit le fichier ; le premier passage réutilise le PCM
+      // déjà décodé avant l'upload (aucun double décodage).
+      const pcm = preparedPcm ?? (await decodeToPcm16k(await file.arrayBuffer()));
       if (pcm.length / 16000 > MAX_LOCAL_SECONDS) {
         throw new Error(
           `audio de ${(pcm.length / 16000 / 60).toFixed(1)} min — au-delà du moteur navigateur`,
@@ -649,6 +676,7 @@ export function ShadowView() {
         })),
         translations: translations ?? undefined,
       });
+      setLocalFailure(null);
       toast.success(
         `Transcrit en local — ${transcript.segments.length} sous-titres`,
         {
@@ -658,15 +686,40 @@ export function ShadowView() {
         },
       );
     } catch (err) {
+      const hosted =
+        typeof window === "undefined" ||
+        !isLocalHostname(window.location.hostname);
+      const sizeMiB = (file.size / (1024 * 1024)).toFixed(1);
+      if (!canFallbackToServer(window.location.hostname, file.size)) {
+        // Jamais de repli serveur silencieux en mode hébergé, et jamais de
+        // téléversement au-delà de la limite directe de processMedia (24 Mio).
+        const message = hosted
+          ? file.size > MAX_SERVER_BYTES
+            ? `Ce fichier fait ${sizeMiB} Mo : le moteur du navigateur n'a pas pu le transcrire et le serveur direct est limité à 24 Mo. Aucun audio n'a été transmis à un moteur de transcription serveur. Réessaie dans le navigateur ou choisis un fichier de moins de 24 Mo.`
+            : "Le moteur de transcription du navigateur n'est pas disponible. Aucun audio n'a été transmis à un moteur de transcription serveur. Réessaie dans un navigateur compatible, ou importe des sous-titres SRT/VTT."
+          : `Ce fichier fait ${sizeMiB} Mo : la transcription locale a échoué et le serveur direct est limité à 24 Mo. Découpe-le ou convertis-le en MP3, puis réessaie.`;
+        setLocalFailure({ mediaId, file, language: sourceLanguage, message });
+        try {
+          await markLocalFailure({
+            mediaId,
+            error: message,
+            errorKind: "local_engine",
+          });
+        } catch (markErr) {
+          console.error("[ui] statut d'échec local non enregistré:", markErr);
+        }
+        toast.error("Transcription impossible", { description: message });
+        return;
+      }
       console.warn(
-        "[local-asr] moteur local indisponible → repli pipeline serveur:",
+        "[local-asr] moteur local indisponible → repli pipeline serveur (local explicite):",
         err,
       );
       try {
         await kickPipeline({ mediaId });
-        toast.info("Traitement automatique…", {
+        toast.info("Traitement local…", {
           description:
-            "Ton appareil n'a pas pu traiter ce fichier — le traitement automatique prend le relais.",
+            "Ton appareil n'a pas pu traiter ce fichier — le moteur local explicitement configuré prend le relais.",
         });
       } catch (fallbackErr) {
         console.error("[ui] repli serveur impossible:", fallbackErr);
@@ -681,6 +734,16 @@ export function ShadowView() {
     }
   };
 
+  const retryLocalTranscription = () => {
+    if (!localFailure || localStage) return;
+    // On CONSERVE `localFailure` pendant la reprise : le statut média reste
+    // `failed` tant que l'ingestion n'a pas abouti, et masquer cette carte
+    // ferait réapparaître le bouton serveur « Relancer le traitement » —
+    // précisément le chemin réseau qu'on veut interdire en mode hébergé.
+    const { mediaId, file, language } = localFailure;
+    void runLocalPipeline(mediaId, file, language);
+  };
+
   const handleFile = async (file: File) => {
     // Porte douce : au-delà du quota, on ouvre le panneau de gain au lieu de
     // laisser le serveur refuser une analyse de plus.
@@ -688,6 +751,16 @@ export function ShadowView() {
       setQuotaHit(true);
       return;
     }
+    // Limite produit honnête : au-delà de 64 Mio, ni le navigateur ni le
+    // chemin serveur direct ne peuvent prendre le fichier. On refuse AVANT
+    // l'upload (aucun octet envoyé, aucun média fantôme en base).
+    if (file.size > MAX_LOCAL_BYTES) {
+      toast.error(
+        `Fichier trop volumineux (${Math.round(file.size / (1024 * 1024))} Mo) — la limite est de 64 Mo. Découpe l'audio ou convertis-le en MP3 avant de réessayer.`,
+      );
+      return;
+    }
+    setLocalFailure(null);
     // Garde-fou AVANT tout upload : un fichier non-média (PDF, .txt, image…)
     // envoyé au pipeline ne pouvait que finir en échec de transcription —
     // message utilisateur clair + aucune écriture en base.
@@ -701,11 +774,37 @@ export function ShadowView() {
       );
       return;
     }
-    // Au-delà de la limite, on laisse le pipeline serveur découper le fichier
-    // (mediaJobs) au lieu de figer l'onglet sur une inférence géante.
-    const localEligible = file.size <= MAX_LOCAL_BYTES;
+    // Tous les fichiers acceptés passent par le moteur navigateur. Le repli
+    // serveur n'est autorisé qu'en installation locale et sous 24 Mio
+    // (voir `canFallbackToServer`) : jamais de téléversement silencieux en
+    // preview/production.
     setUploading(true);
     try {
+      // Décodage AVANT l'upload : un fichier illisible ou un audio de plus de
+      // 20 min est refusé sans créer de média ni envoyer un octet. Le PCM est
+      // réutilisé pour la transcription (pas de second décodage).
+      let pcm: Float32Array;
+      try {
+        pcm = await decodeToPcm16k(await file.arrayBuffer());
+      } catch (decodeErr) {
+        console.error("[ui] décodage audio impossible:", decodeErr);
+        toast.error(`« ${file.name} » n'a pas pu être lu comme audio.`, {
+          description:
+            "Convertis-le en MP3 ou WAV, ou importe des sous-titres SRT/VTT. Aucun fichier n'a été téléversé.",
+        });
+        return;
+      }
+      const audioSeconds = pcm.length / 16000;
+      if (audioSeconds > MAX_LOCAL_SECONDS) {
+        toast.error(
+          `Audio trop long (${(audioSeconds / 60).toFixed(1)} min) — la limite du moteur navigateur est de ${MAX_LOCAL_SECONDS / 60} minutes.`,
+          {
+            description:
+              "Découpe l'audio ou importe des sous-titres SRT/VTT. Aucun fichier n'a été téléversé.",
+          },
+        );
+        return;
+      }
       const postUrl = await createUploadUrl({});
       const res = await fetch(postUrl, {
         method: "POST",
@@ -723,18 +822,14 @@ export function ShadowView() {
         targetLanguage: targetLang,
         // Le moteur local prend la main : le pipeline serveur n'est pas
         // planifié (aucune requête ASR distante), sauf en repli explicite.
-        deferPipeline: localEligible,
+        deferPipeline: true,
       });
       console.log(
-        `[ui] upload enregistré — média ${created.mediaId}, moteur local : ${localEligible ? "oui" : "non (fichier volumineux)"}`,
+        `[ui] upload enregistré — média ${created.mediaId}, moteur local : oui`,
       );
       setMediaId(created.mediaId);
-      if (localEligible) {
-        toast.success("Média envoyé — transcription locale en cours");
-        void runLocalPipeline(created.mediaId, file, lang);
-      } else {
-        toast.success("Média envoyé — l'analyse démarre");
-      }
+      toast.success("Média envoyé — transcription locale en cours");
+      void runLocalPipeline(created.mediaId, file, lang, pcm);
     } catch (err) {
       console.error("[ui] échec upload/création média:", err);
       reportFailure(err, "Upload impossible");
@@ -776,6 +871,7 @@ export function ShadowView() {
 
   const reset = () => {
     setMediaId(null);
+    setLocalFailure(null);
     setShowSubsImport(false);
     setUnresolved(null);
     setPlaybackTime(0);
@@ -1315,7 +1411,39 @@ export function ShadowView() {
         </p>
       )}
 
-      {status.status === "failed" && status.errorKind === "no_transcript" ? (
+      {localFailure && (
+        <div className="rounded-2xl border border-terracotta/35 bg-terracotta/5 p-5">
+          <p className="flex items-center gap-2 text-sm font-medium text-terracotta-ink">
+            <TriangleAlert className="size-4" aria-hidden />
+            Transcription locale impossible
+          </p>
+          <p className="mt-2 text-sm text-ink-2">{localFailure.message}</p>
+          <p className="mt-1 text-xs text-ink-3">
+            Le fichier importé reste dans ton stockage KILINGO. Aucun envoi
+            automatique vers un moteur de transcription serveur, un worker ou
+            un service externe n'a été déclenché après l'échec du navigateur.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={retryLocalTranscription}
+              disabled={Boolean(localStage)}
+              className="rounded-lg border border-gold/40 bg-gold/10 px-4 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold/20 disabled:cursor-wait disabled:opacity-50"
+            >
+              {localStage ? "Transcription en cours…" : "Réessayer dans le navigateur"}
+            </button>
+            <button
+              type="button"
+              onClick={reset}
+              className="rounded-lg border border-white/15 px-4 py-2 text-sm text-ink-2 transition-colors hover:border-gold/40 hover:text-gold"
+            >
+              Choisir un autre fichier
+            </button>
+          </div>
+        </div>
+      )}
+
+      {status.status === "failed" && !localFailure && status.errorKind === "no_transcript" ? (
         // Plus de carte d'échec : une vidéo sans sous-titres publiés reste
         // une vidéo lisible. Le pipeline termine désormais ce cas en
         // « completed » sans sous-titres — ce bloc ne concerne plus que les
@@ -1340,7 +1468,7 @@ export function ShadowView() {
             </button>
           </div>
         </div>
-      ) : status.status === "failed" ? (
+      ) : status.status === "failed" && !localFailure ? (
         <div className="rounded-2xl border border-terracotta/35 bg-terracotta/5 p-5">
           <p className="text-sm text-terracotta-ink">
             Le traitement a échoué : {status.error ?? "erreur inconnue"}

@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { activeSubtitle, formatTimestamp } from "../src/convex/subtitles";
+import {
+  activeSubtitle,
+  formatTimestamp,
+  fuseSubtitles,
+} from "../src/convex/subtitles";
 
 describe("formatTimestamp", () => {
   test("mm:ss classiques", () => {
@@ -12,6 +16,43 @@ describe("formatTimestamp", () => {
   test("clamp des valeurs pathologiques (pas de temps négatif affiché)", () => {
     expect(formatTimestamp(-3)).toBe("0:00");
     expect(formatTimestamp(Number.NaN)).toBe("0:00");
+  });
+});
+
+describe("fuseSubtitles — détection lexicale", () => {
+  const segment = (text: string) => [
+    { id: 1, start: 0, end: 2, text },
+  ];
+
+  test("PE ne marque pas une ligne à cause de « peut »", () => {
+    const [sub] = fuseSubtitles({
+      segments: segment(
+        "And so my fellow Americans ask not what your country can do",
+      ),
+      translations: [
+        "Et mes concitoyens ne demandent pas ce que votre pays peut faire",
+      ],
+      slangPhrases: ["PE"],
+    });
+    expect(sub.isSlang).toBe(false);
+  });
+
+  test("PE isolé marque bien la ligne", () => {
+    const [sub] = fuseSubtitles({
+      segments: segment("An athlete PE, never sold"),
+      translations: ["Un athlète PE, jamais vendu"],
+      slangPhrases: ["PE"],
+    });
+    expect(sub.isSlang).toBe(true);
+  });
+
+  test("les expressions composées restent marquées", () => {
+    const [sub] = fuseSubtitles({
+      segments: segment("They spin the block every night"),
+      translations: [""],
+      slangPhrases: ["spin the block"],
+    });
+    expect(sub.isSlang).toBe(true);
   });
 });
 

@@ -1,4 +1,9 @@
 import { v } from "convex/values";
+import {
+  compileExpression,
+  normalizeForLexicalMatch,
+  type CompiledExpression,
+} from "../lib/lexicalMatch";
 
 /**
  * One synchronized subtitle line. Whisper supplies the original text and the
@@ -84,7 +89,7 @@ export type WhisperSegment = {
 type FusionInput = {
   segments: WhisperSegment[];
   translations: string[]; // one per segment, same order
-  slangPhrases: string[]; // lowercase surface forms of slang to flag
+  slangPhrases: string[]; // formes de surface à signaler (normalisées par le matcher)
 };
 
 /**
@@ -97,9 +102,11 @@ export function fuseSubtitles({
   translations,
   slangPhrases,
 }: FusionInput): Subtitle[] {
-  const phrases = slangPhrases
-    .map((p) => p.trim().toLowerCase())
-    .filter((p) => p.length > 0);
+  // Même matcher lexical que `detectSlangFromDatabase` : une expression
+  // courte (« PE ») ne doit pas marquer une ligne à cause de « peut ».
+  const matchers = slangPhrases
+    .map((phrase) => compileExpression(phrase))
+    .filter((m): m is CompiledExpression => m !== null);
 
   return segments.map((seg, i) => {
     // LOT D — une traduction ABSENTE reste vide. L'ancien repli
@@ -108,8 +115,11 @@ export function fuseSubtitles({
     // câblage. Vide = « pas encore traduit », un état que l'UI affiche
     // explicitement au lieu de dupliquer la ligne source.
     const translated = translations[i]?.trim() ?? "";
-    const haystack = `${seg.text} ${translated}`.toLowerCase();
-    const isSlang = phrases.some((p) => haystack.includes(p));
+    const source = normalizeForLexicalMatch(seg.text);
+    const target = normalizeForLexicalMatch(translated);
+    const isSlang = matchers.some(
+      (m) => m.test(source) || m.test(target),
+    );
     // Word timestamps du moteur : filtrage strict (word/start/end valides,
     // end >= start) puis portage tel quel — jamais de timestamps inventés.
     const words: WordTimestamp[] | undefined = (seg.words ?? [])

@@ -5,7 +5,11 @@ import {
   LOCAL_ASR_ENGINE,
   LOCAL_ASR_MODEL,
   LOCAL_MT_ENGINE,
+  MAX_LOCAL_BYTES,
+  MAX_SERVER_BYTES,
+  canFallbackToServer,
   decodeWavToPcm16k,
+  isLocalHostname,
   groupWordsIntoSegments,
   resolveMtRoute,
   transcribeLocal,
@@ -36,6 +40,32 @@ function pcm(file: string) {
     readFileSync(file).buffer.slice(0) as ArrayBuffer,
   );
 }
+
+describe("politique de repli serveur (confidentialité)", () => {
+  test("les hôtes locaux sont reconnus, les preview/production ne le sont pas", () => {
+    expect(isLocalHostname("localhost")).toBe(true);
+    expect(isLocalHostname("127.0.0.1")).toBe(true);
+    expect(isLocalHostname("[::1]")).toBe(true);
+    expect(isLocalHostname("kilingo-git-preview.vercel.app")).toBe(false);
+    expect(isLocalHostname("kilingo-ten.vercel.app")).toBe(false);
+  });
+
+  test("aucun repli serveur en mode hébergé, même pour un petit fichier", () => {
+    expect(canFallbackToServer("kilingo-git-preview.vercel.app", 1024)).toBe(false);
+    expect(canFallbackToServer("kilingo-ten.vercel.app", MAX_SERVER_BYTES)).toBe(false);
+  });
+
+  test("repli local uniquement sous la limite directe de 24 Mio", () => {
+    expect(canFallbackToServer("localhost", MAX_SERVER_BYTES)).toBe(true);
+    expect(canFallbackToServer("127.0.0.1", MAX_SERVER_BYTES + 1)).toBe(false);
+    expect(canFallbackToServer("localhost", 0)).toBe(false);
+  });
+
+  test("les seuils produit restent 64 Mio navigateur / 24 Mio serveur", () => {
+    expect(MAX_LOCAL_BYTES).toBe(64 * 1024 * 1024);
+    expect(MAX_SERVER_BYTES).toBe(24 * 1024 * 1024);
+  });
+});
 
 describe("décodage audio local", () => {
   test("WAV 16 kHz → Float32 mono, valeurs bornées", () => {

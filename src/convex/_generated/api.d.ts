@@ -79,6 +79,7 @@ import type * as mediaJobRun from "../mediaJobRun.js";
 import type * as mediaJobs from "../mediaJobs.js";
 import type * as mediaResolver from "../mediaResolver.js";
 import type * as mediaRetranslate from "../mediaRetranslate.js";
+import type * as mediaUrlPolicy from "../mediaUrlPolicy.js";
 import type * as notifications from "../notifications.js";
 import type * as ovAdmin from "../ovAdmin.js";
 import type * as ovEnv from "../ovEnv.js";
@@ -225,6 +226,7 @@ declare const fullApi: ApiFromModules<{
   mediaJobs: typeof mediaJobs;
   mediaResolver: typeof mediaResolver;
   mediaRetranslate: typeof mediaRetranslate;
+  mediaUrlPolicy: typeof mediaUrlPolicy;
   notifications: typeof notifications;
   ovAdmin: typeof ovAdmin;
   ovEnv: typeof ovEnv;

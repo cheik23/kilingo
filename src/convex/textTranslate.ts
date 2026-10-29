@@ -4,6 +4,10 @@ import { v, type Infer } from "convex/values";
 import { action } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import {
+  compileExpression,
+  normalizeForLexicalMatch,
+} from "../lib/lexicalMatch";
 
 /* ═══════════════════════════════════════════════════════════════════════
    TRADUCTION D'UN TEXTE COLLÉ — « bloc » (LOT D)
@@ -146,10 +150,22 @@ export const translateTextBlock = action({
       const rows = await ctx.runQuery(internal.slang.allForLanguage, {
         language: slangLanguage,
       });
-      const haystack = `${text}\n${translation}`.toLowerCase();
+      // Même matcher lexical que le pipeline média : « PE » ne doit pas
+      // être détecté dans « peut ». Les deux champs restent séparés pour
+      // qu'une frontière artificielle entre original et traduction ne crée
+      // pas une expression.
+      const sourceHaystack = normalizeForLexicalMatch(text);
+      const translationHaystack = normalizeForLexicalMatch(translation);
       detected = rows
-        .filter((row) => row.expression.trim().length > 1)
-        .filter((row) => haystack.includes(row.expression.trim().toLowerCase()))
+        .flatMap((row) => {
+          if (row.expression.trim().length <= 1) return [];
+          const compiled = compileExpression(row.expression, slangLanguage);
+          if (!compiled) return [];
+          const hit =
+            compiled.test(sourceHaystack) ||
+            compiled.test(translationHaystack);
+          return hit ? [row] : [];
+        })
         .slice(0, MAX_HITS)
         .map((row) => ({
           slangId: row.slangId,

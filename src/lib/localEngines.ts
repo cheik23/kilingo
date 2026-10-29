@@ -38,12 +38,43 @@ export const LOCAL_MT_ENGINE = "browser_opus_mt_local";
 export const LOCAL_ASR_MODEL =
   "onnx-community/whisper-base_timestamped";
 
-/** Au-delà de cette taille, le chemin local est refusé : l'upload part sur
- *  le pipeline serveur découpé (mediaJobs) au lieu de figer un onglet. */
+/** Limite du moteur navigateur (une inférence plus grosse figerait l'onglet). */
 export const MAX_LOCAL_BYTES = 64 * 1024 * 1024;
+/** Limite du chemin serveur direct (`processMedia`) : au-delà, le runtime
+ *  refuse le buffer. Le chemin découpé `mediaJobs` n'est pas disponible pour
+ *  un upload Shadow (il attend une URL source), donc on ne peut pas envoyer
+ *  silencieusement un fichier plus gros au serveur. */
+export const MAX_SERVER_BYTES = 24 * 1024 * 1024;
 /** Au-delà de cette durée d'audio, idem (une inférence navigateur d'une
  *  heure n'est pas raisonnable). */
 export const MAX_LOCAL_SECONDS = 20 * 60;
+
+/** Hôtes considérés comme « installation locale » : le worker faster-whisper
+ *  peut y être configuré explicitement. Une preview ou la production Vercel
+ *  n'est JAMAIS locale, même si elle est ouverte depuis un poste de dev. */
+export function isLocalHostname(hostname: string): boolean {
+  const host = hostname.trim().toLowerCase().replace(/^\[|\]$/g, "");
+  return (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "::1" ||
+    host === "0.0.0.0" ||
+    host.endsWith(".localhost")
+  );
+}
+
+/**
+ * Décide si un échec du moteur navigateur peut basculer vers le serveur.
+ *
+ * - hosted (preview/production) → jamais : l'audio ne doit pas quitter
+ *   silencieusement l'appareil après l'échec du moteur local ;
+ * - local explicite → seulement sous la limite directe de `processMedia`.
+ *   Au-delà de 24 Mio, le serveur refuserait le buffer : on affiche la
+ *   limite au lieu de téléverser puis d'échouer.
+ */
+export function canFallbackToServer(hostname: string, bytes: number): boolean {
+  return isLocalHostname(hostname) && bytes > 0 && bytes <= MAX_SERVER_BYTES;
+}
 
 export type LocalWord = {
   word: string;

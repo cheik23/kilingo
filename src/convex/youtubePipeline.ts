@@ -5,9 +5,14 @@ import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import {
   fuseSubtitles,
+  type SlangHit,
   type Subtitle,
   type WhisperSegment,
 } from "./subtitles";
+import {
+  compileExpression,
+  normalizeForLexicalMatch,
+} from "../lib/lexicalMatch";
 import type { ActionCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { getAuthUserId } from "@convex-dev/auth/server";
@@ -589,7 +594,7 @@ async function detectSlangFromDatabase(
   ctx: ActionCtx,
   language: string,
   subtitles: Subtitle[],
-): Promise<{ expression: string; meaning: string; context?: string }[]> {
+): Promise<SlangHit[]> {
   // Narrow to the focus languages the slang DB covers; anything else (e.g. a
   // French transcript) has no expression table to scan.
   const supported = ["en", "zh", "es", "ar", "ru"] as const;
@@ -599,27 +604,34 @@ async function detectSlangFromDatabase(
   const expressions = await ctx.runQuery(internal.slang.allForLanguage, {
     language: focus,
   });
-  const hits: {
-    expression: string;
-    meaning: string;
-    context?: string;
-  }[] = [];
-
+  const hits: SlangHit[] = [];
+  // Normalise chaque champ UNE fois : plusieurs centaines d'expressions sont
+  // comparées au même texte. La comparaison exige des frontières lexicales
+  // (« PE » ne matche plus « peut »), dans la transcription comme dans la
+  // traduction. Les deux champs restent séparés : concaténer « P » et « E… »
+  // fabriquerait une expression qui n'existe dans aucun des deux.
+  const sourceHaystacks = subtitles.map((sub) =>
+    normalizeForLexicalMatch(sub.originalText),
+  );
+  const translationHaystacks = subtitles.map((sub) =>
+    normalizeForLexicalMatch(sub.translatedText),
+  );
   for (const entry of expressions) {
-    const needle = entry.expression.toLowerCase();
-    if (!needle) continue;
-    // Match inside either the original transcript or the translation so a
-    // line like « pas de cap » in the French translation still flags.
-    const touched = subtitles.filter((sub) => {
-      const haystack =
-        `${sub.originalText} ${sub.translatedText}`.toLowerCase();
-      return haystack.includes(needle);
-    });
-    if (touched.length > 0) {
+    const compiled = compileExpression(entry.expression, focus);
+    if (!compiled) continue;
+    const subtitleIds = subtitles
+      .filter(
+        (_, i) =>
+          compiled.test(sourceHaystacks[i]) ||
+          compiled.test(translationHaystacks[i]),
+      )
+      .map((sub) => sub.id);
+    if (subtitleIds.length > 0) {
       hits.push({
         expression: entry.expression,
         meaning: entry.meaning,
         context: entry.context,
+        subtitleIds,
       });
     }
   }
@@ -748,8 +760,7 @@ export async function runSharedPipeline(ctx: ActionCtx, input: PipelineInput) {
   // 3. Slang detection against the local expressions database. Cosmetic
   // stage: if it fails, the transcript still ships — never block a completed
   // transcription on an enrichment step.
-  let slangHits: { expression: string; meaning: string; context?: string }[] =
-    [];
+  let slangHits: SlangHit[] = [];
   try {
     slangHits = await detectSlangFromDatabase(
       ctx,
@@ -764,12 +775,12 @@ export async function runSharedPipeline(ctx: ActionCtx, input: PipelineInput) {
     );
   }
 
-  // 4. Flag the matching subtitle lines.
+  // 4. Flag the matching subtitle lines — mêmes frontières lexicales que la
+  // détection : une ligne ne peut plus être marquée par une sous-chaîne.
   for (const hit of slangHits) {
-    const needle = hit.expression.toLowerCase();
+    const ids = new Set(hit.subtitleIds);
     for (const sub of subtitles) {
-      const haystack = `${sub.originalText} ${sub.translatedText}`.toLowerCase();
-      if (haystack.includes(needle)) sub.isSlang = true;
+      if (ids.has(sub.id)) sub.isSlang = true;
     }
   }
 
@@ -783,16 +794,7 @@ export async function runSharedPipeline(ctx: ActionCtx, input: PipelineInput) {
     translationFailed,
     translationProgress: 100,
     subtitles,
-    slangDetected: slangHits.map((s) => ({
-      ...s,
-      subtitleIds: subtitles
-        .filter((sub) =>
-          `${sub.originalText} ${sub.translatedText}`
-            .toLowerCase()
-            .includes(s.expression.toLowerCase()),
-        )
-        .map((sub) => sub.id),
-    })),
+    slangDetected: slangHits,
     durationSeconds:
       input.duration ?? Math.max(...input.segments.map((s) => s.end), 0),
     transcriptSource: input.transcriptSource,
